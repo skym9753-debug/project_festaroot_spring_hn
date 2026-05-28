@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.app.dao.AuthDAO">
+	
+	<select id="selectMemberById" parameterType="string" resultType="com.study.app.dto.MemberDTO">
+        SELECT
+            MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE,
+            EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU,
+            RESIDE_AREA_CODE, RESIDE_SIGUNGU_CODE, PROFILE_IMAGE_URL, SOCIAL_PROVIDER, EXP_POINT,
+            TITLE_ID, CREATED_AT
+        FROM MEMBER
+        WHERE MEMBER_ID = #{member_id}
+    </select>
+
+</mapper>
