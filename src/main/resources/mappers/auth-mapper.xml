@@ -9,9 +9,47 @@
             MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE,
             EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU,
             RESIDE_AREA_CODE, RESIDE_SIGUNGU_CODE, PROFILE_IMAGE_URL, SOCIAL_PROVIDER, EXP_POINT,
-            TITLE_ID, CREATED_AT
+            TITLE_ID, CREATED_AT, SOCIAL_ID
         FROM MEMBER
         WHERE MEMBER_ID = #{member_id}
     </select>
+    
+    <select id="selectMemberBySocialIdAndProvider" resultType="com.study.app.dto.MemberDTO">
+        SELECT
+            MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE,
+            EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU,
+            RESIDE_AREA_CODE, RESIDE_SIGUNGU_CODE, PROFILE_IMAGE_URL, SOCIAL_PROVIDER, EXP_POINT,
+            TITLE_ID, CREATED_AT, SOCIAL_ID
+        FROM MEMBER
+        WHERE SOCIAL_ID = #{socialId} AND SOCIAL_PROVIDER = #{socialProvider}
+    </select>
+    
+    <insert id="insertMember" parameterType="com.study.app.dto.MemberDTO">
+        INSERT INTO MEMBER (
+            MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE,
+            EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU,
+            RESIDE_AREA_CODE, RESIDE_SIGUNGU_CODE, PROFILE_IMAGE_URL, SOCIAL_PROVIDER, EXP_POINT,
+            TITLE_ID, CREATED_AT, SOCIAL_ID
+        ) VALUES (
+            'kakao_' || MEMBER_SEQ.NEXTVAL, <!-- Generate MEMBER_ID using sequence and 'kakao_' prefix -->
+            #{password},
+            #{name},
+            #{nickname},
+            #{phone},
+            #{email},
+            #{birthdate},
+            #{gender},
+            #{addr_sido},
+            #{addr_sigungu},
+            #{reside_area_code},
+            #{reside_sigungu_code},
+            #{profile_image_url},
+            #{social_provider},
+            #{exp_point},
+            #{title_id},
+            SYSDATE,
+            #{social_id}
+        )
+    </insert>
 
 </mapper>
