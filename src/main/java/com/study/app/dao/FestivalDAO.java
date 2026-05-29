@@ -10,16 +10,22 @@ import com.study.app.dto.FestivalDTO;
 
 @Repository
 public class FestivalDAO {
-	
+
 	@Autowired
 	private SqlSessionTemplate mybatis;
-	
-	public List<FestivalDTO> getAllFestival(){
+
+	public List<FestivalDTO> getAllFestival() {
 		return mybatis.selectList("Festival.getAll");
-		
+
 	}
+
 	public FestivalDTO selectByContentId(String contentId) {
-		return mybatis.selectOne("Festival.selectByContentId",contentId);
+		return mybatis.selectOne("Festival.selectByContentId", contentId);
 	}
-	
+
+	// 축제 정보 업데이트 또는 추가하는 메서드
+	public int upsertFestival(FestivalDTO dto) {
+		return mybatis.update("Festival.upsertFestival", dto);
+	}
+
 }

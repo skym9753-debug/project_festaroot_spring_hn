@@ -7,7 +7,22 @@
   	<select id="getAll" resultType="com.study.app.dto.FestivalDTO">
   		select * from festival_info
   	</select>
+  	
   	<select id="selectByContentId" resultType="com.study.app.dto.FestivalDTO">
-  		select * from festival_info where content_id = ${content_id}
+  		select * from festival_info where content_id = #{content_id}
   	</select>
+  	
+	<!--축제 정보 update 또는 insert-->
+	<update id="upsertFestival" parameterType="com.study.app.dto.FestivalDTO">
+		merge into festival_info f
+		using dual
+		on (f.content_id = #{content_id}) when matched then update set
+			f.title = #{title},
+			f.addr1 = #{addr1},
+			f.region_code = #{region_code},
+			f.modified_time = #{modified_time}
+		when not matched then insert (content_id, title, addr1, region_code, created_time, modified_time)
+		values (#{content_id}, #{title}, #{addr1}, #{region_code}, #{created_time}, #{modified_time})
+	</update>
+	
   </mapper>
