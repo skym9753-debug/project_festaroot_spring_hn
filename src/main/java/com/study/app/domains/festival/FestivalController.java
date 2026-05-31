@@ -74,8 +74,6 @@ public class FestivalController {
 		return ResponseEntity.ok(dto);
 	}
 
-	// 축제 검색 > 축제 목록 보기
-
 	// 축제 정보 DB에 저장
 	@PostMapping("/sync")
 	public ResponseEntity<String> syncFestivalData(){
@@ -88,6 +86,13 @@ public class FestivalController {
 								.body("데이터 동기화 실패 : " + e.getMessage()); // 실패시 리액트에게 500 에러 전달
 		}
 
+	}
+	
+	// 축제 검색 > 축제 목록 보기
+	public ResponseEntity<List<FestivalDTO>> searchFestivalList(){
+//		List<FestivalDTO> list = feServ.searchFestivalKeyword();
+//		return ResponseEntity.ok(list);
+		return ResponseEntity.ok().build();
 	}
 
 }
