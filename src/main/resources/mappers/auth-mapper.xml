@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.study.app.dao.AuthDAO">
+<mapper namespace="com.study.app.domains.auth.AuthDAO">
 	
-	<select id="selectMemberById" parameterType="string" resultType="com.study.app.dto.MemberDTO">
+	<select id="selectMemberById" parameterType="string" resultType="com.study.app.domains.member.dto.MemberDTO">
         SELECT
             MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE,
             EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU,
@@ -14,7 +14,7 @@
         WHERE MEMBER_ID = #{member_id}
     </select>
     
-    <select id="selectMemberBySocialIdAndProvider" resultType="com.study.app.dto.MemberDTO">
+    <select id="selectMemberBySocialIdAndProvider" resultType="com.study.app.domains.member.dto.MemberDTO">
            SELECT *
 		    FROM MEMBER
 		    WHERE SOCIAL_ID = #{socialId}

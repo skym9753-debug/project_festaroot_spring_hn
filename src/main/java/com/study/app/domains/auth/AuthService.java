@@ -1,4 +1,4 @@
-package com.study.app.services;
+package com.study.app.domains.auth;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,11 +20,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import com.study.app.dao.AuthDAO;
-import com.study.app.dto.KakaoTokenResponse;
-import com.study.app.dto.KakaoUserResponse;
-import com.study.app.dto.LoginDTO;
-import com.study.app.dto.MemberDTO;
+import com.study.app.domains.auth.dto.LoginDTO;
+import com.study.app.domains.member.dto.MemberDTO;
+import com.study.app.domains.oauth.KakaoTokenResponse;
+import com.study.app.domains.oauth.KakaoUserResponse;
 import com.study.app.utils.JWTUtil;
 
 @Service
