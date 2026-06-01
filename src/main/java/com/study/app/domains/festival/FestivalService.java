@@ -321,8 +321,12 @@ public class FestivalService {
 			
 				if (itemNode.isArray()) { // boolean으로 배열인지 확인
 					for (JsonNode item : itemNode) {
+						
+						
 						// FestivalDTO에 item에서 꺼낸 값 담기
 						FestivalDTO dto = new FestivalDTO();
+						
+						long contentId = item.path("contentid").asLong();
 
 						dto.setContent_id(item.path("contentid").asLong()); // api에서 contentid 꺼내오고 dto에 설정한 Long형으로 받기
 						dto.setTitle(item.path("title").asText()); // 축제명
@@ -349,7 +353,64 @@ public class FestivalService {
 
 						dto.setCreated_time(item.path("createdtime").asText()); // 축제 등록일
 						dto.setModified_time(item.path("modifiedtime").asText()); // 축제 수정일
+						
+						
+						// DB에 저장된 기존 축제 조회
+						FestivalDTO dbFestival =
+						        fdao.selectByContentId(String.valueOf(contentId));
 
+						// TourAPI 목록에서 받은 최신 수정일
+						String apiModifiedTime = item.path("modifiedtime").asText();
+
+						// DB에 저장된 수정일
+						String dbModifiedTime =
+						        dbFestival == null ? null : dbFestival.getModified_time();
+
+						// DB의 수정일과 API의 수정일이 다르면,
+						// 관광공사 쪽 데이터가 수정된 것으로 판단
+						boolean isUpdated =
+						        dbFestival == null
+						        || isBlank(dbModifiedTime)
+						        || !apiModifiedTime.equals(dbModifiedTime);
+
+
+						// detailCommon2 호출 여부 판단
+						boolean needCommon =
+						        dbFestival == null
+						        || isUpdated
+						        || isBlank(dbFestival.getOverview())
+						        || isBlank(dbFestival.getHomepage())
+						        || isBlank(dbFestival.getSponsor1_tel());
+
+
+						// detailIntro2 호출 여부 판단
+						boolean needIntro =
+						        dbFestival == null
+						        || isUpdated
+						        || isBlank(dbFestival.getSpon_place())
+						        || isBlank(dbFestival.getUse_time_festival());
+
+
+						// 공통 상세정보가 없거나,
+						// 관광공사 데이터가 수정된 경우 다시 조회
+						if (needCommon) {
+						    fillDetailCommon(dto, contentId, mapper);
+						} else {
+						    dto.setOverview(dbFestival.getOverview());
+						    dto.setHomepage(dbFestival.getHomepage());
+						    dto.setSponsor1_tel(dbFestival.getSponsor1_tel());
+						}
+
+
+						// 축제 소개 상세정보가 없거나,
+						// 관광공사 데이터가 수정된 경우 다시 조회
+						if (needIntro) {
+						    fillDetailIntro(dto, contentId, mapper);
+						} else {
+						    dto.setSpon_place(dbFestival.getSpon_place());
+						    dto.setUse_time_festival(dbFestival.getUse_time_festival());
+						}
+						
 						// festivalDAO 호출 : 값을 가져온 범위 내에서 이미 값이 있으면 update, 없으면 insert
 						fdao.upsertFestival(dto); // api 값 담은 dto 전달
 					}
@@ -363,4 +424,189 @@ public class FestivalService {
 		}
 	}
 
+    /**
+     * 문자열이 null 이거나 비어있는지 확인
+     *
+     * true  : null, "", "   "
+     * false : 실제 값 존재
+     */
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    
+	// ============================================================================
+	// detailCommon2 조회
+	//
+	// 목적
+	// - 축제 소개글(overview)
+	// - 문의 전화번호(tel)
+	// - 홈페이지(homepage)
+	//
+	// 목록 API(searchFestival2)에서는 가져올 수 없는 상세 정보를 조회한다.
+	// ============================================================================
+	private void fillDetailCommon(FestivalDTO dto, long contentId, ObjectMapper mapper) {
+
+	    try {
+
+	        // TourAPI 상세공통정보 조회 URL 생성
+	        URI uri = UriComponentsBuilder
+	                .fromUriString("https://apis.data.go.kr/B551011/KorService2/detailCommon2")
+
+	                // 공공데이터포털 인증키
+	                .queryParam("serviceKey", serviceKey)
+
+	                // 필수 파라미터
+	                .queryParam("MobileOS", "ETC")
+	                .queryParam("MobileApp", "AppTest")
+
+	                // JSON 응답 요청
+	                .queryParam("_type", "json")
+
+	                // 조회할 축제 contentId
+	                .queryParam("contentId", contentId)
+
+	                // 15 = 축제/공연/행사
+	                .queryParam("contentTypeId", "15")
+
+	                // 소개글 조회
+	                .queryParam("overviewYN", "Y")
+
+	                // 기본정보 조회
+	                // title, tel, homepage 등 포함
+	                .queryParam("defaultYN", "Y")
+
+	                .build(true)
+	                .toUri();
+
+	        // TourAPI 호출
+	        String response = restTemplate.getForObject(uri, String.class);
+
+	        // JSON 문자열 → JsonNode 변환
+	        JsonNode root = mapper.readTree(response);
+
+	        // 응답 구조 접근
+	        JsonNode item = root.path("response")
+	                            .path("body")
+	                            .path("items")
+	                            .path("item");
+
+	        // item이 배열 또는 객체로 반환될 수 있음
+	        JsonNode data = item.isArray() ? item.get(0) : item;
+
+	        // 정상 데이터 존재 여부 확인
+	        if (data != null && !data.isMissingNode()) {
+
+	            // 소개글
+	            String overview = data.path("overview").asText();
+
+	            // 문의전화
+	            String tel = data.path("tel").asText();
+
+	            // 홈페이지
+	            String homepage = data.path("homepage").asText();
+
+	            // 값이 존재할 경우 DTO에 저장
+	            if (!overview.isBlank()) {
+	                dto.setOverview(overview);
+	            }
+
+	            if (!tel.isBlank()) {
+	                dto.setSponsor1_tel(tel);
+	            }
+
+	            if (!homepage.isBlank()) {
+	                dto.setHomepage(homepage);
+	            }
+	        }
+
+	    } catch (Exception e) {
+
+	        // 상세 조회 실패 시에도
+	        // 목록 데이터 저장은 계속 진행되도록 예외 무시
+	        System.err.println(
+	            "[detailCommon2 실패] contentId="
+	            + contentId
+	            + " : "
+	            + e.getMessage()
+	        );
+	    }
+	}
+	 
+	 
+	// ============================================================================
+	// detailIntro2 조회
+	//
+	// 목적
+	// - 행사 장소(eventplace)
+	// - 이용요금/관람정보(usetimefestival)
+	//
+	// 축제 전용 상세 정보를 조회한다.
+	// ============================================================================
+	private void fillDetailIntro(FestivalDTO dto, long contentId, ObjectMapper mapper) {
+
+	    try {
+
+	        // TourAPI 상세소개정보 조회 URL 생성
+	        URI uri = UriComponentsBuilder
+	                .fromUriString("https://apis.data.go.kr/B551011/KorService2/detailIntro2")
+	                .queryParam("serviceKey", serviceKey)
+	                .queryParam("MobileOS", "ETC")
+	                .queryParam("MobileApp", "AppTest")
+	                .queryParam("_type", "json")
+
+	                // 조회 대상 축제 ID
+	                .queryParam("contentId", contentId)
+
+	                // 15 = 축제
+	                .queryParam("contentTypeId", "15")
+
+	                .build(true)
+	                .toUri();
+
+	        // API 호출
+	        String response = restTemplate.getForObject(uri, String.class);
+
+	        // JSON 파싱
+	        JsonNode root = mapper.readTree(response);
+
+	        JsonNode item = root.path("response")
+	                            .path("body")
+	                            .path("items")
+	                            .path("item");
+
+	        JsonNode data = item.isArray() ? item.get(0) : item;
+
+	        if (data != null && !data.isMissingNode()) {
+
+	            // 행사 장소
+	            String sponPlace =
+	                    data.path("eventplace").asText();
+
+	            // 이용요금 및 관람안내
+	            String useTimeFestival =
+	                    data.path("usetimefestival").asText();
+
+	            // DTO 저장
+	            if (!sponPlace.isBlank()) {
+	                dto.setSpon_place(sponPlace);
+	            }
+
+	            if (!useTimeFestival.isBlank()) {
+	                dto.setUse_time_festival(useTimeFestival);
+	            }
+	        }
+
+	    } catch (Exception e) {
+
+	        // 상세 정보 조회 실패 시
+	        // 전체 동기화 작업은 계속 진행
+	        System.err.println(
+	            "[detailIntro2 실패] contentId="
+	            + contentId
+	            + " : "
+	            + e.getMessage()
+	        );
+	    }
+	}
 }

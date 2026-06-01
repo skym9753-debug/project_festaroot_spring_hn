@@ -2,12 +2,7 @@ package com.study.app.domains.region;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.study.app.services.RegionMasterService;
 
 @Component
 public class RegionInitalDataSetting implements CommandLineRunner {

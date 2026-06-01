@@ -1,15 +1,14 @@
-package com.study.app.services;
+package com.study.app.domains.region;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import com.study.app.domains.region.RegionMasterDTO;
 import com.study.app.domains.region.RegionMasterMapper;
+
 
 @Service
 public class RegionMasterService {
