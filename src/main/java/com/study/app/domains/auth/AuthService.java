@@ -345,7 +345,7 @@ public class AuthService {
         GoogleTokenResponse tokenResponse =
             getGoogleAccessToken(code);
         
-        System.out.println(tokenResponse);
+
 
         if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
             result.put("success", false);
