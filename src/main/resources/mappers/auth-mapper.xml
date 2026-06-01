@@ -25,31 +25,22 @@
     </select>
     
     <insert id="insertMember" parameterType="com.study.app.dto.MemberDTO">
+
         INSERT INTO MEMBER (
-            MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE,
-            EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU,
-            RESIDE_AREA_CODE, RESIDE_SIGUNGU_CODE, PROFILE_IMAGE_URL, SOCIAL_PROVIDER, EXP_POINT,
-            TITLE_ID, CREATED_AT, SOCIAL_ID
-        ) VALUES (
-            'kakao_' || MEMBER_SEQ.NEXTVAL, <!-- Generate MEMBER_ID using sequence and 'kakao_' prefix -->
-            #{password},
-            #{name},
-            #{nickname},
-            #{phone},
-            #{email},
-            #{birthdate},
-            #{gender},
-            #{addr_sido},
-            #{addr_sigungu},
-            #{reside_area_code},
-            #{reside_sigungu_code},
-            #{profile_image_url},
-            #{social_provider},
-            #{exp_point},
-            #{title_id},
-            SYSDATE,
-            #{social_id}
-        )
+			MEMBER_ID, PASSWORD, NAME, NICKNAME, PHONE, 
+			EMAIL, BIRTHDATE, GENDER, ADDR_SIDO, ADDR_SIGUNGU, 
+			RESIDE_AREA_CODE, RESIDE_SIGUNGU_CODE, PROFILE_IMAGE_URL, SOCIAL_PROVIDER, EXP_POINT, 
+			TITLE_ID, CREATED_AT
+		) VALUES (
+			'kakao_' || MEMBER_SEQ.NEXTVAL, #{password}, #{name}, #{nickname}, #{phone}, 
+			#{email}, #{birthdate}, #{gender}, #{addr_sido}, #{addr_sigungu}, 
+			#{reside_area_code}, #{reside_sigungu_code}, #{profile_image_url}, 
+			COALESCE(#{social_provider}, 'LOCAL'), 0, 
+			#{title_id}, SYSDATE
+		)
     </insert>
+    
+    
+
 
 </mapper>

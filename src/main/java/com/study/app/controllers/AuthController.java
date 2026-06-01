@@ -46,22 +46,8 @@ public class AuthController {
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
 	    }
 	}
+	
 
-    @GetMapping("/kakao/callback")
-    public ResponseEntity<Map<String, Object>> kakaoCallback(@RequestParam("code") String code) {
-        String token = authService.kakaoLogin(code);
 
-        Map<String, Object> result = new HashMap<>();
 
-        if (token != null) {
-            result.put("success", true);
-            result.put("message", "카카오 로그인 성공!");
-            result.put("token", token);
-            return ResponseEntity.ok(result);
-        } else {
-            result.put("success", false);
-            result.put("message", "카카오 로그인 실패.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
-        }
-    }
 }
