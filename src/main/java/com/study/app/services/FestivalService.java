@@ -60,9 +60,9 @@ public class FestivalService {
                     .build(true)
                     .toUri();
 
-            System.out.println(">>> [CommonDetail] Request URI: " + uri);
+            //System.out.println(">>> [CommonDetail] Request URI: " + uri);
             String response = restTemplate.getForObject(uri, String.class);
-            System.out.println(">>> [CommonDetail] Raw Response: " + response);
+            //System.out.println(">>> [CommonDetail] Raw Response: " + response);
 
             if (response == null || response.trim().startsWith("<")) {
                 System.err.println("❌ [TourAPI 에러] 유효하지 않은 응답입니다 (Common).");
@@ -114,9 +114,9 @@ public class FestivalService {
                     .build(true)
                     .toUri();
 
-            System.out.println(">>> [SpecificDetail] Request URI: " + uri);
+            //System.out.println(">>> [SpecificDetail] Request URI: " + uri);
             String response = restTemplate.getForObject(uri, String.class);
-            System.out.println(">>> [SpecificDetail] Raw Response: " + response);
+            //System.out.println(">>> [SpecificDetail] Raw Response: " + response);
 
             if (response == null || response.trim().startsWith("<")) {
                 System.err.println("❌ [TourAPI 에러] 유효하지 않은 응답입니다 (Intro).");
