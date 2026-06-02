@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.app.domains.festival.dto.CommonDetailDTO;
 import com.study.app.domains.festival.dto.EventPlaceDTO;
+import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
 import com.study.app.domains.festival.dto.NearbyPlaceDTO;
@@ -412,7 +413,26 @@ public class FestivalService {
 						}
 						
 						// festivalDAO 호출 : 값을 가져온 범위 내에서 이미 값이 있으면 update, 없으면 insert
-						fdao.upsertFestival(dto); // api 값 담은 dto 전달
+						// fdao.upsertFestival(dto); // api 값 담은 dto 전달
+						
+						try {
+						    System.out.println("저장 시도 contentId = " + dto.getContent_id());
+						    System.out.println("title = " + dto.getTitle());
+						    System.out.println("homepage length = " + 
+						        (dto.getHomepage() == null ? 0 : dto.getHomepage().length()));
+						    System.out.println("overview length = " + 
+						        (dto.getOverview() == null ? 0 : dto.getOverview().length()));
+
+						    fdao.upsertFestival(dto);
+						    fdao.updateFestivalDetail(dto); 
+
+						} catch (Exception e) {
+						    System.out.println("저장 실패 contentId = " + dto.getContent_id());
+						    System.out.println("title = " + dto.getTitle());
+						    System.out.println("homepage = " + dto.getHomepage());
+						    throw e;
+						}
+						
 					}
 				}
 				// 현재 저장된 진행 상황
@@ -571,7 +591,7 @@ public class FestivalService {
 	                .queryParam("contentId", contentId)
 
 	                // 15 = 축제
-	                .queryParam("contentTypeId", "15")
+	                // .queryParam("contentTypeId", "15")
 
 	                .build(true)
 	                .toUri();
@@ -620,5 +640,10 @@ public class FestivalService {
 	            + e.getMessage()
 	        );
 	    }
+	}
+	
+	// 축제 상세보기 정보 가져오기
+	public FestDetailDTO getFestivalDetail(String contentId) {
+		return fdao.selectDeatilByContentId(contentId);
 	}
 }
