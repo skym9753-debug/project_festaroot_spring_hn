@@ -17,6 +17,7 @@ import com.study.app.domains.festival.dto.CommonDetailDTO;
 import com.study.app.domains.festival.dto.EventPlaceDTO;
 import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
+import com.study.app.domains.festival.dto.FestivalSearchDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
 import com.study.app.domains.festival.dto.NearbyPlaceDTO;
 import com.study.app.domains.festival.dto.PlaceDetailResponse;
@@ -34,8 +35,14 @@ public class FestivalService {
 	@Value("${kto.service.key}")
 	private String serviceKey;
 
-	public List<FestivalDTO> getAllFestival() {
-		return fdao.getAllFestival();
+	// 축제 찾기 > 검색 조건에 맞는 축제 목록 가져오기
+	public List<FestivalDTO> getSearchFestivals(FestivalSearchDTO searchDTO){
+		return fdao.getSearchFestivals(searchDTO);
+	}
+	
+	// 축제 찾기 > 네비게이터 카운트
+	public int getSearchFestivalCount(FestivalSearchDTO searchDTO) {
+		return fdao.getSearchFestivalCount(searchDTO);
 	}
 
 	public FestivalDTO selectByContentId(String contentId) {

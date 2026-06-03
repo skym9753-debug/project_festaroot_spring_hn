@@ -58,73 +58,100 @@
         WHERE content_id = #{content_id}
     </update>
 
-    <update id="upsertFestival" parameterType="com.study.app.domains.festival.dto.FestivalDTO">
-        MERGE INTO festival_info f
-        USING DUAL
-        ON (f.content_id = #{content_id})
- 
-        WHEN MATCHED THEN UPDATE SET
-            f.title              = #{title},
-            f.addr1              = #{addr1},
-            f.addr2              = #{addr2},
-            f.region_code        = #{region_code},
-            f.sigungu_code       = #{sigungu_code},
-            f.first_image        = #{first_image},
-            f.first_image2       = #{first_image2},
-            f.map_x              = #{map_x},
-            f.map_y              = #{map_y},
-            f.map_level          = #{map_level},
-            f.event_start_date   = #{event_start_date},
-            f.event_end_date     = #{event_end_date},
-            f.modified_time      = #{modified_time},
-			f.overview           = #{overview,jdbcType=CLOB},
-            f.sponsor1_tel       = #{sponsor1_tel,jdbcType=VARCHAR},
-            f.homepage           = #{homepage,jdbcType=CLOB},
-            f.spon_place         = #{spon_place,jdbcType=VARCHAR},
-            f.use_time_festival  = #{use_time_festival,jdbcType=VARCHAR}
- 
-        WHEN NOT MATCHED THEN INSERT (
-		    content_id,
-		    title,
-		    addr1,
-		    addr2,
-		    region_code,
-		    sigungu_code,
-		    first_image,
-		    first_image2,
-		    map_x,
-		    map_y,
-		    map_level,
-		    event_start_date,
-		    event_end_date,
-		    created_time,
-		    modified_time,
-		    view_count,
-		    like_count,
-		    review_count,
-		    rating_avg
-		) VALUES (
-		    #{content_id},
-		    #{title},
-		    #{addr1},
-		    #{addr2},
-		    #{region_code},
-		    #{sigungu_code},
-		    #{first_image},
-		    #{first_image2},
-		    #{map_x},
-		    #{map_y},
-		    #{map_level},
-		    #{event_start_date},
-		    #{event_end_date},
-		    #{created_time},
-		    #{modified_time},
-		    0,
-		    0,
-		    0,
-		    0
-		)
-    </update>
+	<!--축제 찾기 검색 조건-->
+    <select id="selectByOptions"
+            parameterType="com.study.app.domains.festival.dto.FestivalSearchDTO"
+            resultType="com.study.app.domains.festival.dto.FestivalDTO">
+
+        <bind name="startRow" value="(page - 1) * size + 1" />
+        <bind name="endRow" value="page * size" />
+
+        SELECT * FROM (
+            SELECT ROWNUM AS rnum, res.* FROM (
+                
+                SELECT * FROM festival_info
+                <where>
+                    <if test="keyword != null and keyword != ''">
+                        <choose>
+                            <when test="searchScope == 'all'">
+                                AND (
+                                    title LIKE '%' || #{keyword} || '%' 
+                                    OR 
+                                    (overview IS NOT NULL AND overview LIKE '%' || #{keyword} || '%')
+                                )
+                            </when>
+                            <otherwise>
+                                AND title LIKE '%' || #{keyword} || '%'
+                            </otherwise>
+                        </choose>
+                    </if>
+                    <if test="region_code != null and region_code != ''">
+                        AND region_code = #{region_code}
+                    </if>
+                    <if test="sigungu_code != null and sigungu_code != ''">
+                        AND sigungu_code = #{sigungu_code}
+                    </if>
+                    <if test="event_start_date != null and event_start_date != ''">
+                        AND event_start_date &gt;= #{event_start_date}
+                    </if>
+                    <if test="event_end_date != null and event_end_date != ''">
+                        AND event_end_date &lt;= #{event_end_date}
+                    </if>
+                    <if test="ongoingOnly != null and ongoingOnly == true">
+                        AND REPLACE(event_end_date, '-', '') >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    </if>
+                </where>
+                <choose>
+                    <when test="sort == 'event_start_date'">
+                        ORDER BY event_start_date ASC
+                    </when>
+                    <otherwise>
+                        ORDER BY created_time DESC
+                    </otherwise>
+                </choose>
+                ) res
+            WHERE ROWNUM &lt;= #{endRow}
+        )
+        WHERE rnum &gt;= #{startRow}
+    </select>
+
+	<!--축제 찾기 네비게이터 카운트-->
+    <select id="getSearchFestivalCount"
+        parameterType="com.study.app.domains.festival.dto.FestivalSearchDTO"
+        resultType="int"> 
+        SELECT COUNT(*) FROM festival_info 
+        <where>
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="searchScope == 'all'">
+                        AND (
+                            title LIKE '%' || #{keyword} || '%' 
+                            OR 
+                            (overview IS NOT NULL AND overview LIKE '%' || #{keyword} || '%')
+                        )
+                    </when>
+                    <otherwise>
+                        AND title LIKE '%' || #{keyword} || '%'
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="region_code != null and region_code != ''">
+                AND region_code = #{region_code}
+            </if>
+            <if test="sigungu_code != null and sigungu_code != ''">
+                AND sigungu_code = #{sigungu_code}
+            </if>
+            <if test="event_start_date != null and event_start_date != ''">
+                AND event_start_date &gt;= #{event_start_date}
+            </if>
+            <if test="event_end_date != null and event_end_date != ''">
+                AND event_end_date &lt;= #{event_end_date}
+            </if>
+            <if test="ongoingOnly != null and ongoingOnly == true">
+                AND REPLACE(event_end_date, '-', '') >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+            </if>
+        </where>
+    </select>
     
 	<!--    CLOB 분리-->
     <update id="updateFestivalDetail">
