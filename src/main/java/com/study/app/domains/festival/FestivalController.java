@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.study.app.domains.festival.dto.EventPlaceDTO;
+import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
@@ -151,6 +152,13 @@ public class FestivalController {
 	@GetMapping("/sigungu")
 	public List<RegionMasterDTO> getSigunguList(@RequestParam String region_code) {
 		return regionMasterService.getSigunguList(region_code);
+	}
+	
+	// 축제 상세보기
+	@GetMapping("/detail/{contentId}")
+	public ResponseEntity<FestDetailDTO> getFestivalDetail(@PathVariable String contentId) {
+		FestDetailDTO dto = feServ.getFestivalDetail(contentId);
+		return ResponseEntity.ok(dto);
 	}
 
 }

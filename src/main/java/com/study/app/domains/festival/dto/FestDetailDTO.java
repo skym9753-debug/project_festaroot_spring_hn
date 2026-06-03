@@ -1,69 +1,44 @@
 package com.study.app.domains.festival.dto;
 
-public class FestivalDTO {
+public class FestDetailDTO {
 	
-	// 콘텐츠 ID / TourAPI 고유 식별자 (PK)
     private Long content_id;
-    
-    // 축제명
     private String title;
-    
-    // 주소 및 상세 주소
     private String addr1;
     private String addr2;
-    
-    // 지역 및 시군구 코드 (areaCode, sigunguCode)
     private String region_code;
     private String sigungu_code;
-    
-    // 대표 이미지 및 썸네일 URL
     private String first_image;
     private String first_image2;
-    
-    // 경도(X) 및 위도(Y) (카카오 지도 마커 연동용)
+
     private Double map_x;
     private Double map_y;
-    
-    // 지도 축척 레벨
     private Integer map_level;
-    
-    // 행사 시작일 및 종료일 (YYYYMMDD 형식)
+
     private String event_start_date;
     private String event_end_date;
-    
-    // 소개 문구 (오라클 CLOB 대응)
+
     private String overview;
-    
-    // 행사 장소 및 요금 정보
     private String spon_place;
     private String use_time_festival;
-    
-    // 문의처 전화번호 및 홈페이지 URL
     private String sponsor1_tel;
     private String homepage;
-    
-    // 축제 최초등록일 / 축제 수정일
+
     private String created_time;
     private String modified_time;
-    
-    // 인덱싱 완료 시점의 수정일 (VARCHAR2(14))
-    private String indexed_modified_time;
-    
-    // 통계 및 정렬용 데이터 (기본값 0 대응)
+
     private Long view_count;
     private Long like_count;
     private Long review_count;
-    
-    // 평균 평점 (예: 4.50)
     private Double rating_avg;
-    
-    public FestivalDTO() {}
-    
-	public FestivalDTO(Long content_id, String title, String addr1, String addr2, String region_code,
+
+    public FestDetailDTO() {}
+
+	public FestDetailDTO(Long content_id, String title, String addr1, String addr2, String region_code,
 			String sigungu_code, String first_image, String first_image2, Double map_x, Double map_y, Integer map_level,
 			String event_start_date, String event_end_date, String overview, String spon_place,
 			String use_time_festival, String sponsor1_tel, String homepage, String created_time, String modified_time,
-			String indexed_modified_time, Long view_count, Long like_count, Long review_count, Double rating_avg) {
+			Long view_count, Long like_count, Long review_count, Double rating_avg) {
 		super();
 		this.content_id = content_id;
 		this.title = title;
@@ -85,7 +60,6 @@ public class FestivalDTO {
 		this.homepage = homepage;
 		this.created_time = created_time;
 		this.modified_time = modified_time;
-		this.indexed_modified_time = indexed_modified_time;
 		this.view_count = view_count;
 		this.like_count = like_count;
 		this.review_count = review_count;
@@ -252,14 +226,6 @@ public class FestivalDTO {
 		this.modified_time = modified_time;
 	}
 
-	public String getIndexed_modified_time() {
-		return indexed_modified_time;
-	}
-
-	public void setIndexed_modified_time(String indexed_modified_time) {
-		this.indexed_modified_time = indexed_modified_time;
-	}
-
 	public Long getView_count() {
 		return view_count;
 	}
@@ -291,8 +257,8 @@ public class FestivalDTO {
 	public void setRating_avg(Double rating_avg) {
 		this.rating_avg = rating_avg;
 	}
-
-
     
     
+	
+
 }
