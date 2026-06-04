@@ -80,13 +80,16 @@
     <!-- 관심 테마 기반 축제 조회 (추천 후보용) -->
     <select id="selectByInterestThemes" parameterType="list" resultType="map">
         SELECT * FROM (
-            SELECT DISTINCT f.content_id, f.title, f.overview, f.first_image
+            SELECT f.content_id, f.title, f.overview, f.first_image
             FROM festival_info f
-            JOIN FESTIVAL_THEMES ft ON f.content_id = ft.content_id
-            WHERE ft.theme_code IN 
-            <foreach collection="list" item="code" open="(" separator="," close=")">
-                #{code}
-            </foreach>
+            WHERE EXISTS (
+                SELECT 1 FROM FESTIVAL_THEMES ft
+                WHERE ft.content_id = f.content_id
+                AND ft.theme_code IN 
+                <foreach collection="list" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
+            )
             AND f.overview IS NOT NULL
             ORDER BY f.modified_time DESC
         )
