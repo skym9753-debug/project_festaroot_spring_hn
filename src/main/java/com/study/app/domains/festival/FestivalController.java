@@ -1,6 +1,8 @@
 package com.study.app.domains.festival;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.study.app.domains.festival.dto.EventPlaceDTO;
 import com.study.app.domains.festival.dto.FestDetailDTO;
+import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
 import com.study.app.domains.festival.dto.NearbyPlaceDTO;
@@ -95,11 +98,53 @@ public class FestivalController {
 		return ResponseEntity.ok().build();
 	}
 	
+	// HomepageURL 주소값만 추출
+	private String extractHomepageUrl(String homepage) {
+
+	    // href="..." 형태
+	    Pattern hrefPattern = Pattern.compile("href\\s*=\\s*\"([^\"]+)\"");
+	    Matcher hrefMatcher = hrefPattern.matcher(homepage);
+
+	    if (hrefMatcher.find()) {
+	        return hrefMatcher.group(1);
+	    }
+
+	    // 일반 URL
+	    Pattern urlPattern =
+	        Pattern.compile("(https?://[^\\s\"<>]+|www\\.[^\\s\"<>]+)");
+
+	    Matcher urlMatcher = urlPattern.matcher(homepage);
+
+	    if (urlMatcher.find()) {
+
+	        String url = urlMatcher.group();
+
+	        if (url.startsWith("www.")) {
+	            url = "https://" + url;
+	        }
+
+	        return url;
+	    }
+
+	    return null;
+	}
+	
 	// 축제 상세보기
 	@GetMapping("/detail/{contentId}")
 	public ResponseEntity<FestDetailDTO> getFestivalDetail(@PathVariable String contentId) {
 		FestDetailDTO dto = feServ.getFestivalDetail(contentId);
+		if(dto != null && dto.getHomepage() != null) {
+			dto.setHomepage(extractHomepageUrl(dto.getHomepage()));
+		}
 		return ResponseEntity.ok(dto);
+	}
+	
+	// 축제 이미지 가져오기
+	@GetMapping("/images/{contentId}")
+	public ResponseEntity<List<FestImageDTO>> getFestivalImages(@PathVariable String contentId) {
+		List<FestImageDTO> images = feServ.getFestivalImages(contentId);
+		System.out.println("이미지" + images);
+		return ResponseEntity.ok(images);
 	}
 
 }
