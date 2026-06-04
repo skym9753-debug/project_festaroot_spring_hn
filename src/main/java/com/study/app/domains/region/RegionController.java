@@ -12,20 +12,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/region")
 public class RegionController {
 
-	@Autowired
-	private RegionMasterService regionMasterService;
+   @Autowired
+   private RegionMasterService regionMasterService;
 
-	public RegionController(RegionMasterService regionMasterService) {
-		this.regionMasterService = regionMasterService;
-	}
+   public RegionController(RegionMasterService regionMasterService) {
+      this.regionMasterService = regionMasterService;
+   }
 
-	@GetMapping("/sido")
-	public List<RegionMasterDTO> getSidoList() {
-		return regionMasterService.getSidoList();
-	}
+   @GetMapping("/sido")
+   public List<RegionMasterDTO> getSidoList() {
+      return regionMasterService.getSidoList();
+   }
 
-	@GetMapping("/sigungu")
-	public List<RegionMasterDTO> getSigunguList(@RequestParam String regionCode) {
-		return regionMasterService.getSigunguList(regionCode);
-	}
+   @GetMapping("/sigungu")
+   public List<RegionMasterDTO> getSigunguList(@RequestParam String regionCode) {
+      return regionMasterService.getSigunguList(regionCode);
+   }
 }

@@ -1,6 +1,7 @@
 package com.study.app.domains.festival;
 
 import java.util.List;
+import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
+import com.study.app.domains.festival.dto.FestivalSearchDTO;
 
 @Repository
 public class FestivalDAO {
@@ -15,9 +17,14 @@ public class FestivalDAO {
 	@Autowired
 	private SqlSessionTemplate mybatis;
 
-	public List<FestivalDTO> getAllFestival() {
-		return mybatis.selectList("Festival.getAll");
+	// 축제 찾기 > 조건에 맞는 축제 목록 가져오기
+	public List<FestivalDTO> getSearchFestivals(FestivalSearchDTO searchDTO) {
+		return mybatis.selectList("Festival.selectByOptions", searchDTO);
+	}
 
+	// 축제 찾기 > 네비게이터 카운트
+	public int getSearchFestivalCount(FestivalSearchDTO searchDTO) {
+		return mybatis.selectOne("Festival.getSearchFestivalCount", searchDTO);
 	}
 
 	public FestivalDTO selectByContentId(String contentId) {
@@ -37,5 +44,27 @@ public class FestivalDAO {
 	public FestDetailDTO selectDeatilByContentId(String contentId) {
 		return mybatis.selectOne("Festival.selectDetailByContentId", contentId);
 	}
+
+    // 테마가 없는 축제 목록 조회
+    public List<FestivalDTO> getFestivalsWithoutTheme() {
+        return mybatis.selectList("Festival.getFestivalsWithoutTheme");
+    }
+
+    // 매핑 데이터 저장
+    public void insertFestivalThemeMapping(Long contentId, String themeCode) {
+        mybatis.insert("Festival.insertFestivalThemeMapping", 
+            java.util.Map.of("content_id", contentId, "theme_code", themeCode));
+    }
+
+    // 인덱싱 대상 데이터 조회
+    public List<Map<String, Object>> getFestivalsToIndex() {
+        return mybatis.selectList("Festival.getFestivalsToIndex");
+    }
+
+    // 인덱싱 완료 후 상태 기록
+    public void updateIndexedModifiedTime(Long contentId, String modifiedTime) {
+        mybatis.update("Festival.updateIndexedModifiedTime", 
+            java.util.Map.of("content_id", contentId, "modified_time", modifiedTime));
+    }
 
 }

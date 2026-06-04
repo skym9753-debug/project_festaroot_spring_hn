@@ -22,6 +22,7 @@ import com.study.app.domains.festival.dto.EventPlaceDTO;
 import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
+import com.study.app.domains.festival.dto.FestivalSearchDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
 import com.study.app.domains.festival.dto.NearbyPlaceDTO;
 import com.study.app.domains.festival.dto.PlaceDetailResponse;
@@ -39,8 +40,14 @@ public class FestivalService {
 	@Value("${kto.service.key}")
 	private String serviceKey;
 
-	public List<FestivalDTO> getAllFestival() {
-		return fdao.getAllFestival();
+	// 축제 찾기 > 검색 조건에 맞는 축제 목록 가져오기
+	public List<FestivalDTO> getSearchFestivals(FestivalSearchDTO searchDTO){
+		return fdao.getSearchFestivals(searchDTO);
+	}
+	
+	// 축제 찾기 > 네비게이터 카운트
+	public int getSearchFestivalCount(FestivalSearchDTO searchDTO) {
+		return fdao.getSearchFestivalCount(searchDTO);
 	}
 
 	public FestivalDTO selectByContentId(String contentId) {
@@ -685,6 +692,7 @@ public class FestivalService {
 	}
 	
 	// 축제 이미지 가져오기
+	// 축제 이미지 가져오기
 	public List<FestImageDTO> getFestivalImages(String contentId) {
 	    String url = "https://apis.data.go.kr/B551011/KorService2/detailImage2"
 	        + "?serviceKey=" + serviceKey
@@ -699,13 +707,28 @@ public class FestivalService {
 	    RestTemplate restTemplate = new RestTemplate();
 
 	    Map response = restTemplate.getForObject(url, Map.class);
-	    
+
+	    if (response == null || response.get("response") == null) {
+	        return new ArrayList<>();
+	    }
 
 	    Map responseMap = (Map) response.get("response");
 	    Map body = (Map) responseMap.get("body");
-	    Map items = (Map) body.get("items");
 
-	    if (items == null || items.get("item") == null) {
+	    if (body == null || body.get("items") == null) {
+	        return new ArrayList<>();
+	    }
+
+	    Object itemsObj = body.get("items");
+
+	    // 핵심: items가 "" 문자열이면 이미지 없음
+	    if (!(itemsObj instanceof Map)) {
+	        return new ArrayList<>();
+	    }
+
+	    Map items = (Map) itemsObj;
+
+	    if (items.get("item") == null) {
 	        return new ArrayList<>();
 	    }
 
