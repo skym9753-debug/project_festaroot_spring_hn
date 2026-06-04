@@ -18,12 +18,15 @@ public class MemberController {
 
     @PostMapping("/signup")
     public String signup(@RequestBody MemberDTO memberDTO) {
+ 
         int result = memberService.signup(memberDTO);
         if (result > 0) {
             return "success";
         } else {
             return "fail";
         }
+        
+        
     }
     
 
