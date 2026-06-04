@@ -2,6 +2,7 @@ package com.study.app.domains.member.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MemberDTO {
 	
@@ -25,6 +26,11 @@ public class MemberDTO {
 	
 	// 추가
 	private String social_id;
+	
+	
+	// 관심분야, 관심지역 받는 변수
+	private List<String> regions;
+	private List<String> themes;
 	
 	public MemberDTO() {}
 
@@ -197,6 +203,22 @@ public class MemberDTO {
 		this.social_id = social_id;
 	}
 	
+	// 관심분야, 관심지역 관련
+	public List<String> getRegions() {
+	    return regions;
+	}
+
+	public void setRegions(List<String> regions) {
+	    this.regions = regions;
+	}
+
+	public List<String> getThemes() {
+	    return themes;
+	}
+
+	public void setThemes(List<String> themes) {
+	    this.themes = themes;
+	}
 	
 	
 

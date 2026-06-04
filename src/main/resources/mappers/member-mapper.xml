@@ -19,5 +19,35 @@
 	        0, #{title_id}, SYSDATE
 	    )
 	</insert>
+	
+	<insert id="insertInterestTheme"
+	    parameterType="com.study.app.domains.member.dto.InterestThemeDTO">
+	
+	    INSERT INTO MEMBER_INTEREST_THEME (
+	        MEMBER_ID,
+	        THEME_CODE
+	    )
+	    VALUES (
+	        #{member_id},
+	        #{theme_code}
+	    )
+	
+	</insert>
+	
+	<insert id="insertInterestRegion"
+	    parameterType="com.study.app.domains.member.dto.InterestRegionDTO">
+	
+	    INSERT INTO MEMBER_INTEREST_REGION (
+	        MEMBER_ID,
+	        REGION_CODE
+
+	    )
+	    VALUES (
+	        #{member_id},
+	        #{region_code}
+
+	    )
+	
+	</insert>
 
 </mapper>
