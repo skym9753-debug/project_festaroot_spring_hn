@@ -1,5 +1,6 @@
 package com.study.app.domains.festival;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,11 @@ public class FestivalDAO {
 		return mybatis.selectOne("Festival.getSearchFestivalCount", searchDTO);
 	}
 
+	// 축제 찾기 > 축제 목록별 조회수
+	public void increaseViewCount(String contentId) {
+		mybatis.insert("Festival.increaseViewCount", contentId);
+	}
+
 	public FestivalDTO selectByContentId(String contentId) {
 		return mybatis.selectOne("Festival.selectByContentId", contentId);
 	}
@@ -35,36 +41,66 @@ public class FestivalDAO {
 	public int upsertFestival(FestivalDTO dto) {
 		return mybatis.update("Festival.upsertFestival", dto);
 	}
-	
+
 	// CLOB 타입 업데이트 분리
 	public int updateFestivalDetail(FestivalDTO dto) {
-	    return mybatis.update("Festival.updateFestivalDetail", dto);
+		return mybatis.update("Festival.updateFestivalDetail", dto);
 	}
-	
+
 	public FestDetailDTO selectDeatilByContentId(String contentId) {
 		return mybatis.selectOne("Festival.selectDetailByContentId", contentId);
 	}
 
-    // 테마가 없는 축제 목록 조회
-    public List<FestivalDTO> getFestivalsWithoutTheme() {
-        return mybatis.selectList("Festival.getFestivalsWithoutTheme");
-    }
+	// 테마가 없는 축제 목록 조회
+	public List<FestivalDTO> getFestivalsWithoutTheme() {
+		return mybatis.selectList("Festival.getFestivalsWithoutTheme");
+	}
 
-    // 매핑 데이터 저장
-    public void insertFestivalThemeMapping(Long contentId, String themeCode) {
-        mybatis.insert("Festival.insertFestivalThemeMapping", 
-            java.util.Map.of("content_id", contentId, "theme_code", themeCode));
-    }
+	// 매핑 데이터 저장
+	public void insertFestivalThemeMapping(Long contentId, String themeCode) {
+		mybatis.insert("Festival.insertFestivalThemeMapping",
+				java.util.Map.of("content_id", contentId, "theme_code", themeCode));
+	}
 
-    // 인덱싱 대상 데이터 조회
-    public List<Map<String, Object>> getFestivalsToIndex() {
-        return mybatis.selectList("Festival.getFestivalsToIndex");
-    }
+	// 인덱싱 대상 데이터 조회
+	public List<Map<String, Object>> getFestivalsToIndex() {
+		return mybatis.selectList("Festival.getFestivalsToIndex");
+	}
 
-    // 인덱싱 완료 후 상태 기록
-    public void updateIndexedModifiedTime(Long contentId, String modifiedTime) {
-        mybatis.update("Festival.updateIndexedModifiedTime", 
-            java.util.Map.of("content_id", contentId, "modified_time", modifiedTime));
-    }
+	// 인덱싱 완료 후 상태 기록
+	public void updateIndexedModifiedTime(Long contentId, String modifiedTime) {
+		mybatis.update("Festival.updateIndexedModifiedTime",
+				java.util.Map.of("content_id", contentId, "modified_time", modifiedTime));
+	}
+
+	// 로그인 아이디 기준 찜 누른 축제 목록
+	public List<Long> getMyFestivalLikedIds(String memberId) {
+		return mybatis.selectList("Festival.getMyFestivalLikedIds", memberId);
+	}
+
+	// 찜 존재 여부 확인 (Count)
+	public int checkLikeExists(Map<String, Object> toggle) {
+		return mybatis.selectOne("Festival.checkLikeExists", toggle);
+	}
+
+	// 찜 테이블에 추가 (Insert)
+	public int insertLike(Map<String, Object> toggle) {
+		return mybatis.insert("Festival.insertLike", toggle);
+	}
+
+	// 찜 테이블에서 삭제 (Delete)
+	public int deleteLike(Map<String, Object> toggle) {
+		return mybatis.delete("Festival.deleteLike", toggle);
+	}
+
+	// 축제 메인 테이블 총 찜수 증가 (+1)
+	public int incrementLikeCount(Long contentId) {
+		return mybatis.update("Festival.incrementLikeCount", contentId);
+	}
+
+	// 축제 메인 테이블 총 찜수 감소 (-1)
+	public int decrementLikeCount(Long contentId) {
+		return mybatis.update("Festival.decrementLikeCount", contentId);
+	}
 
 }
