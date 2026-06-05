@@ -103,24 +103,29 @@ public class FestivalDAO {
 		return mybatis.update("Festival.decrementLikeCount", contentId);
 	}
 
-    // 지역별 축제 조회 (추천 후보용)
-    public List<Map<String, Object>> getFestivalsByRegion(String region) {
-        return mybatis.selectList("Festival.selectByRegion", region);
-    }
+	// 총 찜 개수 조회
+	public int getFestivalLikeCount(Long contentId) {
+		return mybatis.selectOne("Festival.getFestivalLikeCount", contentId);
+	}
 
-    // 추천용 축제 상세 조회
-    public Map<String, Object> getFestivalDetail(Long contentId) {
-        return mybatis.selectOne("Festival.selectDetailForRecommendation", contentId);
-    }
+	// 지역별 축제 조회 (추천 후보용)
+	public List<Map<String, Object>> getFestivalsByRegion(String region) {
+		return mybatis.selectList("Festival.selectByRegion", region);
+	}
 
-    // 관심 테마 기반 축제 조회
-    public List<Map<String, Object>> getFestivalsByThemes(List<String> themeCodes) {
-        return mybatis.selectList("Festival.selectByInterestThemes", themeCodes);
-    }
+	// 추천용 축제 상세 조회
+	public Map<String, Object> getFestivalDetail(Long contentId) {
+		return mybatis.selectOne("Festival.selectDetailForRecommendation", contentId);
+	}
 
-    // 인기 축제 조회 (Fallback)
-    public List<Map<String, Object>> getPopularFestivals() {
-        return mybatis.selectList("Festival.selectPopularFestivals");
-    }
+	// 관심 테마 기반 축제 조회
+	public List<Map<String, Object>> getFestivalsByThemes(List<String> themeCodes) {
+		return mybatis.selectList("Festival.selectByInterestThemes", themeCodes);
+	}
+
+	// 인기 축제 조회 (Fallback)
+	public List<Map<String, Object>> getPopularFestivals() {
+		return mybatis.selectList("Festival.selectPopularFestivals");
+	}
 
 }

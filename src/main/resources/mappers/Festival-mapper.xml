@@ -257,6 +257,12 @@
         SET LIKE_COUNT = GREATEST(LIKE_COUNT - 1, 0) 
         WHERE CONTENT_ID = #{contentId}
     </update>
+    
+    <select id="getFestivalLikeCount" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM festival_like
+        WHERE content_id = #{content_id}
+    </select>
 
 	<!--    CLOB 분리-->
     <update id="updateFestivalDetail">

@@ -733,4 +733,13 @@ public class FestivalService {
 			return false; // 최종 상태: 찜 취소됨
 		}
 	}
+	
+	// 특정 축제의 실시간 총 찜 개수 조회 (실무형 방어 코드 포함)
+		@Transactional(readOnly = true)
+		public int getFestivalLikeCount(Long contentId) {
+			if (contentId == null) {
+				return 0;
+			}
+			return fdao.getFestivalLikeCount(contentId);
+		}
 }

@@ -16,6 +16,11 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(tokenValidator)
                 .addPathPatterns("/activities/**")
-                .addPathPatterns("/ai/**");
+                .addPathPatterns("/ai/**")
+                .addPathPatterns("/api/**")
+                .excludePathPatterns( // 아래 주소들은 토큰 검증에서 제외
+                        "/api/festivals",       // 축제 전체 목록 조회 API
+                        "/api/festivals/sido"	// 지역 시도 필터 조회 API;
+                );   
     }
 }

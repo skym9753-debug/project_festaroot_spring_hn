@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Map;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.study.app.domains.festival.dto.EventPlaceDTO;
 import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestImageDTO;
@@ -215,50 +212,43 @@ public class FestivalController {
 	}
 
 	// 축제 목록 > 찜하기
-	// 로그인한 유저의 찜 목록 조회 (GET)
-	@GetMapping("/likeList")
-	public ResponseEntity<?> getMyFestivalLikedIds(@RequestAttribute("id") String memberId) {
+		// 로그인한 유저의 찜 목록 조회 (GET)
+		@GetMapping("/likeList")
+		public ResponseEntity<?> getMyFestivalLikedIds(@RequestAttribute("id") String memberId) {
 
-		// 서비스에서 해당 유저가 찜한 축제 목록 가져오기
-		List<Long> likedFestivalIds = feServ.getMyFestivalLikedIds(memberId);
+			// 서비스에서 해당 유저가 찜한 축제 목록 가져오기 (예: [123, 456, 789])
+			List<Long> likedFestivalIds = feServ.getMyFestivalLikedIds(memberId);
 
-		Map<String, Object> responseMap = new HashMap<>();
-		responseMap.put("likedFestivalIds", likedFestivalIds);
+			// ❌ 기존 코드: Map에 넣어서 껍데기를 씌워 보냄 { "likedFestivalIds": [...] }
+			// ⭕ 변경 코드: 프론트 Array.isArray() 판별을 위해 순수 리스트(배열) 자체를 바로 리턴
+			return ResponseEntity.ok(likedFestivalIds);
+		}
 
-		return ResponseEntity.ok(responseMap);
-	}
+		// 축제 찜하기 토글 (POST)
+		@PostMapping("/likeToggle")
+		public ResponseEntity<?> toggleFestivalLike(
+		        @RequestAttribute(value = "id", required = false) String memberId,
+		        @RequestBody Map<String, Object> requestBody) {
 
-	// 축제 찜하기 토글 (POST)
-	@PostMapping("/likeToggle")
-	public ResponseEntity<?> toggleFestivalLike(
-	        // required=false를 주면 값이 없어도 400 에러를 내지 않고 메서드 내부로 진입합니다.
-	        @RequestAttribute(value = "id", required = false) String memberId,
-	        @RequestBody Map<String, Object> requestBody) {
+		    if (memberId == null) {
+		        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+		    }
 
-	    // 🛠️ 백엔드 콘솔에 들어온 값들을 직접 찍어서 확인해보세요!
-	    System.out.println("========== 찜하기 디버깅 ==========");
-	    System.out.println("1. 인터셉터가 넘겨준 memberId: " + memberId);
-	    System.out.println("2. 프론트가 보낸 requestBody: " + requestBody);
-	    System.out.println("==================================");
+		    Object contentIdObj = requestBody.get("contentId");
+		    if (contentIdObj == null) {
+		        return ResponseEntity.badRequest().body("축제 ID(contentId)가 누락되었습니다.");
+		    }
 
-	    if (memberId == null) {
-	    	System.out.println("헤더에 user-id가 없음!");
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
-	    }
+		    Long contentId = Long.parseLong(String.valueOf(contentIdObj));
+		    boolean isLiked = feServ.toggleFestivalLike(memberId, contentId);
+		    int updatedLikeCount = feServ.getFestivalLikeCount(contentId); 
 
-	    Object contentIdObj = requestBody.get("contentId");
-	    if (contentIdObj == null) {
-	        return ResponseEntity.badRequest().body("축제 ID(contentId)가 누락되었습니다.");
-	    }
+		    Map<String, Object> responseMap = new HashMap<>();
+		    responseMap.put("isLiked", isLiked);
+		    responseMap.put("like_count", updatedLikeCount); // ⭕ 최신 좋아요 카운트 추가 반환
+		    responseMap.put("message", isLiked ? "찜 목록에 추가되었습니다." : "찜 목록에서 제거되었습니다.");
 
-	    Long contentId = Long.parseLong(String.valueOf(contentIdObj));
-	    boolean isLiked = feServ.toggleFestivalLike(memberId, contentId);
-
-	    Map<String, Object> responseMap = new HashMap<>();
-	    responseMap.put("isLiked", isLiked);
-	    responseMap.put("message", isLiked ? "찜 목록에 추가되었습니다." : "찜 목록에서 제거되었습니다.");
-
-	    return ResponseEntity.ok(responseMap);
-	}
+		    return ResponseEntity.ok(responseMap);
+		}
 
 }
