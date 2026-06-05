@@ -1,5 +1,6 @@
 package com.study.app.domains.member;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -9,11 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
 import com.study.app.domains.member.dto.MemberDTO;
 import com.study.app.domains.member.dto.MemberProfileDTO;
+import com.study.app.domains.storage.ImageUploadService;
 import com.study.app.utils.JWTUtil;
 
 @Service
@@ -24,6 +27,9 @@ public class MemberService {
 
     @Autowired
     private com.study.app.domains.activity.UserActivityLogDAO userActivityLogDAO;
+
+    @Autowired
+    private ImageUploadService imageUploadService;
 
     @Autowired
     private JWTUtil jwtUtil;
@@ -114,7 +120,19 @@ public class MemberService {
     }
 
     @Transactional
-    public int updateProfile(String member_id, MemberDTO memberDTO) {
+    public int updateProfile(String member_id, MemberDTO memberDTO, MultipartFile profileImage) {
+        
+        // 이미지 업로드 처리
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                String imageUrl = imageUploadService.upload(profileImage, "profile");
+                memberDTO.setProfile_image_url(imageUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // 이미지 업로드 실패 시 로직 (필요에 따라 예외를 던질 수 있음)
+            }
+        }
+
         memberDTO.setMember_id(member_id);
         int result = memberDAO.updateMember(memberDTO);
 

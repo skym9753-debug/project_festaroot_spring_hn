@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.study.app.domains.member.dto.MemberDTO;
@@ -41,8 +42,11 @@ public class MemberController {
     }
     
     @PutMapping("/profile/{id}")
-    public ResponseEntity<String> updateProfile(@PathVariable("id") String id, MemberDTO memberDTO){
-        int result = memberService.updateProfile(id, memberDTO);
+    public ResponseEntity<String> updateProfile(
+            @PathVariable("id") String id, 
+            MemberDTO memberDTO,
+            @RequestParam(value = "profile_image", required = false) org.springframework.web.multipart.MultipartFile profileImage){
+        int result = memberService.updateProfile(id, memberDTO, profileImage);
         if (result > 0) {
             return ResponseEntity.ok("success");
         } else {
