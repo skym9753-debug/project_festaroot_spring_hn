@@ -19,5 +19,47 @@
 	        0, #{title_id}, SYSDATE
 	    )
 	</insert>
+	
+	<insert id="insertInterestTheme"
+	    parameterType="com.study.app.domains.member.dto.InterestThemeDTO">
+	
+	    INSERT INTO MEMBER_INTEREST_THEME (
+	        MEMBER_ID,
+	        THEME_CODE
+	    )
+	    VALUES (
+	        #{member_id},
+	        #{theme_code}
+	    )
+	
+	</insert>
+	
+	<insert id="insertInterestRegion"
+	    parameterType="com.study.app.domains.member.dto.InterestRegionDTO">
+	
+	    INSERT INTO MEMBER_INTEREST_REGION (
+	        MEMBER_ID,
+	        REGION_CODE
+
+	    )
+	    VALUES (
+	        #{member_id},
+	        #{region_code}
+
+	    )
+	
+	</insert>
+
+    <select id="selectMemberById" parameterType="string" resultType="com.study.app.domains.member.dto.MemberDTO">
+        SELECT * FROM MEMBER WHERE MEMBER_ID = #{member_id}
+    </select>
+
+    <select id="selectInterestRegions" parameterType="string" resultType="com.study.app.domains.member.dto.InterestRegionDTO">
+        SELECT * FROM MEMBER_INTEREST_REGION WHERE MEMBER_ID = #{member_id}
+    </select>
+
+    <select id="selectInterestThemes" parameterType="string" resultType="com.study.app.domains.member.dto.InterestThemeDTO">
+        SELECT * FROM MEMBER_INTEREST_THEME WHERE MEMBER_ID = #{member_id}
+    </select>
 
 </mapper>

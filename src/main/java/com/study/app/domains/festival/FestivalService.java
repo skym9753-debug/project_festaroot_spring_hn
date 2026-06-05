@@ -6,19 +6,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.app.domains.festival.dto.CommonDetailDTO;
 import com.study.app.domains.festival.dto.EventPlaceDTO;
 import com.study.app.domains.festival.dto.FestDetailDTO;
+import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
@@ -506,8 +508,8 @@ public class FestivalService {
 			// 응답 구조 접근
 			JsonNode item = root.path("response").path("body").path("items").path("item");
 
-			// item이 배열 또는 객체로 반환될 수 있음
-			JsonNode data = item.isArray() ? item.get(0) : item;
+	        // item이 배열 또는 객체로 반환될 수 있음
+	        JsonNode data = item.isArray() ? item.get(0) : item;
 
 			System.out.println("overview = " + data.path("overview").asText());
 			System.out.println("tel = " + data.path("tel").asText());
@@ -608,10 +610,100 @@ public class FestivalService {
 			System.err.println("[detailIntro2 실패] contentId=" + contentId + " : " + e.getMessage());
 		}
 	}
+	
+	// HomepageURL 주소값만 추출
+	private String extractHomepageUrl(String homepage) {
 
+	    // href="..." 형태
+	    Pattern hrefPattern = Pattern.compile("href\\s*=\\s*\"([^\"]+)\"");
+	    Matcher hrefMatcher = hrefPattern.matcher(homepage);
+
+	    if (hrefMatcher.find()) {
+	        return hrefMatcher.group(1);
+	    }
+
+	    // 일반 URL
+	    Pattern urlPattern =
+	        Pattern.compile("(https?://[^\\s\"<>]+|www\\.[^\\s\"<>]+)");
+
+	    Matcher urlMatcher = urlPattern.matcher(homepage);
+
+	    if (urlMatcher.find()) {
+
+	        String url = urlMatcher.group();
+
+	        if (url.startsWith("www.")) {
+	            url = "https://" + url;
+	        }
+
+	        return url;
+	    }
+
+	    return null;
+	}
+	
 	// 축제 상세보기 정보 가져오기
 	public FestDetailDTO getFestivalDetail(String contentId) {
-		return fdao.selectDeatilByContentId(contentId);
+		FestDetailDTO dto = fdao.selectDeatilByContentId(contentId);
+		if(dto != null && dto.getHomepage() != null) {
+			dto.setHomepage(extractHomepageUrl(dto.getHomepage()));
+		}
+		return dto;
+	}
+	
+	// 축제 이미지 가져오기
+	public List<FestImageDTO> getFestivalImages(String contentId) {
+	    String url = "https://apis.data.go.kr/B551011/KorService2/detailImage2"
+	        + "?serviceKey=" + serviceKey
+	        + "&MobileOS=ETC"
+	        + "&MobileApp=FestaRoute"
+	        + "&_type=json"
+	        + "&contentId=" + contentId
+	        + "&imageYN=Y"
+	        + "&numOfRows=10"
+	        + "&pageNo=1";
+
+	    RestTemplate restTemplate = new RestTemplate();
+
+	    Map response = restTemplate.getForObject(url, Map.class);
+
+	    if (response == null || response.get("response") == null) {
+	        return new ArrayList<>();
+	    }
+
+	    Map responseMap = (Map) response.get("response");
+	    Map body = (Map) responseMap.get("body");
+
+	    if (body == null || body.get("items") == null) {
+	        return new ArrayList<>();
+	    }
+
+	    Object itemsObj = body.get("items");
+
+	    // 핵심: items가 "" 문자열이면 이미지 없음
+	    if (!(itemsObj instanceof Map)) {
+	        return new ArrayList<>();
+	    }
+
+	    Map items = (Map) itemsObj;
+
+	    if (items.get("item") == null) {
+	        return new ArrayList<>();
+	    }
+
+	    Object itemObj = items.get("item");
+
+	    ObjectMapper objectMapper = new ObjectMapper();
+
+	    if (itemObj instanceof List) {
+	        return objectMapper.convertValue(
+	            itemObj,
+	            new TypeReference<List<FestImageDTO>>() {}
+	        );
+	    }
+
+	    FestImageDTO image = objectMapper.convertValue(itemObj, FestImageDTO.class);
+	    return List.of(image);
 	}
 
 	// 로그인 기준 축제 찜 목록 조회

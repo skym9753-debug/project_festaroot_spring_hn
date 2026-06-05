@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -146,5 +147,34 @@ public class VectorIndexingService {
             } catch (Exception e) { return ""; }
         }
         return String.valueOf(obj);
+    }
+
+
+    public List<Long> searchSimilarFestivals(List<Double> queryVector, int limit) {
+        try {
+            String url = String.format("http://%s:6333/collections/%s/points/search", qdrantHost, collectionName);
+            
+            Map<String, Object> requestBody = Map.of(
+                "vector", queryVector,
+                "limit", limit,
+                "with_payload", true
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                List<Map<String, Object>> resultList = (List<Map<String, Object>>) response.getBody().get("result");
+                return resultList.stream()
+                    .map(res -> Long.parseLong(String.valueOf(((Map)res.get("payload")).get("content_id"))))
+                    .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("Qdrant 검색 실패: {}", e.getMessage());
+        }
+        return new ArrayList<>();
     }
 }
