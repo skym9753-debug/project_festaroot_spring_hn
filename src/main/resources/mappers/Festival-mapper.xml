@@ -163,6 +163,10 @@
                     <when test="sort == 'date'">
                         ORDER BY event_start_date ASC
                     </when>
+                    <!-- 최근 시작일 기준 정렬 (내림차순) -->
+				    <when test="sort == 'recentStart'">
+				        ORDER BY event_start_date ASC, created_time DESC
+				    </when>
                     <when test="sort == 'title'">
                         ORDER BY title ASC
                     </when>
