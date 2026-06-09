@@ -97,6 +97,10 @@ public class FestivalDAO {
 		return mybatis.selectList("Festival.getMyFestivalLikedIds", memberId);
 	}
 
+	public List<Map<String, Object>> getMyFestivalLikedDetails(String memberId) {
+		return mybatis.selectList("Festival.getMyFestivalLikedDetails", memberId);
+	}
+
 	// 찜 존재 여부 확인 (Count)
 	public int checkLikeExists(Map<String, Object> toggle) {
 		return mybatis.selectOne("Festival.checkLikeExists", toggle);

@@ -6,12 +6,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import java.sql.Clob;
+import java.io.BufferedReader;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.festival.FestivalDAO;
 import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
 import com.study.app.domains.member.dto.MemberDTO;
@@ -21,6 +29,8 @@ import com.study.app.utils.JWTUtil;
 
 @Service
 public class MemberService {
+
+    private static final Logger log = LoggerFactory.getLogger(MemberService.class);
 
     @Autowired
     private MemberDAO memberDAO;
@@ -36,6 +46,57 @@ public class MemberService {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private FestivalDAO festivalDAO;
+
+    public MemberProfileDTO getProfile(String member_id) {
+        MemberDTO member = memberDAO.selectMemberById(member_id);
+        if (member == null) return null;
+
+        List<InterestRegionDTO> regions = memberDAO.selectInterestRegions(member_id);
+        List<InterestThemeDTO> themes = memberDAO.selectInterestThemes(member_id);
+        List<com.study.app.domains.activity.dto.UserActivityLogDTO> logs = userActivityLogDAO.selectRecentLogs(member_id);
+        
+        // 찜한 축제 원본 데이터 (CLOB 포함 가능성 있음)
+        List<Map<String, Object>> rawLikedFestivals = festivalDAO.getMyFestivalLikedDetails(member_id);
+        
+        // JSON 변환을 위해 CLOB를 String으로 가공
+        List<Map<String, Object>> likedFestivals = new ArrayList<>();
+        if (rawLikedFestivals != null) {
+            for (Map<String, Object> row : rawLikedFestivals) {
+                Map<String, Object> cleanRow = new HashMap<>();
+                for (Map.Entry<String, Object> entry : row.entrySet()) {
+                    cleanRow.put(entry.getKey(), convertToString(entry.getValue()));
+                }
+                likedFestivals.add(cleanRow);
+            }
+        }
+
+        return new MemberProfileDTO(member, regions, themes, logs, likedFestivals);
+    }
+
+    private String convertToString(Object obj) {
+        if (obj == null) return "";
+        if (obj instanceof Clob) {
+            try {
+                Clob clob = (Clob) obj;
+                StringBuilder sb = new StringBuilder();
+                try (java.io.Reader reader = clob.getCharacterStream();
+                     BufferedReader br = new BufferedReader(reader)) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line).append("\n");
+                    }
+                }
+                return sb.toString().trim();
+            } catch (Exception e) {
+                log.error("CLOB 변환 오류: {}", e.getMessage());
+                return "";
+            }
+        }
+        return String.valueOf(obj);
+    }
 
     /**
      * FormData 등으로 들어온 지저분한 리스트 데이터를 정제합니다.
@@ -106,17 +167,6 @@ public class MemberService {
             }
         }
         return result;
-    }
-
-    public MemberProfileDTO getProfile(String member_id) {
-        MemberDTO member = memberDAO.selectMemberById(member_id);
-        if (member == null) return null;
-
-        List<InterestRegionDTO> regions = memberDAO.selectInterestRegions(member_id);
-        List<InterestThemeDTO> themes = memberDAO.selectInterestThemes(member_id);
-        List<com.study.app.domains.activity.dto.UserActivityLogDTO> logs = userActivityLogDAO.selectRecentLogs(member_id);
-
-        return new MemberProfileDTO(member, regions, themes, logs);
     }
 
     @Transactional

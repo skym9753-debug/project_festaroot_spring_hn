@@ -1,5 +1,6 @@
 package com.study.app.domains.ai;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,22 +39,32 @@ public class RecommendationService {
     @Autowired private ObjectMapper objectMapper;
 
     /**
-     * 유저 맞춤형 축제 추천 로직 (관심 지역/테마 반영 + Qdrant 벡터 검색 통합)
+     * 유저 맞춤형 축제 추천 로직 (찜한 축제 + 유저 한마디 + 관심 지역/테마 반영)
      */
-    public List<Map<String, Object>> getPersonalizedRecommendations(String memberId) {
+    public List<Map<String, Object>> getPersonalizedRecommendations(String memberId, String userInput) {
         try {
-            // 1. 유저 정보 조회 (기본 프로필 + 관심 지역 + 관심 테마)
+            // 0. 유저 한마디 활동 로그 저장 (나중에 취향 분석에 활용)
+            if (userInput != null && !userInput.trim().isEmpty()) {
+                UserActivityLogDTO logDTO = new UserActivityLogDTO();
+                logDTO.setMember_id(memberId);
+                logDTO.setAction_type("SEARCH");
+                logDTO.setKeyword(userInput);
+                activityLogService.saveLog(logDTO);
+            }
+
+            // 1. 유저 정보 조회 (기본 프로필 + 관심 지역 + 관심 테마 + 찜한 축제)
             MemberDTO member = memberDAO.selectMemberById(memberId);
             List<InterestRegionDTO> interestRegions = memberDAO.selectInterestRegions(memberId);
             List<InterestThemeDTO> interestThemes = memberDAO.selectInterestThemes(memberId);
             List<UserActivityLogDTO> recentLogs = activityLogService.getRecentLogs(memberId);
+            List<Map<String, Object>> likedFestivals = festivalDAO.getMyFestivalLikedDetails(memberId);
             
-            // 2. 추천 컨텍스트 구성
-            String userContext = buildUserContext(member, interestRegions, interestThemes, recentLogs);
+            // 2. 추천 컨텍스트 구성 (찜한 목록 및 유저 입력 반영)
+            String userContext = buildUserContext(member, interestRegions, interestThemes, recentLogs, likedFestivals, userInput);
             log.info("User Context: {}", userContext);
 
-            // 3. 후보군 수집 (Qdrant 벡터 검색 + 관심 지역 + 관심 테마 기반)
-            List<Map<String, Object>> candidates = collectCandidates(interestRegions, interestThemes, recentLogs);
+            // 3. 후보군 수집 (유저 입력 기반 Qdrant 검색 우선 + 관심사 기반)
+            List<Map<String, Object>> candidates = collectCandidates(interestRegions, interestThemes, recentLogs, userInput);
             
             // 후보군이 너무 적으면 인기 축제로 보충
             if (candidates.size() < 5) {
@@ -61,7 +72,7 @@ public class RecommendationService {
             }
 
             // 4. Gemini에게 최종 추천 3~5개와 이유 요청
-            String prompt = buildRecommendationPrompt(userContext, candidates);
+            String prompt = buildRecommendationPrompt(userContext, candidates, userInput);
             String aiResponse = geminiService.getCompletion(prompt);
             
             // AI 응답 파싱
@@ -77,10 +88,41 @@ public class RecommendationService {
         }
     }
 
-    private String buildUserContext(MemberDTO member, List<InterestRegionDTO> regions, List<InterestThemeDTO> themes, List<UserActivityLogDTO> logs) {
+    private String buildUserContext(MemberDTO member, List<InterestRegionDTO> regions, List<InterestThemeDTO> themes, 
+                                   List<UserActivityLogDTO> logs, List<Map<String, Object>> likedFestivals, String userInput) {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("유저 정보: %s, %s. ", member.getGender(), member.getBirthdate()));
         
+        if (userInput != null && !userInput.trim().isEmpty()) {
+            sb.append("현재 유저의 요청(한마디): \"").append(userInput).append("\". ");
+        }
+
+        // 찜한 목록 (장기 취향)
+        if (likedFestivals != null && !likedFestivals.isEmpty()) {
+            String likedTitles = likedFestivals.stream()
+                .map(f -> String.valueOf(f.get("TITLE")))
+                .limit(5)
+                .collect(Collectors.joining(", "));
+            sb.append("유저가 평소 찜한 축제: ").append(likedTitles).append(". ");
+        }
+
+        // AI 추천 피드백 반영 (최근 취향 교정)
+        if (logs != null && !logs.isEmpty()) {
+            String aiLikes = logs.stream()
+                .filter(l -> "AI_LIKE".equals(l.getAction_type()))
+                .map(l -> l.getTitle())
+                .limit(3)
+                .collect(Collectors.joining(", "));
+            if (!aiLikes.isEmpty()) sb.append("AI 추천 중 좋아한 축제: ").append(aiLikes).append(". ");
+
+            String aiDislikes = logs.stream()
+                .filter(l -> "AI_DISLIKE".equals(l.getAction_type()))
+                .map(l -> l.getTitle() + (l.getKeyword() != null ? "(" + l.getKeyword() + ")" : ""))
+                .limit(3)
+                .collect(Collectors.joining(", "));
+            if (!aiDislikes.isEmpty()) sb.append("AI 추천 중 거절한 축제(사유): ").append(aiDislikes).append(". ");
+        }
+
         if (!regions.isEmpty()) {
             String regionStr = regions.stream().map(r -> r.getRegion_code()).collect(Collectors.joining(", "));
             sb.append("관심 지역 코드: ").append(regionStr).append(". ");
@@ -91,33 +133,51 @@ public class RecommendationService {
             sb.append("관심 테마 코드: ").append(themeStr).append(". ");
         }
         
-        if (logs != null && !logs.isEmpty()) {
-            String recentActivities = logs.stream()
-                .map(l -> "ACTION:" + l.getAction_type() + (l.getKeyword() != null ? ", KEYWORD:" + l.getKeyword() : ", ID:" + l.getContent_id()))
-                .limit(5)
-                .collect(Collectors.joining(" | "));
-            sb.append("최근 활동 로그: ").append(recentActivities);
-        } else {
-            sb.append("최근 활동 로그 없음. ");
-        }
-        
         return sb.toString();
     }
 
-    private List<Map<String, Object>> collectCandidates(List<InterestRegionDTO> regions, List<InterestThemeDTO> themes, List<UserActivityLogDTO> logs) {
+    private List<Map<String, Object>> collectCandidates(List<InterestRegionDTO> regions, List<InterestThemeDTO> themes, 
+                                                       List<UserActivityLogDTO> logs, String userInput) {
         Set<Long> uniqueIds = new HashSet<>();
+        Set<Long> forbiddenIds = new HashSet<>();
         List<Map<String, Object>> candidates = new ArrayList<>();
 
-        // 1. Qdrant 벡터 기반 유사 추천 (최근 활동 기반) - 가장 강력한 추천
-        if (logs != null && !logs.isEmpty()) {
+        // 0. 싫어요(AI_DISLIKE) 누른 축제는 후보군에서 원천 배제
+        if (logs != null) {
+            logs.stream()
+                .filter(l -> "AI_DISLIKE".equals(l.getAction_type()) && l.getContent_id() != null)
+                .forEach(l -> forbiddenIds.add(l.getContent_id()));
+        }
+
+        // 1. 유저의 '한마디(userInput)' 기반 Qdrant 검색 - 최우선 순위
+        if (userInput != null && !userInput.trim().isEmpty()) {
             try {
-                UserActivityLogDTO latestLog = logs.get(0);
+                List<Double> vector = geminiService.getEmbedding(userInput);
+                List<Long> similarIds = vectorIndexingService.searchSimilarFestivals(vector, 15);
+                for (Long id : similarIds) {
+                    if (!forbiddenIds.contains(id) && uniqueIds.add(id)) {
+                        Map<String, Object> fest = festivalDAO.getFestivalDetail(id);
+                        if (fest != null) candidates.add(fest);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("유저 입력 기반 Qdrant 검색 중 오류: {}", e.getMessage());
+            }
+        }
+
+        // 2. Qdrant 벡터 기반 유사 추천 (최근 활동 기반 - AI_LIKE 포함)
+        if (candidates.size() < 20 && logs != null && !logs.isEmpty()) {
+            try {
+                // 최근 좋아한 축제(AI_LIKE)나 검색 로그 기반
+                UserActivityLogDTO pivotLog = logs.stream()
+                    .filter(l -> "AI_LIKE".equals(l.getAction_type()) || "SEARCH".equals(l.getAction_type()))
+                    .findFirst().orElse(logs.get(0));
+
                 String queryText = "";
-                
-                if ("SEARCH".equals(latestLog.getAction_type())) {
-                    queryText = latestLog.getKeyword();
-                } else if (latestLog.getContent_id() != null) {
-                    Map<String, Object> fest = festivalDAO.getFestivalDetail(latestLog.getContent_id());
+                if ("SEARCH".equals(pivotLog.getAction_type())) {
+                    queryText = pivotLog.getKeyword();
+                } else if (pivotLog.getContent_id() != null) {
+                    Map<String, Object> fest = festivalDAO.getFestivalDetail(pivotLog.getContent_id());
                     if (fest != null) {
                         queryText = String.valueOf(fest.get("TITLE")) + " " + convertToString(fest.get("OVERVIEW"));
                     }
@@ -127,7 +187,7 @@ public class RecommendationService {
                     List<Double> vector = geminiService.getEmbedding(queryText);
                     List<Long> similarIds = vectorIndexingService.searchSimilarFestivals(vector, 10);
                     for (Long id : similarIds) {
-                        if (uniqueIds.add(id)) {
+                        if (!forbiddenIds.contains(id) && uniqueIds.add(id)) {
                             Map<String, Object> fest = festivalDAO.getFestivalDetail(id);
                             if (fest != null) candidates.add(fest);
                         }
@@ -138,42 +198,57 @@ public class RecommendationService {
             }
         }
 
-        // 2. 관심 지역 기반 후보
-        for (InterestRegionDTO region : regions) {
-            List<Map<String, Object>> regionFests = festivalDAO.getFestivalsByRegion(region.getRegion_code());
-            for (Map<String, Object> f : regionFests) {
-                Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
-                if (uniqueIds.add(id)) candidates.add(f);
+        // 3. 관심 지역 기반 후보
+        if (candidates.size() < 30) {
+            for (InterestRegionDTO region : regions) {
+                List<Map<String, Object>> regionFests = festivalDAO.getFestivalsByRegion(region.getRegion_code());
+                for (Map<String, Object> f : regionFests) {
+                    Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
+                    if (!forbiddenIds.contains(id) && uniqueIds.add(id)) candidates.add(f);
+                }
+                if (candidates.size() >= 30) break;
             }
-            if (candidates.size() >= 20) break;
         }
 
-        // 3. 관심 테마 기반 후보
-        if (!themes.isEmpty()) {
+        // 4. 관심 테마 기반 후보
+        if (candidates.size() < 40 && !themes.isEmpty()) {
             List<String> themeCodes = themes.stream().map(t -> t.getTheme_code()).collect(Collectors.toList());
             List<Map<String, Object>> themeFests = festivalDAO.getFestivalsByThemes(themeCodes);
             for (Map<String, Object> f : themeFests) {
                 Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
-                if (uniqueIds.add(id)) candidates.add(f);
+                if (!forbiddenIds.contains(id) && uniqueIds.add(id)) candidates.add(f);
             }
         }
         
-        return candidates.stream().limit(30).collect(Collectors.toList());
+        return candidates.stream().limit(40).collect(Collectors.toList());
     }
 
-    private String buildRecommendationPrompt(String userContext, List<Map<String, Object>> candidates) {
+    private String buildRecommendationPrompt(String userContext, List<Map<String, Object>> candidates, String userInput) {
+        String today = LocalDate.now().toString();
+        
         String candidatesJson = candidates.stream()
-            .map(c -> String.format("{\"id\": %s, \"title\": \"%s\", \"overview\": \"%s\"}", 
-                c.get("CONTENT_ID"), c.get("TITLE"), c.get("OVERVIEW")))
+            .map(c -> String.format("{\"id\": %s, \"title\": \"%s\", \"start\": \"%s\", \"end\": \"%s\", \"overview\": \"%s\"}", 
+                c.get("CONTENT_ID"), c.get("TITLE"), c.get("EVENT_START_DATE"), c.get("EVENT_END_DATE"), c.get("OVERVIEW")))
             .collect(Collectors.joining(", ", "[", "]"));
 
+        String userInstruction = (userInput != null && !userInput.trim().isEmpty()) 
+            ? String.format("유저가 요구한 '%s'라는 요청사항을 최우선으로 반영해줘. 시간이나 장소에 대한 언급이 있다면 [후보 리스트]의 날짜와 비교하여 가장 적절한 것을 골라줘.", userInput)
+            : "유저의 평소 관심사와 찜한 목록을 바탕으로 현재 시점에 즐기기 좋은 축제를 추천해줘.";
+
         return String.format(
-            "너는 대한민국 축제 추천 전문가야. 아래 [유저 컨텍스트]를 분석하여 [후보 리스트] 중 가장 만족도가 높을 것 같은 축제 3~5개를 선정해줘.\n\n" +
+            "너는 대한민국 축제 추천 전문가야. 오늘 날짜는 [%s]이야.\n\n" +
+            "아래 [유저 컨텍스트]를 분석하여 [후보 리스트] 중 유저에게 가장 만족도가 높을 축제 3~5개를 선정해줘.\n\n" +
             "[유저 컨텍스트]: %s\n" +
             "[후보 리스트]: %s\n\n" +
-            "반드시 JSON 배열 형식으로만 응답해줘. recommendation_reason은 유저의 관심 지역, 테마, 혹은 최근 활동 로그와의 연관성을 구체적으로 언급하며 '해요'체로 친절하게 작성해줘.\n" +
+            "[지침]:\n" +
+            "1. %s\n" +
+            "2. 이미 종료된 축제(end 날짜가 오늘보다 이전)는 추천에서 가급적 제외해줘.\n" +
+            "3. 유저가 '싫어요'라고 피드백한 축제나 사유가 있다면 해당 스타일은 반드시 제외해줘.\n" +
+            "4. 유저가 '좋아요'한 축제가 있다면 그와 유사한 테마나 분위기를 적극 반영해줘.\n" +
+            "5. 반드시 JSON 배열 형식으로만 응답해줘.\n" +
+            "6. recommendation_reason은 유저의 요청사항, 과거 피드백(좋아요/싫어요), 시기적 적절성을 연계하여 '해요'체로 친절하게 작성해줘.\n" +
             "형식: [{\"content_id\": 123, \"recommendation_reason\": \"...\"}]",
-            userContext, candidatesJson
+            today, userContext, candidatesJson, userInstruction
         );
     }
 

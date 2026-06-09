@@ -232,6 +232,13 @@
         FROM FESTIVAL_LIKE 
         WHERE MEMBER_ID = #{memberId}
     </select>
+
+    <select id="getMyFestivalLikedDetails" parameterType="string" resultType="map">
+        SELECT f.CONTENT_ID, f.TITLE, f.OVERVIEW
+        FROM FESTIVAL_INFO f
+        JOIN FESTIVAL_LIKE l ON f.CONTENT_ID = l.CONTENT_ID
+        WHERE l.MEMBER_ID = #{memberId}
+    </select>
     
 	<!--홈 > 지역별 인기 축제 정렬-->
 	<!--WHERE rn = 1 : 1. 중복된 축제 중 가장 인기 있는 것 하나만 남김
