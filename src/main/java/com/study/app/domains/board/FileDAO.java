@@ -13,6 +13,7 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.study.app.domains.board.dto.PostAttachmentDTO;
+import com.study.app.domains.storage.StorageController;
 
 @Repository
 public class FileDAO {
@@ -22,6 +23,9 @@ public class FileDAO {
 	
 	@Autowired
 	private Storage storage;
+	
+	@Autowired
+	private StorageController storageController;
 	
 	@Value("${gcp.bucket-name}")
 	private String bucketName;
@@ -33,7 +37,7 @@ public class FileDAO {
 	            try {
 	                String originalName = file.getOriginalFilename();
 
-	                String sysName = "boards/" 
+	                String sysName = "board/file/" 
 	                        + UUID.randomUUID().toString() 
 	                        + "_" 
 	                        + originalName;
@@ -46,10 +50,7 @@ public class FileDAO {
 
 	                storage.create(blobInfo, file.getBytes());
 
-	                String fileUrl = "https://storage.googleapis.com/"
-	                        + bucketName
-	                        + "/"
-	                        + sysName;
+	                String fileUrl = storageController.uploadFile(file, "board/file");
 
 	                PostAttachmentDTO attachmentDTO = new PostAttachmentDTO(
 

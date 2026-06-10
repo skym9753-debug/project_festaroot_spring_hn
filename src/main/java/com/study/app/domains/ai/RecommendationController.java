@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 @RestController
 @RequestMapping("/ai")
 public class RecommendationController {
@@ -17,7 +19,9 @@ public class RecommendationController {
     private RecommendationService recommendationService;
 
     @GetMapping("/recommendations")
-    public List<Map<String, Object>> getRecommendations(@RequestAttribute("id") String memberId) {
-        return recommendationService.getPersonalizedRecommendations(memberId);
+    public List<Map<String, Object>> getRecommendations(
+            @RequestAttribute("id") String memberId,
+            @RequestParam(value = "userInput", required = false) String userInput) {
+        return recommendationService.getPersonalizedRecommendations(memberId, userInput);
     }
 }

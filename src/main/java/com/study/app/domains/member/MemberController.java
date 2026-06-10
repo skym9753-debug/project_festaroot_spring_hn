@@ -1,14 +1,19 @@
 package com.study.app.domains.member;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.study.app.domains.achievement.AchievementService;
 import com.study.app.domains.member.dto.MemberDTO;
 import com.study.app.domains.member.dto.MemberProfileDTO;
 
@@ -18,6 +23,15 @@ public class MemberController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private AchievementService achievementService;
+
+    @GetMapping("/achievements/{id}")
+    public ResponseEntity<Map<String, Object>> getMemberAchievements(@PathVariable("id") String id) {
+        Map<String, Object> data = achievementService.getUserAchievementData(id);
+        return ResponseEntity.ok(data);
+    }
 
     @PostMapping("/signup")
     public String signup(@RequestBody MemberDTO memberDTO) {
@@ -39,5 +53,23 @@ public class MemberController {
     		return ResponseEntity.ok(dto);
     }
     
+    @PutMapping("/profile/{id}")
+    public ResponseEntity<Map<String, Object>> updateProfile(
+            @PathVariable("id") String id, 
+            MemberDTO memberDTO,
+            @RequestParam(value = "profile_image", required = false) org.springframework.web.multipart.MultipartFile profileImage){
+        Map<String, Object> result = memberService.updateProfile(id, memberDTO, profileImage);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
+    @PostMapping("/attendance/{id}")
+    public ResponseEntity<Map<String, Object>> processAttendance(@PathVariable("id") String id) {
+        Map<String, Object> result = memberService.checkAndProcessAttendance(id);
+        return ResponseEntity.ok(result);
+    }
 
 }

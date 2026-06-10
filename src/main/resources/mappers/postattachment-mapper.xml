@@ -6,7 +6,7 @@
 
 
 <insert id="insertFiles">
-	insert into post_attachmemnt (attach_id, post_id, file_name, file_path, file_size, file_type, create_at)
+	insert into post_attachment (attach_id, post_id, file_name, file_path, file_size, file_type, created_at)
 	 values (seq_post_attachment.nextval, #{post_id}, #{file_name}, #{file_path}, 
 	 #{file_size}, #{file_type}, sysdate)
 
