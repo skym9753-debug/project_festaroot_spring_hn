@@ -20,5 +20,8 @@ public class PostDAO {
 		mybatis.insert("Board.insertPost", dto);
 	}
 	
+	public int selectCount() {
+		return mybatis.selectOne("Board.selectCount");
+	}
 
 }

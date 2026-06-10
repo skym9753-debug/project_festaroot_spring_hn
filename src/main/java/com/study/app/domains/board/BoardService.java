@@ -23,10 +23,12 @@ public class BoardService {
 		System.out.println(dto.getPost_id());
 		Long boardSeq = dto.getPost_id();
 		
-		fileDAO.insertPostAttachments(boardSeq, files);
+		fileDAO.insertPostAttachments(boardSeq, files);	
 		
-		
-		
+	}
+	
+	public int totalPostCount() {
+		return postDAO.selectCount();
 	}
 
 }

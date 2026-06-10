@@ -1,9 +1,11 @@
 package com.study.app.domains.board;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +44,14 @@ public class BoardController {
 		
 		return ResponseEntity.ok().build();
 	}
+	
+//	@GetMapping("/list")
+//	public ResponseEntity<Map<String, Object>> getPostList(Long cpage) {
+//		int totalPostCount = boardService.totalPostCount();
+//		
+//		System.out.println(cpage);
+//	}
+	
 	
 	
 	
