@@ -19,9 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.study.app.domains.achievement.AchievementDAO;
-import com.study.app.domains.festival.FestivalDAO;
+import com.study.app.domains.achievement.AchievementService;
 import com.study.app.domains.achievement.dto.LevelSystemDTO;
-import com.study.app.domains.achievement.dto.UserAchProgressDTO;
 import com.study.app.domains.festival.FestivalDAO;
 import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
@@ -55,6 +54,9 @@ public class MemberService {
     
     @Autowired
     private AchievementDAO achievementDAO;
+    
+    @Autowired
+    private AchievementService achievementService;
 
     public MemberProfileDTO getProfile(String member_id) {
         MemberDTO member = memberDAO.selectMemberById(member_id);
@@ -195,7 +197,9 @@ public class MemberService {
     }
 
     @Transactional
-    public int updateProfile(String member_id, MemberDTO memberDTO, MultipartFile profileImage) {
+    public Map<String, Object> updateProfile(String member_id, MemberDTO memberDTO, MultipartFile profileImage) {
+        Map<String, Object> response = new HashMap<>();
+        List<com.study.app.domains.achievement.dto.AchievementResultDTO> achievementResults = new ArrayList<>();
         
         // 이미지 업로드 처리
         if (profileImage != null && !profileImage.isEmpty()) {
@@ -204,7 +208,6 @@ public class MemberService {
                 memberDTO.setProfile_image_url(imageUrl);
             } catch (IOException e) {
                 e.printStackTrace();
-                // 이미지 업로드 실패 시 로직 (필요에 따라 예외를 던질 수 있음)
             }
         }
 
@@ -229,7 +232,15 @@ public class MemberService {
                     memberDAO.insertInterestRegion(new InterestRegionDTO(member_id, regionCode, null));
                 }
             }
+            
+            // 업적 체크 및 결과 저장
+            if(profileImage != null && !profileImage.isEmpty() && memberDTO.getProfile_image_url() != null) {
+                achievementResults = achievementService.updateProgress(member_id, "PROFILE");
+            }
         }
-        return result;
+        
+        response.put("success", result > 0);
+        response.put("achievements", achievementResults);
+        return response;
     }
 }

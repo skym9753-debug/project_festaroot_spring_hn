@@ -54,15 +54,15 @@ public class MemberController {
     }
     
     @PutMapping("/profile/{id}")
-    public ResponseEntity<String> updateProfile(
+    public ResponseEntity<Map<String, Object>> updateProfile(
             @PathVariable("id") String id, 
             MemberDTO memberDTO,
             @RequestParam(value = "profile_image", required = false) org.springframework.web.multipart.MultipartFile profileImage){
-        int result = memberService.updateProfile(id, memberDTO, profileImage);
-        if (result > 0) {
-            return ResponseEntity.ok("success");
+        Map<String, Object> result = memberService.updateProfile(id, memberDTO, profileImage);
+        if ((boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.badRequest().body("fail");
+            return ResponseEntity.badRequest().body(result);
         }
     }
 
