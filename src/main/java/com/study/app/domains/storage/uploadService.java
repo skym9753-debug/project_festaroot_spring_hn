@@ -1,4 +1,5 @@
 package com.study.app.domains.storage;
+
 import java.io.IOException;
 import java.util.UUID;
 
@@ -12,8 +13,8 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 
 @Service
-public class ImageUploadService {
-
+public class uploadService {
+	
     @Value("${gcp.bucket-name}")
     private String bucketName;
 
@@ -50,4 +51,5 @@ public class ImageUploadService {
                 objectName
         );
     }
+
 }

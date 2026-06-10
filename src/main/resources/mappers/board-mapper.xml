@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Board">
+
+
+<insert id="insertPost">
+	<selectKey keyProperty="post_id" resultType="Long" order="BEFORE">
+		select seq_community_post.nextval from dual
+	</selectKey>
+	insert into community_post (post_id, member_id, category, title, content, view_count, 
+	like_count, report_count, created_at, updated_at) values 
+	(#{post_id}, #{member_id}, #{category}, #{title}, #{content}, 0, 
+	0, 0, sysdate, sysdate)
+</insert>
+
+
+
+</mapper>

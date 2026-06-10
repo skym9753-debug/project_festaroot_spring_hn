@@ -26,7 +26,7 @@ import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
 import com.study.app.domains.member.dto.MemberDTO;
 import com.study.app.domains.member.dto.MemberProfileDTO;
-import com.study.app.domains.storage.ImageUploadService;
+import com.study.app.domains.storage.uploadService;
 import com.study.app.utils.JWTUtil;
 
 @Service
@@ -41,7 +41,7 @@ public class MemberService {
     private com.study.app.domains.activity.UserActivityLogDAO userActivityLogDAO;
 
     @Autowired
-    private ImageUploadService imageUploadService;
+    private uploadService uploadService;
 
     @Autowired
     private JWTUtil jwtUtil;
@@ -204,7 +204,7 @@ public class MemberService {
         // 이미지 업로드 처리
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
-                String imageUrl = imageUploadService.upload(profileImage, "profile");
+                String imageUrl = uploadService.upload(profileImage, "profile");
                 memberDTO.setProfile_image_url(imageUrl);
             } catch (IOException e) {
                 e.printStackTrace();
