@@ -245,6 +245,14 @@ public class AuthService {
             result.put("success", true);
             result.put("isNewUser", false);
             result.put("token", token);
+            
+            result.put("member_id", member.getMember_id());
+            result.put("nickname", member.getNickname());
+            result.put("email", member.getEmail());
+
+            result.put("social_provider", member.getSocial_provider());
+            result.put("social_id", member.getSocial_id());
+            
 
 
             return result;
