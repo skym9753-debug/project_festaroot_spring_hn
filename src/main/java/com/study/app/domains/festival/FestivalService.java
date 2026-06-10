@@ -73,8 +73,20 @@ public class FestivalService {
     }
 	
 	// 홈 > 랜덤 축제 추천
-	public FestivalDTO getRandomFestival() {
-		return fdao.getRandomFestival();
+	public Map<String, Object> getRandomFestival(String memberId) {
+		Map<String, Object> result = new HashMap<>();
+		List<com.study.app.domains.achievement.dto.AchievementResultDTO> achievementResults = new ArrayList<>();
+		
+		FestivalDTO festival = fdao.getRandomFestival();
+		result.put("festival", festival);
+		
+		if (festival != null && memberId != null) {
+			// 로그인한 유저의 경우 랜덤 뽑기 업적 업데이트
+			achievementResults = achievementService.updateProgress(memberId, "RANDOM_PICK");
+		}
+		
+		result.put("achievements", achievementResults);
+		return result;
 	}
 
 	public FestivalDTO selectByContentId(String contentId) {

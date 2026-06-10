@@ -210,7 +210,7 @@ public class FestivalController {
 		}
 		return ResponseEntity.ok(dto);
 	}
-	
+
 	// 축제 이미지 가져오기
 	@GetMapping("/images/{contentId}")
 	public ResponseEntity<List<FestImageDTO>> getFestivalImages(@PathVariable String contentId) {
@@ -277,12 +277,13 @@ public class FestivalController {
 		
 		// 랜덤 축제 추천
 		@GetMapping("/random")
-		public ResponseEntity<FestivalDTO> getRandomFestival() {
-			FestivalDTO festival = feServ.getRandomFestival();
-			if (festival == null) {
-				return ResponseEntity.noContent().build(); // 혹은 404 처리 원하면 .notFound().build()
+		public ResponseEntity<Map<String, Object>> getRandomFestival(@RequestAttribute(value = "id", required = false) String memberId) {
+			Map<String, Object> result = feServ.getRandomFestival(memberId);
+			if (result.get("festival") == null) {
+				return ResponseEntity.noContent().build();
 			}
-			return ResponseEntity.ok(festival);
+			return ResponseEntity.ok(result);
 		}
 
 }
+
