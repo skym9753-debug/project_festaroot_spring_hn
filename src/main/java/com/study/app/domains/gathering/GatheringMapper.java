@@ -1,6 +1,7 @@
 package com.study.app.domains.gathering;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -19,4 +20,7 @@ public interface GatheringMapper {
     
     // 자유 모임 상세 조회
     GatheringCreateDTO selectGatheringDetail(Long room_id);
+    
+    // 자유 모임 참여자 목록 상세 조회
+    List<Map<String, Object>> selectParticipants(Long roomId);
 }

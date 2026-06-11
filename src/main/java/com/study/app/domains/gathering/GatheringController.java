@@ -46,16 +46,23 @@ public class GatheringController {
 		List<GatheringCreateDTO> result = gatheringService.selectGatheringList();
 		return ResponseEntity.ok(result);
 	}
-	
+
 	// 자유 모임 상세 조회
 	// GET /api/gathering/12 구조로 호출됨
-    @GetMapping("/{room_id}")
-    public ResponseEntity<GatheringCreateDTO> getGatheringDetail(@PathVariable("room_id") Long roomId) {
-        GatheringCreateDTO detail = gatheringService.selectGatheringDetail(roomId);
-        if (detail == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(detail);
-    }
+	@GetMapping("/{room_id}")
+	public ResponseEntity<GatheringCreateDTO> getGatheringDetail(@PathVariable("room_id") Long roomId) {
+		GatheringCreateDTO detail = gatheringService.selectGatheringDetail(roomId);
+		if (detail == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(detail);
+	}
+
+	// 특정 방의 순수 참여자 목록 가져오기 (방장 제외)
+	@GetMapping("/{room_id}/participants")
+	public ResponseEntity<List<Map<String, Object>>> getParticipants(@PathVariable("room_id") Long roomId) {
+		List<Map<String, Object>> participants = gatheringService.getParticipants(roomId);
+		return ResponseEntity.ok(participants);
+	}
 
 }

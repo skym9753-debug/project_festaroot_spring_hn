@@ -1,6 +1,7 @@
 package com.study.app.domains.gathering;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,11 @@ public class GatheringService {
     // 자유 모임 상세 조회
     public GatheringCreateDTO selectGatheringDetail(Long roomId) {
     	 return gatheringMapper.selectGatheringDetail(roomId);
-    	
+    }
+    
+    // 자유 모임 참여자 목록 상세 조회
+    public List<Map<String, Object>> getParticipants(Long roomId) {
+        return gatheringMapper.selectParticipants(roomId);
     }
 	
 }

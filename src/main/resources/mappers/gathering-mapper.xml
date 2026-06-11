@@ -77,5 +77,20 @@
 	    LEFT JOIN member m ON cr.owner_id = m.member_id
 	    WHERE cr.room_id = #{room_id}
 	</select>
+	
+	<!--자유 모임 참여자 목록 상세 조회-->
+	<select id="selectParticipants" 
+			parameterType="long" 
+			resultType="map">
+		SELECT 
+			m.member_id, 
+			m.nickname,
+			m.profile_image_url
+		FROM chat_room_user cru
+		JOIN member m ON cru.member_id = m.member_id
+		JOIN chat_room cr ON cru.room_id = cr.room_id
+		WHERE cru.room_id = #{room_id}
+		  AND cru.member_id != cr.owner_id
+	</select>
 
 </mapper>
