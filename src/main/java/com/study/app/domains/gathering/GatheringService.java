@@ -18,8 +18,8 @@ public class GatheringService {
         gatheringMapper.insertGathering(dto);
         
         // 발급된 방 번호와 방장 ID를 매퍼에 던져서 참여자(CHAT_ROOM_USER)로 등록
-        Long newRoomId = dto.getRoomId();
-        String ownerId = dto.getOwnerId();
+        Long newRoomId = dto.getRoom_id();
+        String ownerId = dto.getOwner_id();
         
         gatheringMapper.insertRoomUser(newRoomId, ownerId);
         

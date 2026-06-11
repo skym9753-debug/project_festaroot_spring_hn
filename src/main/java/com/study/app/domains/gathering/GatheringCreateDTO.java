@@ -4,121 +4,121 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class GatheringCreateDTO {
-	private Long roomId;
-	private String roomType;
-	private Long festivalId;
-	private String ownerId;
-	private String roomTitle;
-	private String roomDescription;
-	private String freeLocation;
-	private LocalDate freeDate;
-	private Integer maxCapacity;
-	private LocalDateTime createdAt;
+	private Long room_id;
+	private String room_type;
+	private Long festival_id;
+	private String owner_id;
+	private String room_title;
+	private String room_description;
+	private String free_location;
+	private LocalDate free_date;
+	private Integer max_capacity;
+	private LocalDateTime created_at;
 
 	@Override
 	public String toString() {
-		return "GatheringCreateDTO [roomId=" + roomId + ", roomType=" + roomType + ", festivalId=" + festivalId
-				+ ", ownerId=" + ownerId + ", roomTitle=" + roomTitle + ", roomDescription=" + roomDescription
-				+ ", freeLocation=" + freeLocation + ", freeDate=" + freeDate + ", maxCapacity=" + maxCapacity
-				+ ", createdAt=" + createdAt + "]";
+		return "GatheringCreateDTO [room_id=" + room_id + ", room_type=" + room_type + ", festival_id=" + festival_id
+				+ ", owner_id=" + owner_id + ", room_title=" + room_title + ", room_description=" + room_description
+				+ ", free_location=" + free_location + ", free_date=" + free_date + ", max_capacity=" + max_capacity
+				+ ", created_at=" + created_at + "]";
 	}
 
 	public GatheringCreateDTO() {}
 
-	public GatheringCreateDTO(Long roomId, String roomType, Long festivalId, String ownerId, String roomTitle,
-			String roomDescription, String freeLocation, LocalDate freeDate, Integer maxCapacity,
-			LocalDateTime createdAt) {
+	public GatheringCreateDTO(Long room_id, String room_type, Long festival_id, String owner_id, String room_title,
+			String room_description, String free_location, LocalDate free_date, Integer max_capacity,
+			LocalDateTime created_at) {
 		super();
-		this.roomId = roomId;
-		this.roomType = roomType;
-		this.festivalId = festivalId;
-		this.ownerId = ownerId;
-		this.roomTitle = roomTitle;
-		this.roomDescription = roomDescription;
-		this.freeLocation = freeLocation;
-		this.freeDate = freeDate;
-		this.maxCapacity = maxCapacity;
-		this.createdAt = createdAt;
+		this.room_id = room_id;
+		this.room_type = room_type;
+		this.festival_id = festival_id;
+		this.owner_id = owner_id;
+		this.room_title = room_title;
+		this.room_description = room_description;
+		this.free_location = free_location;
+		this.free_date = free_date;
+		this.max_capacity = max_capacity;
+		this.created_at = created_at;
 	}
 
-	public Long getRoomId() {
-		return roomId;
+	public Long getRoom_id() {
+		return room_id;
 	}
 
-	public void setRoomId(Long roomId) {
-		this.roomId = roomId;
+	public void setRoom_id(Long room_id) {
+		this.room_id = room_id;
 	}
 
-	public String getRoomType() {
-		return roomType;
+	public String getRoom_type() {
+		return room_type;
 	}
 
-	public void setRoomType(String roomType) {
-		this.roomType = roomType;
+	public void setRoom_type(String room_type) {
+		this.room_type = room_type;
 	}
 
-	public Long getFestivalId() {
-		return festivalId;
+	public Long getFestival_id() {
+		return festival_id;
 	}
 
-	public void setFestivalId(Long festivalId) {
-		this.festivalId = festivalId;
+	public void setFestival_id(Long festival_id) {
+		this.festival_id = festival_id;
 	}
 
-	public String getOwnerId() {
-		return ownerId;
+	public String getOwner_id() {
+		return owner_id;
 	}
 
-	public void setOwnerId(String ownerId) {
-		this.ownerId = ownerId;
+	public void setOwner_id(String owner_id) {
+		this.owner_id = owner_id;
 	}
 
-	public String getRoomTitle() {
-		return roomTitle;
+	public String getRoom_title() {
+		return room_title;
 	}
 
-	public void setRoomTitle(String roomTitle) {
-		this.roomTitle = roomTitle;
+	public void setRoom_title(String room_title) {
+		this.room_title = room_title;
 	}
 
-	public String getRoomDescription() {
-		return roomDescription;
+	public String getRoom_description() {
+		return room_description;
 	}
 
-	public void setRoomDescription(String roomDescription) {
-		this.roomDescription = roomDescription;
+	public void setRoom_description(String room_description) {
+		this.room_description = room_description;
 	}
 
-	public String getFreeLocation() {
-		return freeLocation;
+	public String getFree_location() {
+		return free_location;
 	}
 
-	public void setFreeLocation(String freeLocation) {
-		this.freeLocation = freeLocation;
+	public void setFree_location(String free_location) {
+		this.free_location = free_location;
 	}
 
-	public LocalDate getFreeDate() {
-		return freeDate;
+	public LocalDate getFree_date() {
+		return free_date;
 	}
 
-	public void setFreeDate(LocalDate freeDate) {
-		this.freeDate = freeDate;
+	public void setFree_date(LocalDate free_date) {
+		this.free_date = free_date;
 	}
 
-	public Integer getMaxCapacity() {
-		return maxCapacity;
+	public Integer getMax_capacity() {
+		return max_capacity;
 	}
 
-	public void setMaxCapacity(Integer maxCapacity) {
-		this.maxCapacity = maxCapacity;
+	public void setMax_capacity(Integer max_capacity) {
+		this.max_capacity = max_capacity;
 	}
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
+	public LocalDateTime getCreated_at() {
+		return created_at;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
+	public void setCreated_at(LocalDateTime created_at) {
+		this.created_at = created_at;
 	}
 
 }

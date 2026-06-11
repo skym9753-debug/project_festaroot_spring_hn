@@ -10,6 +10,6 @@ public interface GatheringMapper {
     int insertGathering(GatheringCreateDTO gathering);
 
     // 채팅방 참여자 등록 (방장 자동 참여용) -> @Param은 DAO에서 Map 대신 사용
-    int insertRoomUser(@Param("roomId") Long roomId, @Param("memberId") String memberId);
+    int insertRoomUser(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 
 }
