@@ -1,5 +1,7 @@
 package com.study.app.domains.gathering;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +12,7 @@ public class GatheringService {
 	@Autowired
     private GatheringMapper gatheringMapper;
 
+	// 자유 모임 생성
     @Transactional // 방 생성과 방장 참여에서 하나라도 에러 나면 자동 롤백
     public Long createGathering(GatheringCreateDTO dto) {
         
@@ -25,6 +28,12 @@ public class GatheringService {
         
         // 컨트롤러에게 방 번호 전달
         return newRoomId;
+    }
+    
+    // 자유 모임 조회
+    public List<GatheringCreateDTO> selectGatheringList(){
+    	List<GatheringCreateDTO> result = gatheringMapper.selectGatheringList();
+    	return result;
     }
 	
 }

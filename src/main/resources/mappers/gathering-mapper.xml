@@ -8,10 +8,10 @@
 		parameterType="com.study.app.domains.gathering.GatheringCreateDTO">
 		<selectKey keyProperty="room_id" resultType="long" order="BEFORE">
 			SELECT SEQ_CHAT_ROOM.NEXTVAL FROM DUAL
-		</selectKey>
-		INSERT INTO CHAT_ROOM ( room_id, room_type, festival_id, owner_id,
-		room_title, room_description, free_location, free_date, max_capacity,
-		created_at ) VALUES ( #{room_id}, 'GROUP', #{festival_id}, #{owner_id},
+		</selectKey> INSERT INTO
+		CHAT_ROOM ( room_id, room_type, festival_id, owner_id, room_title,
+		room_description, free_location, free_date, max_capacity, created_at )
+		VALUES ( #{room_id}, 'GROUP', #{festival_id}, #{owner_id},
 		#{room_title}, #{room_description}, #{free_location}, #{free_date},
 		#{max_capacity}, SYSDATE ) </insert>
 
@@ -33,10 +33,28 @@
 	</insert>
 
 	<!--자유 모임 목록 조회-->
-	<select id="selectGatheringList" resultType="com.study.app.domains.gathering.GatheringCreateDTO">
-		SELECT * FROM chat_room
-		WHERE room_type = 'GROUP'
-		ORDER BY ___ ___
+	<select id="selectGatheringList"
+		resultType="com.study.app.domains.gathering.GatheringCreateDTO">
+		SELECT
+			cr.room_id,
+			cr.room_type,
+			cr.festival_id,
+			cr.owner_id,
+			cr.room_title,
+			cr.room_description,
+			cr.free_location,
+			cr.free_date,
+			cr.max_capacity,
+			cr.created_at,
+			m.nickname,
+			m.profile_image_url,  (
+				SELECT COUNT(*) 
+				FROM chat_room_user cru 
+				WHERE cru.room_id = cr.room_id
+			) AS current_count
+		FROM chat_room cr
+		LEFT JOIN member m ON cr.owner_id = m.member_id WHERE cr.room_type = 'GROUP'
+		ORDER BY cr.room_id DESC
 	</select>
 
 </mapper>
