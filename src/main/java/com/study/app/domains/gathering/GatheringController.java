@@ -17,6 +17,7 @@ public class GatheringController {
 	@Autowired
     private GatheringService gatheringService;
 
+	// 자유 모임 생성
     @PostMapping
     public ResponseEntity<?> createGathering(@RequestBody GatheringCreateDTO dto) {
 
