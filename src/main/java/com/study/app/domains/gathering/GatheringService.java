@@ -35,5 +35,11 @@ public class GatheringService {
     	List<GatheringCreateDTO> result = gatheringMapper.selectGatheringList();
     	return result;
     }
+    
+    // 자유 모임 상세 조회
+    public GatheringCreateDTO selectGatheringDetail(Long roomId) {
+    	 return gatheringMapper.selectGatheringDetail(roomId);
+    	
+    }
 	
 }

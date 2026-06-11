@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,5 +46,16 @@ public class GatheringController {
 		List<GatheringCreateDTO> result = gatheringService.selectGatheringList();
 		return ResponseEntity.ok(result);
 	}
+	
+	// 자유 모임 상세 조회
+	// GET /api/gathering/12 구조로 호출됨
+    @GetMapping("/{room_id}")
+    public ResponseEntity<GatheringCreateDTO> getGatheringDetail(@PathVariable("room_id") Long roomId) {
+        GatheringCreateDTO detail = gatheringService.selectGatheringDetail(roomId);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detail);
+    }
 
 }
