@@ -30,5 +30,13 @@ public class BoardService {
 	public int totalPostCount() {
 		return postDAO.selectCount();
 	}
+	
+	public List<CommunityPostDTO> getStartEnd(Long startNum, Long endNum){
+		return postDAO.selectList(startNum, endNum);
+	}
+	
+	public CommunityPostDTO getPostDetail(Long id) {
+		return postDAO.selectById(id);
+	}
 
 }
