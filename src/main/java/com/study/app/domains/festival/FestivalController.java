@@ -136,6 +136,13 @@ public class FestivalController {
 		return ResponseEntity.ok(dto);
 	}
 
+	@GetMapping("/culture/{contentId}")
+	public ResponseEntity<PlaceDetailResponse<com.study.app.domains.festival.dto.CultureFacilityDTO>> getCulturePlaceDetail(@PathVariable String contentId) {
+		PlaceDetailResponse<com.study.app.domains.festival.dto.CultureFacilityDTO> dto = feServ.getPlaceDetail(contentId, "14");
+		return ResponseEntity.ok(dto);
+	}
+
+	/*
 	@GetMapping("/event/{contentId}")
 	public ResponseEntity<PlaceDetailResponse<EventPlaceDTO>> getEventPlaceDetail(@PathVariable String contentId) {
 
@@ -143,6 +150,7 @@ public class FestivalController {
 
 		return ResponseEntity.ok(dto);
 	}
+	*/
 
 	// 축제 정보 DB에 저장
 	@PostMapping("/sync")
