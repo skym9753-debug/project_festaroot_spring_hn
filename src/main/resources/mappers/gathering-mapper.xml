@@ -26,20 +26,21 @@
 		)
 	</insert>
 
-	<select id="selectGatheringList" resultType="com.study.app.domains.gathering.GatheringCreateDTO">
+	<select id="selectGatheringList" resultType="map">
 	    SELECT
-	        cr.room_id,
-	        cr.room_type,
-	        cr.festival_id,
-	        cr.owner_id,
-	        cr.room_title,
-	        cr.room_description,
-	        cr.free_location,
-	        TO_CHAR(cr.free_date, 'YYYY.MM.DD') AS free_date, cr.max_capacity,
-	        cr.created_at,
-	        m.nickname,
-	        m.profile_image_url, 
-	        (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS current_count
+	        cr.room_id AS "room_id",
+	        LOWER(cr.room_type) AS "room_type",
+	        cr.festival_id AS "festival_id",
+	        cr.owner_id AS "owner_id",
+	        cr.room_title AS "room_title",
+	        cr.room_description AS "room_description",
+	        cr.free_location AS "free_location",
+	        TO_CHAR(cr.free_date, 'YYYY.MM.DD') AS "free_date", 
+	        cr.max_capacity AS "max_capacity",
+	        TO_CHAR(cr.created_at, 'YYYY-MM-DD') AS "created_at",
+	        m.nickname AS "nickname",
+	        m.profile_image_url AS "profile_image_url", 
+	        (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count"
 	    FROM chat_room cr
 	    LEFT JOIN member m ON cr.owner_id = m.member_id 
 	    WHERE cr.room_type = 'GROUP'
@@ -127,27 +128,50 @@
 
 	<select id="selectFestivalGatheringList" resultType="map">
 		SELECT 
-			NVL(cr.room_id, -fi.content_id) AS "ROOM_ID",
-			NVL(cr.room_type, 'FESTIVAL') AS "ROOM_TYPE",
-			fi.content_id AS "FESTIVAL_ID",
-			cr.owner_id AS "OWNER_ID",
-			NVL(cr.room_title, fi.title || ' 공식 모임') AS "ROOM_TITLE",
-			NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "ROOM_DESCRIPTION",
-			NVL(cr.free_location, fi.addr1) AS "FREE_LOCATION",
-			fi.event_start_date || ' ~ ' || fi.event_end_date AS "FREE_DATE",
-			NVL(cr.max_capacity, 500) AS "MAX_CAPACITY",
-			cr.created_at AS "CREATED_AT",
-			(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "CURRENT_COUNT",
-			fi.first_image AS "FIRST_IMAGE",
+			NVL(cr.room_id, -fi.content_id) AS "room_id",
+			NVL(LOWER(cr.room_type), 'festival') AS "room_type",
+			fi.content_id AS "festival_id",
+			cr.owner_id AS "owner_id",
+			NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
+			NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "room_description",
+			NVL(cr.free_location, fi.addr1) AS "free_location",
+			fi.event_start_date || ' ~ ' || fi.event_end_date AS "free_date",
+			NVL(cr.max_capacity, 500) AS "max_capacity",
+			cr.created_at AS "created_at",
+			(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count",
+			fi.first_image AS "profile_image_url",
 			<choose>
 				<when test="memberId != null and memberId != ''">
 					(SELECT COUNT(*) FROM chat_room_user WHERE room_id = cr.room_id AND member_id = #{memberId})
 				</when>
 				<otherwise>0</otherwise>
-			</choose> AS "IS_JOINED_INT"
+			</choose> AS "is_joined"
 		FROM festival_info fi
 		LEFT JOIN chat_room cr ON fi.content_id = cr.festival_id AND cr.room_type = 'FESTIVAL'
 		ORDER BY fi.event_start_date DESC
+	</select>
+	
+	<select id="selectJoinedGatheringList" resultType="map">
+	    SELECT 
+	        cr.room_id AS "room_id",  
+	        LOWER(cr.room_type) AS "room_type", 
+	        cr.festival_id AS "festival_id",
+	        cr.owner_id AS "owner_id",
+	        m.nickname AS "nickname",
+	        NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
+	        NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "room_description",
+	        NVL(cr.free_location, fi.addr1) AS "free_location",
+	        NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), fi.event_start_date || ' ~ ' || fi.event_end_date) AS "free_date",
+	        cr.max_capacity AS "max_capacity",
+	        NVL(fi.first_image, m.profile_image_url) AS "profile_image_url", 
+	        TO_CHAR(cru.joined_at, 'YYYY-MM-DD HH24:MI:SS') AS "joined_at",
+	        (SELECT COUNT(*) FROM chat_room_user sub_cru WHERE sub_cru.room_id = cr.room_id) AS "current_count"
+	    FROM chat_room cr
+	    JOIN chat_room_user cru ON cr.room_id = cru.room_id
+	    LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
+	    LEFT JOIN member m ON cr.owner_id = m.member_id
+	    WHERE cru.member_id = #{memberId}
+	    ORDER BY cru.joined_at DESC
 	</select>
 
 </mapper>

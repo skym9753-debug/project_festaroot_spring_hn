@@ -35,4 +35,7 @@ public interface GatheringMapper {
 
  	// 축제 모임 전체 목록 조회 (축제 전체 기준 + 채팅방 조인)
  	List<Map<String, Object>> selectFestivalGatheringList(@Param("memberId") String memberId);
+ 	
+ 	// 참여중인 모임 목록
+ 	List<Map<String,Object>> selectJoinedGatheringList(String memberId);
 }

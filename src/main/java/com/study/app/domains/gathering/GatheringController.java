@@ -102,4 +102,11 @@ public class GatheringController {
         	return ResponseEntity.internalServerError().body(Map.of("message", "서버 오류입니다."));
         }
     }
+    
+    // 참여중인 모임 목록
+    @GetMapping("/joined")
+    public ResponseEntity<?> getJoinedGatherings(@RequestParam("member_id") String memberId) {
+        List<Map<String, Object>> result = gatheringService.getJoinedGatherings(memberId);
+        return ResponseEntity.ok(result);
+    }
 }

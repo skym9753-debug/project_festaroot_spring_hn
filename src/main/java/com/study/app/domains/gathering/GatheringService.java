@@ -106,4 +106,9 @@ public class GatheringService {
 		}
 		return true;
 	}
+	
+	// 참여중인 모임 목록
+	public List<Map<String, Object>> getJoinedGatherings(String memberId) {
+	    return gatheringMapper.selectJoinedGatheringList(memberId);
+	}
 }
