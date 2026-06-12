@@ -21,7 +21,8 @@
 
 
 <select id="selectList" resultType="com.study.app.domains.board.dto.CommunityPostDTO">
-	select * from (select cp.post_id, cp.member_id, cp.category, cp.title, cp.content, cp.created_at, m.nickname, row_number() over (order by cp.post_id desc) as find_num
+	select * from (select cp.post_id, cp.member_id, cp.category, cp.title, cp.content,
+	 cp.view_count, cp.like_count, cp.report_count, cp.created_at, m.nickname, row_number() over (order by cp.post_id desc) as find_num
 	 from community_post cp left join member m on cp.member_id = m.member_id)
 	 where find_num between #{startNum} and #{endNum} 
 </select>
@@ -40,6 +41,18 @@
 <delete id="deletePostById">
 	delete community_post board where post_id = #{id}
 </delete>
+
+<update id="increaseViewCount">
+    UPDATE community_post
+    SET view_count = NVL(view_count, 0) + 1
+    WHERE post_id = #{post_id}
+</update>
+
+<update id="increaseReportCount">
+    UPDATE community_post
+    SET report_count = NVL(report_count, 0) + 1
+    WHERE post_id = #{post_id}
+</update>
 
 
 </mapper>

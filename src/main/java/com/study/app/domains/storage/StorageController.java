@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.Storage;
-import com.study.app.domains.board.FileDAO;
+import com.study.app.domains.board.dao.FileDAO;
 import com.study.app.domains.board.dto.PostAttachmentDTO;
 
 @RestController

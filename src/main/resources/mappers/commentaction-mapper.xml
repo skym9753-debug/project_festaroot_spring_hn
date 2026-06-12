@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommentAction">
+
+    <!-- 댓글 좋아요 여부 확인 -->
+    <select id="countCommentLike" resultType="int">
+        SELECT COUNT(*)
+        FROM COMMENT_LIKE
+        WHERE COMMENT_ID = #{comment_id}
+          AND MEMBER_ID = #{member_id}
+    </select>
+
+    <!-- 댓글 좋아요 추가 -->
+    <insert id="insertCommentLike">
+        INSERT INTO COMMENT_LIKE (
+            COMMENT_ID,
+            MEMBER_ID,
+            CREATED_AT
+        ) VALUES (
+            #{comment_id},
+            #{member_id},
+            SYSDATE
+        )
+    </insert>
+
+    <!-- 댓글 좋아요 취소 -->
+    <delete id="deleteCommentLike">
+        DELETE FROM COMMENT_LIKE
+        WHERE COMMENT_ID = #{comment_id}
+          AND MEMBER_ID = #{member_id}
+    </delete>
+
+    <!-- 댓글 좋아요 수 증가 -->
+    <update id="increaseCommentLikeCount">
+        UPDATE POST_COMMENT
+        SET LIKE_COUNT = NVL(LIKE_COUNT, 0) + 1
+        WHERE COMMENT_ID = #{comment_id}
+    </update>
+
+    <!-- 댓글 좋아요 수 감소 -->
+    <update id="decreaseCommentLikeCount">
+        UPDATE POST_COMMENT
+        SET LIKE_COUNT =
+            CASE
+                WHEN NVL(LIKE_COUNT, 0) > 0 THEN NVL(LIKE_COUNT, 0) - 1
+                ELSE 0
+            END
+        WHERE COMMENT_ID = #{comment_id}
+    </update>
+
+    <!-- 현재 댓글 좋아요 수 조회 -->
+    <select id="getCommentLikeCount" resultType="long">
+        SELECT NVL(LIKE_COUNT, 0)
+        FROM POST_COMMENT
+        WHERE COMMENT_ID = #{comment_id}
+    </select>
+
+    <!-- 댓글 신고 중복 확인 -->
+    <select id="countCommentReport" resultType="int">
+        SELECT COUNT(*)
+        FROM COMMENT_REPORT
+        WHERE COMMENT_ID = #{comment_id}
+          AND MEMBER_ID = #{member_id}
+    </select>
+
+    <!-- 댓글 신고 등록 -->
+    <insert id="insertCommentReport">
+        INSERT INTO COMMENT_REPORT (
+            REPORT_ID,
+            COMMENT_ID,
+            MEMBER_ID,
+            REASON,
+            CREATED_AT
+        ) VALUES (
+            COMMENT_REPORT_SEQ.NEXTVAL,
+            #{comment_id},
+            #{member_id},
+            #{reason},
+            SYSDATE
+        )
+    </insert>
+
+    <!-- 댓글 신고 수 증가 -->
+    <update id="increaseCommentReportCount">
+        UPDATE POST_COMMENT
+        SET REPORT_COUNT = NVL(REPORT_COUNT, 0) + 1
+        WHERE COMMENT_ID = #{comment_id}
+    </update>
+
+
+
+
+
+
+</mapper>
