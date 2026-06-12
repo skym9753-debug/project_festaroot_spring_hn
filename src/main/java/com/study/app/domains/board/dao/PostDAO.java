@@ -1,4 +1,4 @@
-package com.study.app.domains.board;
+package com.study.app.domains.board.dao;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +44,15 @@ public class PostDAO {
 		mybatis.update("Board.updatePostById", dto);
 	}
 	
+	public int increaseViewCount(Long post_id) {
+	    return mybatis.update("Board.increaseViewCount", post_id);
+	}
 	public void deletePostById(Long id) {
 		mybatis.delete("Board.deletePostById", id);
+	}
+	
+	public int increaseReportCount(Long post_id) {
+		return mybatis.update("Board.increaseReportCount", post_id);
 	}
 
 }
