@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.study.app.domains.inquiry.InquiryDAO">
+
+    <!-- 문의글 본문 저장 -->
+    <insert id="insertInquiry" parameterType="com.study.app.domains.inquiry.dto.InquiryDTO">
+        <selectKey keyProperty="inquiry_id" resultType="long" order="BEFORE">
+            SELECT User_inquiry_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO User_inquiry (
+            inquiry_id,
+            member_id,
+            category,
+            title,
+            content,
+            status,
+            created_at
+        ) VALUES (
+            #{inquiry_id},
+            #{member_id},
+            #{category},
+            #{title},
+            #{content},
+            'PENDING',
+            SYSDATE
+        )
+    </insert>
+
+    <!-- 첨부파일 리스트 일괄 저장 -->
+    <insert id="insertAttachments" parameterType="java.util.List">
+        INSERT INTO Inquiry_attachment (
+            attach_id,
+            inquiry_id,
+            file_name,
+            file_path,
+            file_size,
+            file_type,
+            created_at
+        )
+        SELECT Inquiry_attachment_seq.nextval, A.* FROM (
+            <foreach collection="list" item="item" separator="UNION ALL">
+                SELECT 
+                    #{item.inquiry_id}, 
+                    #{item.file_name}, 
+                    #{item.file_path}, 
+                    #{item.file_size}, 
+                    #{item.file_type}, 
+                    SYSDATE 
+                FROM dual
+            </foreach>
+        ) A
+    </insert>
+	
+	<select id="getMyInquiryList" resultType="com.study.app.domains.inquiry.dto.InquiryDTO">
+		SELECT * FROM USER_INQUIRY WHERE MEMBER_ID = #{MEMBER_ID} ORDER BY INQUIRY_ID DESC
+	</select>
+	
+	<select id="inquiryDetail" resultType="com.study.app.domains.inquiry.dto.InquiryDTO">
+		SELECT * FROM USER_INQUIRY WHERE INQUIRY_ID = #{INQUIRY_ID}
+	</select>
+</mapper>

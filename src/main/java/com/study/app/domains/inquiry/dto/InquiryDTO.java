@@ -1,6 +1,9 @@
 package com.study.app.domains.inquiry.dto;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
 
 public class InquiryDTO {
 	
@@ -12,6 +15,18 @@ public class InquiryDTO {
 	private String status;
 	private LocalDate created_at;
 	
+	private List<MultipartFile> files;
+	
+	
+	
+	public List<MultipartFile> getFiles() {
+		return files;
+	}
+
+	public void setFiles(List<MultipartFile> files) {
+		this.files = files;
+	}
+
 	public InquiryDTO() {}
 	
 	public InquiryDTO(Long inquiry_id, String member_id, String category, String title, String content, String status,

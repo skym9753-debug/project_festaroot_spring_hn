@@ -1,23 +1,36 @@
 package com.study.app.domains.inquiry.dto;
 
-public class InquiryAttachmentDTO {
+import java.time.LocalDate;
 
+public class InquiryAttachmentDTO {
+	
+	private Long attach_id;
 	private Long inquiry_id;
 	private String file_name;
 	private String file_path;
 	private Long file_size;
 	private String file_type;
+	private LocalDate created_at;
 	
 	
 	public InquiryAttachmentDTO() {}
 	
-	public InquiryAttachmentDTO(Long inquiry_id, String file_name, String file_path, Long file_size, String file_type) {
+	public InquiryAttachmentDTO(Long attach_id, Long inquiry_id, String file_name, String file_path, Long file_size,
+			String file_type, LocalDate created_at) {
 		super();
+		this.attach_id = attach_id;
 		this.inquiry_id = inquiry_id;
 		this.file_name = file_name;
 		this.file_path = file_path;
 		this.file_size = file_size;
 		this.file_type = file_type;
+		this.created_at = created_at;
+	}
+	public Long getAttach_id() {
+		return attach_id;
+	}
+	public void setAttach_id(Long attach_id) {
+		this.attach_id = attach_id;
 	}
 	public Long getInquiry_id() {
 		return inquiry_id;
@@ -49,6 +62,15 @@ public class InquiryAttachmentDTO {
 	public void setFile_type(String file_type) {
 		this.file_type = file_type;
 	}
+	public LocalDate getCreated_at() {
+		return created_at;
+	}
+	public void setCreated_at(LocalDate created_at) {
+		this.created_at = created_at;
+	}
+	
+	
+	
 	
 	
 
