@@ -36,61 +36,88 @@
 	<select id="selectGatheringList"
 		resultType="com.study.app.domains.gathering.GatheringCreateDTO">
 		SELECT
-			cr.room_id,
-			cr.room_type,
-			cr.festival_id,
-			cr.owner_id,
-			cr.room_title,
-			cr.room_description,
-			cr.free_location,
-			cr.free_date,
-			cr.max_capacity,
-			cr.created_at,
-			m.nickname,
-			m.profile_image_url,  (
-				SELECT COUNT(*) 
-				FROM chat_room_user cru 
-				WHERE cru.room_id = cr.room_id
-			) AS current_count
+		cr.room_id,
+		cr.room_type,
+		cr.festival_id,
+		cr.owner_id,
+		cr.room_title,
+		cr.room_description,
+		cr.free_location,
+		cr.free_date,
+		cr.max_capacity,
+		cr.created_at,
+		m.nickname,
+		m.profile_image_url, (
+		SELECT COUNT(*)
+		FROM chat_room_user cru
+		WHERE cru.room_id = cr.room_id
+		) AS current_count
 		FROM chat_room cr
-		LEFT JOIN member m ON cr.owner_id = m.member_id WHERE cr.room_type = 'GROUP'
+		LEFT JOIN member m ON cr.owner_id = m.member_id WHERE cr.room_type =
+		'GROUP'
 		ORDER BY cr.room_id DESC
 	</select>
-	
+
 	<!--자유 모임 자세히보기 조회-->
-	<select id="selectGatheringDetail" parameterType="long" resultType="com.study.app.domains.gathering.GatheringCreateDTO">
-	    SELECT
-	        cr.room_id,
-	        cr.room_type,
-	        cr.festival_id,
-	        cr.owner_id,
-	        cr.room_title,
-	        cr.room_description,
-	        cr.free_location,
-	        cr.free_date,
-	        cr.max_capacity,
-	        cr.created_at,
-	        m.nickname,
-	        m.profile_image_url,
-	        (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS current_count
-	    FROM chat_room cr
-	    LEFT JOIN member m ON cr.owner_id = m.member_id
-	    WHERE cr.room_id = #{room_id}
+	<select id="selectGatheringDetail" parameterType="long"
+		resultType="com.study.app.domains.gathering.GatheringCreateDTO">
+		SELECT
+		cr.room_id,
+		cr.room_type,
+		cr.festival_id,
+		cr.owner_id,
+		cr.room_title,
+		cr.room_description,
+		cr.free_location,
+		cr.free_date,
+		cr.max_capacity,
+		cr.created_at,
+		m.nickname,
+		m.profile_image_url,
+		(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id)
+		AS current_count
+		FROM chat_room cr
+		LEFT JOIN member m ON cr.owner_id = m.member_id
+		WHERE cr.room_id = #{room_id}
 	</select>
-	
+
 	<!--자유 모임 참여자 목록 상세 조회-->
-	<select id="selectParticipants" 
-			parameterType="long" 
-			resultType="map">
-		SELECT 
-			m.member_id, 
-			m.nickname,
-			m.profile_image_url
+	<select id="selectParticipants"
+		parameterType="long"
+		resultType="map">
+		SELECT
+		m.member_id,
+		m.nickname,
+		m.profile_image_url
 		FROM chat_room_user cru
 		JOIN member m ON cru.member_id = m.member_id
 		JOIN chat_room cr ON cru.room_id = cr.room_id
 		WHERE cru.room_id = #{room_id}
-		  AND cru.member_id != cr.owner_id
+		AND cru.member_id != cr.owner_id
 	</select>
+
+	<!--모임 입장/탈퇴-->
+	<select id="getRoomCapacityInfo" resultType="map">
+		SELECT
+		max_capacity AS "MAX_CAPACITY",
+		(SELECT COUNT(*) FROM chat_room_user WHERE room_id = #{room_id}) AS
+		"CURRENT_COUNT"
+		FROM chat_room
+		WHERE room_id = #{room_id}
+	</select>
+
+	<insert id="insertParticipant">
+		INSERT INTO CHAT_ROOM_USER (
+		seq, room_id, member_id, joined_at, last_read_at
+		) VALUES (
+		SEQ_CHAT_ROOM_USER.NEXTVAL, #{room_id}, #{member_id}, SYSDATE,
+		SYSTIMESTAMP
+		)
+	</insert>
+
+	<delete id="deleteParticipant">
+		DELETE FROM CHAT_ROOM_USER
+		WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</delete>
 
 </mapper>

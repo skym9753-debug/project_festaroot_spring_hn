@@ -64,5 +64,40 @@ public class GatheringController {
 		List<Map<String, Object>> participants = gatheringService.getParticipants(roomId);
 		return ResponseEntity.ok(participants);
 	}
+	
+	// 모임 참여하기
+    @PostMapping("/{roomId}/join")
+    public ResponseEntity<?> joinGathering(@PathVariable("roomId") Long roomId, @RequestBody Map<String, Object> payload) {
+        
+    	String memberId = payload.get("member_id").toString();
+        
+        try {
+            boolean success = gatheringService.joinGathering(roomId, memberId);
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "모임 참여가 완료되었습니다."));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", "정원이 가득 찼습니다."));
+            }
+        } catch (Exception e) {
+        	return ResponseEntity.internalServerError().body(Map.of("message", "서버 오류입니다."));
+        }
+    }
+
+    // 모임 나가기
+    @PostMapping("/{room_id}/leave")
+    public ResponseEntity<?> leaveGathering(@PathVariable("room_id") Long roomId, @RequestBody Map<String, Object> payload) {
+    	String memberId = payload.get("member_id").toString();
+        
+        try {
+            boolean success = gatheringService.leaveGathering(roomId, memberId);
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "모임에서 정상적으로 탈퇴되었습니다."));
+            } else {
+            	return ResponseEntity.badRequest().body(Map.of("message", "참여 정보가 존재하지 않거나 탈퇴할 수 없습니다."));
+            }
+        } catch (Exception e) {
+        	return ResponseEntity.internalServerError().body(Map.of("message", "서버 오류입니다.")); // 변경 코드 👍
+        }
+    }
 
 }
