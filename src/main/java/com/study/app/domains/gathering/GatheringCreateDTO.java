@@ -11,7 +11,7 @@ public class GatheringCreateDTO {
 	private String room_title;
 	private String room_description;
 	private String free_location;
-	private LocalDate free_date;
+	private String free_date;
 	private Integer max_capacity; // 최대 인원 수
 	private LocalDateTime created_at;
 
@@ -32,7 +32,7 @@ public class GatheringCreateDTO {
 	public GatheringCreateDTO() {}
 
 	public GatheringCreateDTO(Long room_id, String room_type, Long festival_id, String owner_id, String room_title,
-			String room_description, String free_location, LocalDate free_date, Integer max_capacity,
+			String room_description, String free_location, String free_date, Integer max_capacity,
 			LocalDateTime created_at, String nickname, String profile_image_url, Integer current_count) {
 		super();
 		this.room_id = room_id;
@@ -106,11 +106,11 @@ public class GatheringCreateDTO {
 		this.free_location = free_location;
 	}
 
-	public LocalDate getFree_date() {
+	public String getFree_date() {
 		return free_date;
 	}
 
-	public void setFree_date(LocalDate free_date) {
+	public void setFree_date(String free_date) {
 		this.free_date = free_date;
 	}
 
