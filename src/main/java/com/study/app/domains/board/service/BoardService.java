@@ -1,4 +1,4 @@
-package com.study.app.domains.board;
+package com.study.app.domains.board.service;
 
 import java.util.List;
 
@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.board.dao.FileDAO;
+import com.study.app.domains.board.dao.PostDAO;
 import com.study.app.domains.board.dto.CommunityPostDTO;
 import com.study.app.domains.board.dto.PostAttachmentDTO;
 import com.study.app.domains.storage.uploadService;
@@ -39,6 +41,7 @@ public class BoardService {
 	}
 
 	public CommunityPostDTO getPostDetail(Long id) {
+		postDAO.increaseViewCount(id);
 		return postDAO.selectById(id);
 	}
 	
@@ -84,4 +87,6 @@ public class BoardService {
 		postDAO.deletePostById(id);
 		
 	}
+	
+
 }

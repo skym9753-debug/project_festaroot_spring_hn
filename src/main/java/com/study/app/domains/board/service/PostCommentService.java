@@ -1,4 +1,4 @@
-package com.study.app.domains.board;
+package com.study.app.domains.board.service;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.study.app.domains.board.dao.PostCommentDAO;
 import com.study.app.domains.board.dto.PostCommentDTO;
 
 @Service

@@ -22,6 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.study.app.domains.board.dto.CommunityPostDTO;
 import com.study.app.domains.board.dto.PostAttachmentDTO;
 import com.study.app.domains.board.dto.PostCommentDTO;
+import com.study.app.domains.board.dto.PostReportDTO;
+import com.study.app.domains.board.service.BoardService;
+import com.study.app.domains.board.service.CommentActionService;
+import com.study.app.domains.board.service.PostCommentService;
+import com.study.app.domains.board.service.PostLikeService;
+import com.study.app.domains.board.service.PostReportService;
 import com.study.app.utils.JWTUtil;
 
 @RestController
@@ -36,6 +42,15 @@ public class BoardController {
 	
 	@Autowired
 	private PostCommentService commentService;
+	
+	@Autowired
+	private PostLikeService likeService;
+
+	@Autowired
+	private PostReportService reportService;
+	
+	@Autowired
+	private CommentActionService commentActionService;
 	
 	@PostMapping("/post")
 	public ResponseEntity<Void> addPost(
@@ -170,5 +185,102 @@ public class BoardController {
 
         return ResponseEntity.badRequest().build();
     }
+    
+ // 좋아요 토글
+    @PostMapping("/posts/{post_id}/like")
+    public ResponseEntity<Map<String, Object>> toggleLike(
+            @PathVariable Long post_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String token = authorization.replace("Bearer ", "");
+        String member_id = jwt.getSubject(token);
+
+        Map<String, Object> result =
+                likeService.toggleLike(post_id, member_id);
+
+        return ResponseEntity.ok(result);
+    }
+
+    // 좋아요 상태 조회
+    @GetMapping("/posts/{post_id}/like")
+    public ResponseEntity<Map<String, Object>> getLikeStatus(
+            @PathVariable Long post_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String token = authorization.replace("Bearer ", "");
+        String member_id = jwt.getSubject(token);
+
+        Map<String, Object> result =
+                likeService.getLikeStatus(post_id, member_id);
+
+        return ResponseEntity.ok(result);
+    }
+
+    // 게시글 신고
+    @PostMapping("/posts/{post_id}/report")
+    public ResponseEntity<String> reportPost(
+            @PathVariable Long post_id,
+            @RequestBody PostReportDTO dto,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String token = authorization.replace("Bearer ", "");
+        String member_id = jwt.getSubject(token);
+
+        dto.setPost_id(post_id);
+        dto.setMember_id(member_id);
+        
+        
+
+        boolean result = reportService.addReport(dto);
+
+        if (result) {
+            return ResponseEntity.ok("success");
+        }
+
+        return ResponseEntity.badRequest().body("already_reported");
+    }
+    
+ // 댓글 / 대댓글 좋아요 토글
+    @PostMapping("/comments/{comment_id}/like")
+    public ResponseEntity<Map<String, Object>> toggleCommentLike(
+            @PathVariable Long comment_id,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String token = authorization.replace("Bearer ", "");
+        String member_id = jwt.getSubject(token);
+
+        Map<String, Object> result =
+            commentActionService.toggleCommentLike(comment_id, member_id);
+
+        return ResponseEntity.ok(result);
+    }
+
+    // 댓글 / 대댓글 신고
+    @PostMapping("/comments/{comment_id}/report")
+    public ResponseEntity<String> reportComment(
+            @PathVariable Long comment_id,
+            @RequestBody Map<String, String> body,
+            @RequestHeader("Authorization") String authorization
+    ) {
+        String token = authorization.replace("Bearer ", "");
+        String member_id = jwt.getSubject(token);
+
+        String reason = body.get("reason");
+
+        boolean result =
+            commentActionService.reportComment(
+                comment_id,
+                member_id,
+                reason
+            );
+
+        if (result) {
+            return ResponseEntity.ok("success");
+        }
+
+        return ResponseEntity.badRequest().body("already_reported");
+    }
+    
+
 
 }

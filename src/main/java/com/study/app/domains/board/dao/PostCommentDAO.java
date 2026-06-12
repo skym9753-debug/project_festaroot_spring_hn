@@ -1,4 +1,4 @@
-package com.study.app.domains.board;
+package com.study.app.domains.board.dao;
 
 import java.util.HashMap;
 import java.util.List;
