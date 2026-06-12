@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.study.app.domains.storage.uploadService;
 
 @RestController
 @RequestMapping("/api/gathering")
@@ -20,6 +23,26 @@ public class GatheringController {
 	@Autowired
 	private GatheringService gatheringService;
 
+	@Autowired
+	private uploadService uploadService;
+
+	// 모임 이미지 업로드
+	@PostMapping("/image")
+	public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+		try {
+			// GCP storage의 'gathering' 폴더에 저장
+			String imageUrl = uploadService.upload(file, "gathering");
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("imageUrl", imageUrl);
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("이미지 업로드 실패: " + e.getMessage());
+		}
+	}
+
+	// 자유 모임 생성
 	@PostMapping
 	public ResponseEntity<?> createGathering(@RequestBody GatheringCreateDTO dto) {
 		try {

@@ -22,28 +22,65 @@ public class GatheringService {
 		return newRoomId;
 	}
 
-	// 🌟 자유 모임 조회 페이징 고도화
+	// 자유 모임 조회 (페이징 지원)
 	public Map<String, Object> selectGatheringList(int page, int size) {
-		int offset = (page - 1) * size;
-		List<Map<String, Object>> list = gatheringMapper.selectGatheringList(offset, size);
-		int totalCount = gatheringMapper.selectGatheringCount();
+		int totalCount = gatheringMapper.countGatheringList();
+		List<Map<String, Object>> list = gatheringMapper.selectGatheringList(page, size);
 		
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", list);
-		result.put("total_count", totalCount);
+		result.put("pageInfo", getPageInfo(page, size, totalCount));
+		
 		return result;
 	}
 
-	// 🌟 축제 모임 전체 목록 페이징 고도화
+	// 축제 모임 전체 목록 조회 (페이징 지원)
 	public Map<String, Object> selectFestivalGatheringList(String memberId, int page, int size) {
-		int offset = (page - 1) * size;
-		List<Map<String, Object>> list = gatheringMapper.selectFestivalGatheringList(memberId, offset, size);
-		int totalCount = gatheringMapper.selectFestivalGatheringCount();
+		int totalCount = gatheringMapper.countFestivalGatheringList();
+		List<Map<String, Object>> list = gatheringMapper.selectFestivalGatheringList(memberId, page, size);
 		
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", list);
-		result.put("total_count", totalCount);
+		result.put("pageInfo", getPageInfo(page, size, totalCount));
+		
 		return result;
+	}
+	
+	// 참여중인 모임 목록 (페이징 및 필터 지원)
+	public Map<String, Object> getJoinedGatherings(String memberId, int page, int size, String filter) {
+		int totalCount = gatheringMapper.countJoinedGatheringList(memberId, filter);
+		List<Map<String, Object>> list = gatheringMapper.selectJoinedGatheringList(memberId, page, size, filter);
+		
+		Map<String, Object> result = new HashMap<>();
+		result.put("list", list);
+		result.put("pageInfo", getPageInfo(page, size, totalCount));
+		
+		return result;
+	}
+	
+	// 페이징 정보 생성 공통 로직
+	private Map<String, Object> getPageInfo(int currentPage, int size, int totalCount) {
+		int pageBlock = 5;
+		int totalPage = (int) Math.ceil((double) totalCount / size);
+		int endPage = (int) (Math.ceil(currentPage / (double) pageBlock)) * pageBlock;
+		int startPage = endPage - pageBlock + 1;
+		
+		if (endPage > totalPage) endPage = totalPage;
+		if (startPage < 1) startPage = 1;
+		
+		boolean existPrev = startPage > 1;
+		boolean existNext = endPage < totalPage;
+		
+		Map<String, Object> pageInfo = new HashMap<>();
+		pageInfo.put("currentPage", currentPage);
+		pageInfo.put("startPage", startPage);
+		pageInfo.put("endPage", endPage);
+		pageInfo.put("totalPage", totalPage);
+		pageInfo.put("totalCount", totalCount);
+		pageInfo.put("existPrev", existPrev);
+		pageInfo.put("existNext", existNext);
+		
+		return pageInfo;
 	}
 
 	public GatheringCreateDTO selectGatheringDetail(Long roomId) {
@@ -90,17 +127,5 @@ public class GatheringService {
 		if (roomId <= 0) return false;
 		int deletedRows = gatheringMapper.deleteParticipant(roomId, memberId);
 		return deletedRows != 0;
-	}
-	
-	// 🌟 참여중인 모임 페이징 및 필터 고도화
-	public Map<String, Object> getJoinedGatherings(String memberId, int page, int size, String filter) {
-		int offset = (page - 1) * size;
-	    List<Map<String, Object>> list = gatheringMapper.selectJoinedGatheringList(memberId, offset, size, filter);
-	    int totalCount = gatheringMapper.selectJoinedGatheringCount(memberId, filter);
-	    
-	    Map<String, Object> result = new HashMap<>();
-	    result.put("list", list);
-	    result.put("total_count", totalCount);
-	    return result;
 	}
 }
