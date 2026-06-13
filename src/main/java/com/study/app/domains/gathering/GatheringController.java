@@ -5,8 +5,17 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.study.app.domains.storage.uploadService;
 
 @RestController
@@ -23,6 +32,7 @@ public class GatheringController {
 	@PostMapping("/image")
 	public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
 		try {
+			// GCP storage의 'gathering' 폴더에 저장
 			String imageUrl = uploadService.upload(file, "gathering");
 			Map<String, Object> response = new HashMap<>();
 			response.put("success", true);
@@ -49,54 +59,49 @@ public class GatheringController {
 		}
 	}
 
-	// 자유 모임 페이징 목록 조회
+	// 자유 모임 리스트 조회 (페이징 및 검색 지원)
 	@GetMapping("/list")
-	public ResponseEntity<?> selectGatheringList(
-			@RequestParam("member_id") String memberId,
+	public ResponseEntity<?> selectGatheringList(@RequestParam(value = "member_id", required = false) String memberId,
 			@RequestParam(value = "page", defaultValue = "1") int page,
-			@RequestParam(value = "size", defaultValue = "5") int size) {
-		Map<String, Object> result = gatheringService.selectGatheringList(memberId,page, size);
+			@RequestParam(value = "size", defaultValue = "5") int size,
+			@RequestParam(value = "keyword", required = false) String keyword) {
+		Map<String, Object> result = gatheringService.selectGatheringList(memberId, page, size, keyword);
 		return ResponseEntity.ok(result);
 	}
 
-	// 축제 모임 페이징 목록 조회
+	// 축제 모임 전체 목록 조회 (페이징 및 검색 지원)
 	@GetMapping("/festival")
 	public ResponseEntity<?> selectFestivalGatheringList(
 			@RequestParam(value = "member_id", required = false) String memberId,
 			@RequestParam(value = "page", defaultValue = "1") int page,
-			@RequestParam(value = "size", defaultValue = "5") int size) {
-		Map<String, Object> result = gatheringService.selectFestivalGatheringList(memberId, page, size);
+			@RequestParam(value = "size", defaultValue = "5") int size,
+			@RequestParam(value = "keyword", required = false) String keyword) {
+		Map<String, Object> result = gatheringService.selectFestivalGatheringList(memberId, page, size, keyword);
 		return ResponseEntity.ok(result);
 	}
 
-	// 모임 상세 보기
 	@GetMapping("/{room_id}")
 	public ResponseEntity<GatheringCreateDTO> getGatheringDetail(@PathVariable("room_id") Long roomId) {
 		GatheringCreateDTO detail = gatheringService.selectGatheringDetail(roomId);
-		
-		if (detail == null) return ResponseEntity.notFound().build();
+		if (detail == null)
+			return ResponseEntity.notFound().build();
 		return ResponseEntity.ok(detail);
 	}
 
-	// 모임 참여자 목록 조회
 	@GetMapping("/{room_id}/participants")
 	public ResponseEntity<List<Map<String, Object>>> getParticipants(@PathVariable("room_id") Long roomId) {
 		List<Map<String, Object>> participants = gatheringService.getParticipants(roomId);
 		return ResponseEntity.ok(participants);
 	}
-	
-	// 모임 참여하기
+
 	@PostMapping("/{roomId}/join")
-	public ResponseEntity<?> joinGathering(@PathVariable("roomId") Long roomId, @RequestBody Map<String, Object> payload) {
+	public ResponseEntity<?> joinGathering(@PathVariable("roomId") Long roomId,
+			@RequestBody Map<String, Object> payload) {
 		String memberId = payload.get("member_id").toString();
 		try {
 			Long actualRoomId = gatheringService.joinGathering(roomId, memberId);
 			if (actualRoomId != null) {
-				return ResponseEntity.ok(Map.of(
-					"success", true,
-					"message", "모임 참여가 완료되었습니다.",
-					"roomId", actualRoomId
-				));
+				return ResponseEntity.ok(Map.of("success", true, "message", "모임 참여가 완료되었습니다.", "roomId", actualRoomId));
 			} else {
 				return ResponseEntity.badRequest().body(Map.of("message", "정원이 가득 찼습니다."));
 			}
@@ -105,9 +110,9 @@ public class GatheringController {
 		}
 	}
 
-	// 모임 스스로 나가기
 	@PostMapping("/{room_id}/leave")
-	public ResponseEntity<?> leaveGathering(@PathVariable("room_id") Long roomId, @RequestBody Map<String, Object> payload) {
+	public ResponseEntity<?> leaveGathering(@PathVariable("room_id") Long roomId,
+			@RequestBody Map<String, Object> payload) {
 		String memberId = payload.get("member_id").toString();
 		try {
 			boolean success = gatheringService.leaveGathering(roomId, memberId);
@@ -120,10 +125,11 @@ public class GatheringController {
 			return ResponseEntity.internalServerError().body(Map.of("message", "서버 오류입니다."));
 		}
 	}
-    
-	// [RESTful] 모임 정보 수정
-	@PutMapping("/{room_id}") 
-	public ResponseEntity<?> updateGathering(@PathVariable("room_id") Long roomId, @RequestBody GatheringCreateDTO dto) {
+
+	// 1. 모임 정보 수정 (PUT)
+	@PutMapping("/{room_id}")
+	public ResponseEntity<?> updateGathering(@PathVariable("room_id") Long roomId,
+			@RequestBody GatheringCreateDTO dto) {
 		try {
 			dto.setRoom_id(roomId);
 			boolean success = gatheringService.updateGathering(dto);
@@ -137,9 +143,10 @@ public class GatheringController {
 		}
 	}
 
-	// [RESTful] 모임 삭제 (DELETE 규칙에 따라 Body 대신 Query Parameter 사용)
+	// 2. 모임 완전히 삭제 (DELETE)
 	@DeleteMapping("/{room_id}")
-	public ResponseEntity<?> deleteGathering(@PathVariable("room_id") Long roomId, @RequestParam("owner_id") String ownerId) {
+	public ResponseEntity<?> deleteGathering(@PathVariable("room_id") Long roomId,
+			@RequestParam("owner_id") String ownerId) {
 		try {
 			boolean success = gatheringService.deleteGathering(roomId, ownerId);
 			if (success) {
@@ -152,9 +159,10 @@ public class GatheringController {
 		}
 	}
 
-	// [RESTful] 방장 권한 위임 (하위 호스트 자원 수정 개념)
+	// 3. 방장 위임 (PUT)
 	@PutMapping("/{room_id}/host")
-	public ResponseEntity<?> transferHost(@PathVariable("room_id") Long roomId, @RequestBody Map<String, Object> payload) {
+	public ResponseEntity<?> transferHost(@PathVariable("room_id") Long roomId,
+			@RequestBody Map<String, Object> payload) {
 		String currentOwnerId = payload.get("current_owner_id").toString();
 		String newOwnerId = payload.get("new_owner_id").toString();
 		try {
@@ -169,12 +177,10 @@ public class GatheringController {
 		}
 	}
 
-	// [RESTful] 참여자 강퇴 (참여자 리스트 자원 하위에서 특정 멤버를 DELETE)
-	@DeleteMapping("/{room_id}/participants/{member_id}")
-	public ResponseEntity<?> kickParticipant(
-			@PathVariable("room_id") Long roomId, 
-			@PathVariable("member_id") String targetMemberId,
-			@RequestParam("owner_id") String ownerId) {
+	// 4. 참여자 강퇴 (DELETE)
+	@DeleteMapping("/{room_id}/participants/{target_member_id}")
+	public ResponseEntity<?> kickParticipant(@PathVariable("room_id") Long roomId,
+			@PathVariable("target_member_id") String targetMemberId, @RequestParam("owner_id") String ownerId) {
 		try {
 			boolean success = gatheringService.kickParticipant(roomId, ownerId, targetMemberId);
 			if (success) {
@@ -187,14 +193,14 @@ public class GatheringController {
 		}
 	}
 
-	// 참여중인 모임 목록 조회
+	// 참여중인 모임 리스트 조회 (페이징, 필터, 검색 지원)
 	@GetMapping("/joined")
-	public ResponseEntity<?> getJoinedGatherings(
-			@RequestParam("member_id") String memberId,
+	public ResponseEntity<?> getJoinedGatherings(@RequestParam("member_id") String memberId,
 			@RequestParam(value = "page", defaultValue = "1") int page,
 			@RequestParam(value = "size", defaultValue = "5") int size,
-			@RequestParam(value = "filter", defaultValue = "전체") String filter) {
-		Map<String, Object> result = gatheringService.getJoinedGatherings(memberId, page, size, filter);
+			@RequestParam(value = "filter", defaultValue = "전체") String filter,
+			@RequestParam(value = "keyword", required = false) String keyword) {
+		Map<String, Object> result = gatheringService.getJoinedGatherings(memberId, page, size, filter, keyword);
 		return ResponseEntity.ok(result);
 	}
 }

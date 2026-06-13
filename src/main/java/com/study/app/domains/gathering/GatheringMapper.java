@@ -15,11 +15,11 @@ public interface GatheringMapper {
     // 채팅방 참여자 등록 (방장 자동 참여용)
     int insertRoomUser(@Param("room_id") Long roomId, @Param("member_id") String memberId);
     
-    // 자유 모임 목록 조회 (페이징 지원)
-    List<Map<String, Object>> selectGatheringList(@Param("member_id") String memberId, @Param("page") int page, @Param("size") int size);
+    // 자유 모임 목록 조회 (페이징 및 검색 지원)
+    List<Map<String, Object>> selectGatheringList(@Param("member_id") String memberId, @Param("page") int page, @Param("size") int size, @Param("keyword") String keyword);
     
-    // 자유 모임 총 개수 조회
-    int countGatheringList();
+    // 자유 모임 총 개수 조회 (검색 지원)
+    int countGatheringList(@Param("keyword") String keyword);
     
     // 자유 모임 및 축제 모임 통합 상세 조회 (음수/양수 대응 고도화)
     GatheringCreateDTO selectGatheringDetail(@Param("roomId") Long roomId);
@@ -48,15 +48,15 @@ public interface GatheringMapper {
  	// 모임 탈퇴 (참여자 제거)
  	int deleteParticipant(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 
- 	// 축제 모임 전체 목록 조회 (축제 전체 기준 + 채팅방 조인) (페이징 지원)
- 	List<Map<String, Object>> selectFestivalGatheringList(@Param("member_id") String memberId, @Param("page") int page, @Param("size") int size);
+ 	// 축제 모임 전체 목록 조회 (축제 전체 기준 + 채팅방 조인) (페이징 및 검색 지원)
+ 	List<Map<String, Object>> selectFestivalGatheringList(@Param("member_id") String member_id, @Param("page") int page, @Param("size") int size, @Param("keyword") String keyword);
  	
- 	// 축제 모임 총 개수 조회
- 	int countFestivalGatheringList();
+ 	// 축제 모임 총 개수 조회 (검색 지원)
+ 	int countFestivalGatheringList(@Param("keyword") String keyword);
  	
- 	// 참여중인 모임 목록 (페이징 지원)
- 	List<Map<String,Object>> selectJoinedGatheringList(@Param("memberId") String memberId, @Param("page") int page, @Param("size") int size, @Param("filter") String filter);
+ 	// 참여중인 모임 목록 (페이징 및 검색 지원)
+ 	List<Map<String,Object>> selectJoinedGatheringList(@Param("member_id") String member_id, @Param("page") int page, @Param("size") int size, @Param("filter") String filter, @Param("keyword") String keyword);
 
-    // 참여중인 모임 총 개수 조회
-    int countJoinedGatheringList(@Param("memberId") String memberId, @Param("filter") String filter);
+    // 참여중인 모임 총 개수 조회 (검색 지원)
+    int countJoinedGatheringList(@Param("member_id") String member_id, @Param("filter") String filter, @Param("keyword") String keyword);
 }

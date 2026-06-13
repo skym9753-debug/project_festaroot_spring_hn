@@ -22,10 +22,10 @@ public class GatheringService {
 		return newRoomId;
 	}
 
-	// 자유 모임 조회 (페이징 지원)
-	public Map<String, Object> selectGatheringList(String memberId, int page, int size) {
-		int totalCount = gatheringMapper.countGatheringList();
-		List<Map<String, Object>> list = gatheringMapper.selectGatheringList(memberId, page, size);
+	// 자유 모임 조회 (페이징 및 검색 지원)
+	public Map<String, Object> selectGatheringList(String memberId, int page, int size, String keyword) {
+		int totalCount = gatheringMapper.countGatheringList(keyword);
+		List<Map<String, Object>> list = gatheringMapper.selectGatheringList(memberId, page, size, keyword);
 		
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", list);
@@ -34,10 +34,10 @@ public class GatheringService {
 		return result;
 	}
 
-	// 축제 모임 전체 목록 조회 (페이징 지원)
-	public Map<String, Object> selectFestivalGatheringList(String memberId, int page, int size) {
-		int totalCount = gatheringMapper.countFestivalGatheringList();
-		List<Map<String, Object>> list = gatheringMapper.selectFestivalGatheringList(memberId, page, size);
+	// 축제 모임 전체 목록 조회 (페이징 및 검색 지원)
+	public Map<String, Object> selectFestivalGatheringList(String member_id, int page, int size, String keyword) {
+		int totalCount = gatheringMapper.countFestivalGatheringList(keyword);
+		List<Map<String, Object>> list = gatheringMapper.selectFestivalGatheringList(member_id, page, size, keyword);
 		
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", list);
@@ -46,10 +46,10 @@ public class GatheringService {
 		return result;
 	}
 	
-	// 참여중인 모임 목록 (페이징 및 필터 지원)
-	public Map<String, Object> getJoinedGatherings(String memberId, int page, int size, String filter) {
-		int totalCount = gatheringMapper.countJoinedGatheringList(memberId, filter);
-		List<Map<String, Object>> list = gatheringMapper.selectJoinedGatheringList(memberId, page, size, filter);
+	// 참여중인 모임 목록 (페이징, 필터, 검색 지원)
+	public Map<String, Object> getJoinedGatherings(String member_id, int page, int size, String filter, String keyword) {
+		int totalCount = gatheringMapper.countJoinedGatheringList(member_id, filter, keyword);
+		List<Map<String, Object>> list = gatheringMapper.selectJoinedGatheringList(member_id, page, size, filter, keyword);
 		
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", list);
@@ -144,7 +144,7 @@ public class GatheringService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public Long joinGathering(Long roomId, String memberId) throws Exception {
+	public Long joinGathering(Long roomId, String member_id) throws Exception {
 	    if (roomId <= 0) {
 	        Long contentId = Math.abs(roomId);
 	        GatheringCreateDTO officialRoom = new GatheringCreateDTO();
@@ -169,14 +169,14 @@ public class GatheringService {
 
 	    if (currentCount >= maxCapacity) return null;
 
-	    gatheringMapper.insertParticipant(roomId, memberId);
+	    gatheringMapper.insertParticipant(roomId, member_id);
 	    return roomId;
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public boolean leaveGathering(Long roomId, String memberId) throws Exception {
+	public boolean leaveGathering(Long roomId, String member_id) throws Exception {
 		if (roomId <= 0) return false;
-		int deletedRows = gatheringMapper.deleteParticipant(roomId, memberId);
+		int deletedRows = gatheringMapper.deleteParticipant(roomId, member_id);
 		return deletedRows != 0;
 	}
 }
