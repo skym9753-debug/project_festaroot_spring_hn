@@ -3,6 +3,7 @@ package com.study.app.domains.gathering;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.study.app.domains.storage.uploadService;
+import com.study.app.domains.storage.UploadService;
 
 @RestController
 @RequestMapping("/api/gathering")
@@ -26,7 +27,7 @@ public class GatheringController {
 	private GatheringService gatheringService;
 
 	@Autowired
-	private uploadService uploadService;
+	private UploadService uploadService;
 
 	// 모임 이미지 업로드
 	@PostMapping("/image")
