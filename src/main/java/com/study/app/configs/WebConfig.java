@@ -21,7 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/member/profile/**")
                 .excludePathPatterns( // 아래 주소들은 토큰 검증에서 제외(비회원 로그인 관련)
                         "/api/festivals",       // 축제 전체 목록 조회 API
-                        "/api/festivals/sido"	// 지역 시도 필터 조회 API;
+                        "/api/festivals/sido",	// 지역 시도 필터 조회 API
+                        "/api/festivals/**",	// 축제 목록 조회
+                        "/api/gathering/**"		// 모임 목록 조회
                 );   
 
     }
