@@ -83,6 +83,57 @@ public class GatheringService {
 		return pageInfo;
 	}
 
+	// 모임 수정
+	@Transactional
+	public boolean updateGathering(GatheringCreateDTO dto) {
+		return gatheringMapper.updateGathering(dto) > 0;
+	}
+
+	// 모임 삭제 (방장 권한 확인 필수)
+	@Transactional
+	public boolean deleteGathering(Long roomId, String ownerId) {
+		// 방장인지 확인
+		GatheringCreateDTO detail = gatheringMapper.selectGatheringDetail(roomId);
+		if (detail == null || detail.getOwner_id() == null || !detail.getOwner_id().equals(ownerId)) {
+			return false;
+		}
+		
+		// 1. 참여자들 모두 내보내기
+		gatheringMapper.deleteAllParticipants(roomId);
+		
+		// 2. 방 삭제
+		return gatheringMapper.deleteGathering(roomId) > 0;
+	}
+
+	// 방장 위임
+	@Transactional
+	public boolean transferHost(Long roomId, String currentOwnerId, String newOwnerId) {
+		// 현재 방장이 맞는지 확인
+		GatheringCreateDTO detail = gatheringMapper.selectGatheringDetail(roomId);
+		if (detail == null || detail.getOwner_id() == null || !detail.getOwner_id().equals(currentOwnerId)) {
+			return false;
+		}
+		
+		return gatheringMapper.updateOwner(roomId, newOwnerId) > 0;
+	}
+
+	// 참여자 강퇴
+	@Transactional
+	public boolean kickParticipant(Long roomId, String ownerId, String targetMemberId) {
+		// 방장 권한 확인
+		GatheringCreateDTO detail = gatheringMapper.selectGatheringDetail(roomId);
+		if (detail == null || detail.getOwner_id() == null || !detail.getOwner_id().equals(ownerId)) {
+			return false;
+		}
+		
+		// 방장 본인은 강퇴 불가
+		if (ownerId.equals(targetMemberId)) {
+			return false;
+		}
+		
+		return gatheringMapper.deleteParticipant(roomId, targetMemberId) > 0;
+	}
+
 	public GatheringCreateDTO selectGatheringDetail(Long roomId) {
 		return gatheringMapper.selectGatheringDetail(roomId);
 	}

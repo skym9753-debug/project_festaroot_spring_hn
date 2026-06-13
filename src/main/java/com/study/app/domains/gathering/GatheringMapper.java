@@ -27,6 +27,18 @@ public interface GatheringMapper {
     // 모임 참여자 목록 상세 조회
     List<Map<String, Object>> selectParticipants(@Param("room_id") Long roomId);
     
+    // 모임 수정
+    int updateGathering(GatheringCreateDTO gathering);
+    
+    // 모임 삭제
+    int deleteGathering(@Param("room_id") Long roomId);
+    
+    // 모임 참여자 전체 삭제 (방 삭제 전처리)
+    int deleteAllParticipants(@Param("room_id") Long roomId);
+    
+    // 방장 위임
+    int updateOwner(@Param("room_id") Long roomId, @Param("new_owner_id") String newOwnerId);
+    
     // 모임 정원 및 현재 인원 조회
  	Map<String, Object> getRoomCapacityInfo(@Param("room_id") Long roomId);
  

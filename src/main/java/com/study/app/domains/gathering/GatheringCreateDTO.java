@@ -14,9 +14,10 @@ public class GatheringCreateDTO {
 	private String free_date;
 	private Integer max_capacity; // 최대 인원 수
 	private LocalDateTime created_at;
-	private String room_image; // 모임 대표 이미지
 
-	// 백엔드에서 조인 및 서브쿼리로 채워줄 3가지 필드 추가
+	// 백엔드에서 조인 및 서브쿼리로 채워줄 4가지 필드 추가
+	private String room_image; // 모임 대표 이미지
+	private String profile_image_url; // 프로필 이미지
 	private String nickname; // 닉네임
 	private Integer current_count; // 참여 인원 수
 
@@ -25,15 +26,16 @@ public class GatheringCreateDTO {
 		return "GatheringCreateDTO [room_id=" + room_id + ", room_type=" + room_type + ", festival_id=" + festival_id
 				+ ", owner_id=" + owner_id + ", room_title=" + room_title + ", room_description=" + room_description
 				+ ", free_location=" + free_location + ", free_date=" + free_date + ", max_capacity=" + max_capacity
-				+ ", created_at=" + created_at + ", room_image=" + room_image + ", nickname=" + nickname
-				+ ", current_count=" + current_count + "]";
+				+ ", created_at=" + created_at + ", room_image=" + room_image + ", profile_image_url="
+				+ profile_image_url + ", nickname=" + nickname + ", current_count=" + current_count + "]";
 	}
 
 	public GatheringCreateDTO() {}
 
 	public GatheringCreateDTO(Long room_id, String room_type, Long festival_id, String owner_id, String room_title,
 			String room_description, String free_location, String free_date, Integer max_capacity,
-			LocalDateTime created_at, String room_image, String nickname, Integer current_count) {
+			LocalDateTime created_at, String room_image, String profile_image_url, String nickname,
+			Integer current_count) {
 		super();
 		this.room_id = room_id;
 		this.room_type = room_type;
@@ -46,16 +48,9 @@ public class GatheringCreateDTO {
 		this.max_capacity = max_capacity;
 		this.created_at = created_at;
 		this.room_image = room_image;
+		this.profile_image_url = profile_image_url;
 		this.nickname = nickname;
 		this.current_count = current_count;
-	}
-
-	public String getRoom_image() {
-		return room_image;
-	}
-
-	public void setRoom_image(String room_image) {
-		this.room_image = room_image;
 	}
 
 	public Long getRoom_id() {
@@ -136,6 +131,22 @@ public class GatheringCreateDTO {
 
 	public void setCreated_at(LocalDateTime created_at) {
 		this.created_at = created_at;
+	}
+
+	public String getRoom_image() {
+		return room_image;
+	}
+
+	public void setRoom_image(String room_image) {
+		this.room_image = room_image;
+	}
+
+	public String getProfile_image_url() {
+		return profile_image_url;
+	}
+
+	public void setProfile_image_url(String profile_image_url) {
+		this.profile_image_url = profile_image_url;
 	}
 
 	public String getNickname() {

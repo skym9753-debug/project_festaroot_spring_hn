@@ -60,24 +60,26 @@
 		SELECT COUNT(*) FROM chat_room WHERE room_type = 'GROUP'
 	</select>
 
-	<select id="selectGatheringDetail" parameterType="long"
-		resultType="com.study.app.domains.gathering.GatheringCreateDTO">
+	<select id="selectGatheringDetail" parameterType="long" resultType="com.study.app.domains.gathering.GatheringCreateDTO">
 		<choose>
 			<when test="roomId &gt; 0">
 				SELECT
-				cr.room_id,
-				cr.room_type,
-				cr.festival_id,
-				cr.owner_id,
-				NVL(cr.room_title, fi.title || ' 공식 모임') AS room_title,
-				NVL(cr.room_description, NVL(fi.overview, fi.title || ' 공식 모임방입니다.')) AS room_description,
-				NVL(cr.free_location, fi.addr1) AS free_location,
-				NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), fi.event_start_date || ' ~ ' || fi.event_end_date) AS free_date,
-				NVL(cr.max_capacity, 500) AS max_capacity,
-				cr.created_at,
-				m.nickname,
-				NVL(cr.room_image, fi.first_image) AS room_image,
-				(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS current_count
+				cr.room_id AS "room_id",
+				cr.room_type AS "room_type",
+				cr.festival_id AS "festival_id",
+				cr.owner_id AS "owner_id",
+				NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
+				NVL(cr.room_description, NVL(fi.overview, fi.title || ' 공식 모임방입니다.')) AS "room_description",
+				NVL(cr.free_location, fi.addr1) AS "free_location",
+				NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), fi.event_start_date || ' ~ ' || fi.event_end_date) AS "free_date",
+				NVL(cr.max_capacity, 500) AS "max_capacity",
+	            
+				cr.created_at AS "created_at",
+	            
+				m.nickname AS "nickname",
+				m.profile_image_url AS "profile_image_url",
+				NVL(cr.room_image, fi.first_image) AS "room_image",
+				(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count"
 				FROM chat_room cr
 				LEFT JOIN member m ON cr.owner_id = m.member_id
 				LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
@@ -85,28 +87,60 @@
 			</when>
 			<otherwise>
 				SELECT
-				#{roomId} AS room_id,
-				'FESTIVAL' AS room_type,
-				fi.content_id AS festival_id,
-				NULL AS owner_id,
-				fi.title || ' 공식 모임' AS room_title,
-				NVL(fi.overview, fi.title || ' 공식 모임방입니다. 함께 갈 메이트를 구해보세요!') AS room_description,
-				fi.addr1 AS free_location,
-				fi.event_start_date || ' ~ ' || fi.event_end_date AS free_date,
-				500 AS max_capacity,
-				SYSDATE AS created_at,
-				NULL AS nickname,
-				fi.first_image AS room_image,
-				0 AS current_count
+				#{roomId} AS "room_id",
+				'FESTIVAL' AS "room_type",
+				fi.content_id AS "festival_id",
+				NULL AS "owner_id",
+				fi.title || ' 공식 모임' AS "room_title",
+				NVL(fi.overview, fi.title || ' 공식 모임방입니다. 함께 갈 메이트를 구해보세요!') AS "room_description",
+				fi.addr1 AS "free_location",
+				fi.event_start_date || ' ~ ' || fi.event_end_date AS "free_date",
+				500 AS "max_capacity",
+	            
+				SYSDATE AS "created_at",
+	            
+				NULL AS "nickname",
+				NULL AS "profile_image_url",
+				fi.first_image AS "room_image",
+				0 AS "current_count"
 				FROM festival_info fi
 				WHERE fi.content_id = ABS(#{roomId})
 			</otherwise>
 		</choose>
 	</select>
 
+	<update id="updateGathering" parameterType="com.study.app.domains.gathering.GatheringCreateDTO">
+		UPDATE CHAT_ROOM
+		<set>
+			<if test="room_title != null">room_title = #{room_title},</if>
+			<if test="room_description != null">room_description = #{room_description},</if>
+			<if test="free_location != null">free_location = #{free_location},</if>
+			<if test="free_date != null">free_date = TO_DATE(#{free_date}, 'YYYY-MM-DD'),</if>
+			<if test="max_capacity != null">max_capacity = #{max_capacity},</if>
+			<if test="room_image != null and room_image != ''">room_image = #{room_image}</if>
+		</set>
+		WHERE room_id = #{room_id}
+	</update>
+
+	<delete id="deleteGathering">
+		DELETE FROM CHAT_ROOM
+		WHERE room_id = #{room_id}
+	</delete>
+
+	<delete id="deleteAllParticipants">
+		DELETE FROM CHAT_ROOM_USER
+		WHERE room_id = #{room_id}
+	</delete>
+
+	<update id="updateOwner">
+		UPDATE CHAT_ROOM
+		SET owner_id = #{new_owner_id}
+		WHERE room_id = #{room_id}
+	</update>
+
 	<select id="selectParticipants" parameterType="long" resultType="map">
 		SELECT
-		m.member_id, m.nickname, m.profile_image_url
+		m.member_id AS "member_id", m.nickname AS "nickname", m.profile_image_url AS "profile_image_url"
 		FROM chat_room_user cru
 		JOIN member m ON cru.member_id = m.member_id
 		JOIN chat_room cr ON cru.room_id = cr.room_id
