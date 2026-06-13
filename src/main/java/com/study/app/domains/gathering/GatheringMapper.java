@@ -59,4 +59,10 @@ public interface GatheringMapper {
 
     // 참여중인 모임 총 개수 조회 (검색 지원)
     int countJoinedGatheringList(@Param("member_id") String member_id, @Param("filter") String filter, @Param("keyword") String keyword);
+
+    // [추가] 밴 여부 확인 (카운트가 1 이상이면 밴 유저)
+    int checkBanStatus(@Param("room_id") Long roomId, @Param("member_id") String memberId);
+
+    // [추가] 강퇴 시 밴 유저 리스트에 등록
+    int insertBanUser(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 }

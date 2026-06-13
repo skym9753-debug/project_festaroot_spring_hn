@@ -94,11 +94,17 @@ public class GatheringController {
 		return ResponseEntity.ok(participants);
 	}
 
+	// 모임 참여 (밴 여부 체크 로직 추가)
 	@PostMapping("/{roomId}/join")
 	public ResponseEntity<?> joinGathering(@PathVariable("roomId") Long roomId,
 			@RequestBody Map<String, Object> payload) {
 		String memberId = payload.get("member_id").toString();
 		try {
+			// [추가] 해당 방에서 강퇴당한 유저인지(밴 상태인지) 검증
+			if (gatheringService.isBanned(roomId, memberId)) {
+				return ResponseEntity.status(403).body(Map.of("success", false, "message", "강퇴 처리된 모임에는 다시 참여할 수 없습니다."));
+			}
+
 			Long actualRoomId = gatheringService.joinGathering(roomId, memberId);
 			if (actualRoomId != null) {
 				return ResponseEntity.ok(Map.of("success", true, "message", "모임 참여가 완료되었습니다.", "roomId", actualRoomId));

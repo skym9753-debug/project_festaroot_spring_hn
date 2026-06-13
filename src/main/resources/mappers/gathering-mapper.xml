@@ -281,4 +281,18 @@
 		</if>
 	</select>
 
+	<select id="checkBanStatus" resultType="int">
+		SELECT COUNT(*)
+		FROM CHAT_ROOM_BAN
+		WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</select>
+	
+	<insert id="insertBanUser">
+	    INSERT INTO CHAT_ROOM_BAN (
+	        SEQ, ROOM_ID, MEMBER_ID, BANNED_AT
+	    ) VALUES (
+	        SEQ_CHAT_ROOM_BAN.NEXTVAL, #{room_id}, #{member_id}, SYSTIMESTAMP
+	    )
+	</insert>
+
 </mapper>

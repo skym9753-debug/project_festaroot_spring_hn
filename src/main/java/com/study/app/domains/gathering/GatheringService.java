@@ -117,7 +117,7 @@ public class GatheringService {
 		return gatheringMapper.updateOwner(roomId, newOwnerId) > 0;
 	}
 
-	// 참여자 강퇴
+	// 참여자 강퇴 (밴 등록 로직 연동)
 	@Transactional
 	public boolean kickParticipant(Long roomId, String ownerId, String targetMemberId) {
 		// 방장 권한 확인
@@ -131,7 +131,17 @@ public class GatheringService {
 			return false;
 		}
 		
+		// 1. 재입장 방지를 위해 밴 테이블에 유저 등록
+		gatheringMapper.insertBanUser(roomId, targetMemberId);
+		
+		// 2. 기존 참여자 테이블에서 제거
 		return gatheringMapper.deleteParticipant(roomId, targetMemberId) > 0;
+	}
+
+	// 유저 밴 여부 확인 (컨트롤러에서 호출)
+	public boolean isBanned(Long roomId, String memberId) {
+		if (roomId <= 0) return false; // 공식 축제 모임방 등은 예외 처리 가능
+		return gatheringMapper.checkBanStatus(roomId, memberId) > 0;
 	}
 
 	public GatheringCreateDTO selectGatheringDetail(Long roomId) {
