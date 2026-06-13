@@ -85,7 +85,9 @@
 				NVL(cr.room_title, fi.title || ' 공식 모임') AS room_title,
 				NVL(cr.room_description, NVL(fi.overview, fi.title || ' 공식 모임방입니다.')) AS room_description,
 				NVL(cr.free_location, fi.addr1) AS free_location,
-				NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), fi.event_start_date || ' ~ ' || fi.event_end_date) AS free_date,
+				NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), 
+				    SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+				    SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2)) AS free_date,
 				NVL(cr.max_capacity, 500) AS max_capacity,
 				cr.created_at,
 				m.nickname,
@@ -105,7 +107,8 @@
 				fi.title || ' 공식 모임' AS room_title,
 				NVL(fi.overview, fi.title || ' 공식 모임방입니다. 함께 갈 메이트를 구해보세요!') AS room_description,
 				fi.addr1 AS free_location,
-				fi.event_start_date || ' ~ ' || fi.event_end_date AS free_date,
+				SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+				SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2) AS free_date,
 				500 AS max_capacity,
 				SYSDATE AS created_at,
 				NULL AS nickname,
@@ -190,7 +193,8 @@
 					NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
 					NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "room_description",
 					NVL(cr.free_location, fi.addr1) AS "free_location",
-					fi.event_start_date || ' ~ ' || fi.event_end_date AS "free_date",
+					SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+					SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2) AS "free_date",
 					NVL(cr.max_capacity, 500) AS "max_capacity",
 					cr.created_at AS "created_at",
 					(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count",
@@ -239,7 +243,9 @@
 					m.profile_image_url AS "profile_image_url", NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
 					NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "room_description",
 					NVL(cr.free_location, fi.addr1) AS "free_location",
-					NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), fi.event_start_date || ' ~ ' || fi.event_end_date) AS "free_date",
+					NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), 
+					    SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+					    SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2)) AS "free_date",
 					cr.max_capacity AS "max_capacity",
 					NVL(cr.room_image, fi.first_image) AS "room_image", 
 					TO_CHAR(cru.joined_at, 'YYYY-MM-DD HH24:MI:SS') AS "joined_at",
