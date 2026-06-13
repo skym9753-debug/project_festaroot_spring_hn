@@ -52,16 +52,17 @@ public class GatheringController {
 	// 자유 모임 페이징 목록 조회
 	@GetMapping("/list")
 	public ResponseEntity<?> selectGatheringList(
+			@RequestParam("member_id") String memberId,
 			@RequestParam(value = "page", defaultValue = "1") int page,
 			@RequestParam(value = "size", defaultValue = "5") int size) {
-		Map<String, Object> result = gatheringService.selectGatheringList(page, size);
+		Map<String, Object> result = gatheringService.selectGatheringList(memberId,page, size);
 		return ResponseEntity.ok(result);
 	}
 
 	// 축제 모임 페이징 목록 조회
 	@GetMapping("/festival")
 	public ResponseEntity<?> selectFestivalGatheringList(
-			@RequestParam(value = "memberId", required = false) String memberId,
+			@RequestParam(value = "member_id", required = false) String memberId,
 			@RequestParam(value = "page", defaultValue = "1") int page,
 			@RequestParam(value = "size", defaultValue = "5") int size) {
 		Map<String, Object> result = gatheringService.selectFestivalGatheringList(memberId, page, size);

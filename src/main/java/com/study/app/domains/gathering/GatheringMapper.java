@@ -16,7 +16,7 @@ public interface GatheringMapper {
     int insertRoomUser(@Param("room_id") Long roomId, @Param("member_id") String memberId);
     
     // 자유 모임 목록 조회 (페이징 지원)
-    List<Map<String, Object>> selectGatheringList(@Param("page") int page, @Param("size") int size);
+    List<Map<String, Object>> selectGatheringList(@Param("member_id") String memberId, @Param("page") int page, @Param("size") int size);
     
     // 자유 모임 총 개수 조회
     int countGatheringList();
@@ -49,7 +49,7 @@ public interface GatheringMapper {
  	int deleteParticipant(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 
  	// 축제 모임 전체 목록 조회 (축제 전체 기준 + 채팅방 조인) (페이징 지원)
- 	List<Map<String, Object>> selectFestivalGatheringList(@Param("memberId") String memberId, @Param("page") int page, @Param("size") int size);
+ 	List<Map<String, Object>> selectFestivalGatheringList(@Param("member_id") String memberId, @Param("page") int page, @Param("size") int size);
  	
  	// 축제 모임 총 개수 조회
  	int countFestivalGatheringList();

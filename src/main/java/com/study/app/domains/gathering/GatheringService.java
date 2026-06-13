@@ -23,9 +23,9 @@ public class GatheringService {
 	}
 
 	// 자유 모임 조회 (페이징 지원)
-	public Map<String, Object> selectGatheringList(int page, int size) {
+	public Map<String, Object> selectGatheringList(String memberId, int page, int size) {
 		int totalCount = gatheringMapper.countGatheringList();
-		List<Map<String, Object>> list = gatheringMapper.selectGatheringList(page, size);
+		List<Map<String, Object>> list = gatheringMapper.selectGatheringList(memberId, page, size);
 		
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", list);

@@ -46,7 +46,9 @@
 	                TO_CHAR(cr.created_at, 'YYYY-MM-DD') AS "created_at",
 	                cr.room_image AS "room_image",
 	                m.nickname AS "nickname",
-	                m.profile_image_url AS "profile_image_url", (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count"
+	                m.profile_image_url AS "profile_image_url", 
+	                (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count",
+	                (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id AND cru.member_id = #{member_id}) AS "is_joined"
 	            FROM chat_room cr
 	            LEFT JOIN member m ON cr.owner_id = m.member_id 
 	            WHERE cr.room_type = 'GROUP'
@@ -188,8 +190,8 @@
 					(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count",
 					NVL(cr.room_image, fi.first_image) AS "room_image",
 					<choose>
-						<when test="memberId != null and memberId != ''">
-							(SELECT COUNT(*) FROM chat_room_user WHERE room_id = cr.room_id AND member_id = #{memberId})
+						<when test="member_id != null and member_id != ''">
+							(SELECT COUNT(*) FROM chat_room_user WHERE room_id = cr.room_id AND member_id = #{member_id})
 						</when>
 						<otherwise>0</otherwise>
 					</choose> AS "is_joined"
