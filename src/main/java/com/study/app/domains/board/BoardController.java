@@ -70,13 +70,28 @@ public class BoardController {
 	
 	@GetMapping("/posts")
 	public ResponseEntity<Map<String, Object>> getPostList(
-			@RequestParam(defaultValue = "1") Long cpage) {
-		int totalPostCount = boardService.totalPostCount();
+			@RequestParam(defaultValue = "1") Long cpage,
+			@RequestParam(defaultValue = "all") String category,
+			@RequestParam(defaultValue = "latest") String sortBy,
+			@RequestParam(defaultValue = "title") String searchType,
+			@RequestParam(defaultValue = "") String keyword) {
+		
+		Map<String, Object> params = new HashMap<>();
+		params.put("category", category);
+		params.put("sortBy", sortBy);
+		params.put("searchType", searchType);
+		params.put("keyword", keyword);
+		params.put("cpage", cpage);
+		
+		int totalPostCount = boardService.totalPostCount(params);
 		
 		Long startNum = cpage*10-9;
 		Long endNum = cpage*10;
 		
-		List<CommunityPostDTO> list = boardService.getStartEnd(startNum, endNum);
+		params.put("startNum", startNum);
+		params.put("endNum", endNum);
+		
+		List<CommunityPostDTO> list = boardService.getPosts(params);
 			
 		Map<String, Object> resp = new HashMap<>();
 		

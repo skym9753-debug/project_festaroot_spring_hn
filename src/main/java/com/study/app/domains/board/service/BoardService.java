@@ -1,6 +1,7 @@
 package com.study.app.domains.board.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,12 +33,12 @@ public class BoardService {
 		}
 	}
 
-	public int totalPostCount() {
-		return postDAO.selectCount();
+	public int totalPostCount(Map<String, Object> params) {
+		return postDAO.selectCount(params);
 	}
 
-	public List<CommunityPostDTO> getStartEnd(Long startNum, Long endNum){
-		return postDAO.selectList(startNum, endNum);
+	public List<CommunityPostDTO> getPosts(Map<String, Object> params){
+		return postDAO.selectList(params);
 	}
 
 	public CommunityPostDTO getPostDetail(Long id) {
