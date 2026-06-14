@@ -16,7 +16,6 @@ public class JWTUtil {
 	@Value("${jwt.expiration}")
 	private Long expiration;
 	
-	
 	private Algorithm alg;
 	private JWTVerifier jwt;
 	
@@ -31,6 +30,7 @@ public class JWTUtil {
 				.withIssuedAt(new Date())
 				.withExpiresAt(new Date(System.currentTimeMillis() + expiration))
 				.sign(alg);
+		
 	}
 	
 	// 토큰 유효성 검사하는 함수
@@ -42,6 +42,8 @@ public class JWTUtil {
 	public String getSubject(String token) {
 		return validation(token).getSubject();
 	}
+	
+	
 	
 	
 	
