@@ -152,6 +152,11 @@ public class GatheringService {
 		if (roomId <= 0) return List.of();
 		return gatheringMapper.selectParticipants(roomId);
 	}
+	
+	public List<Map<String, Object>> selectGatheringMembers(Long roomId){
+		if(roomId <= 0) return List.of();
+		return gatheringMapper.selectGatheringMembers(roomId);
+	}
 
 	@Transactional(rollbackFor = Exception.class)
 	public Long joinGathering(Long roomId, String member_id) throws Exception {

@@ -147,19 +147,31 @@
 		WHERE room_id = #{room_id}
 	</update>
 
-	<select id="selectParticipants" parameterType="long" resultType="map">
+<select id="selectParticipants" parameterType="long" resultType="map">
 	    SELECT
 	        m.member_id AS "member_id", 
 	        m.nickname AS "nickname", 
 	        m.profile_image_url AS "profile_image_url",
-	        -- 방장 여부를 Y 또는 N으로 반환 (공식 모임이라 owner_id가 없으면 N)
 	        CASE WHEN cr.owner_id = cru.member_id THEN 'Y' ELSE 'N' END AS "is_owner"
 	    FROM chat_room_user cru
 	    JOIN member m ON cru.member_id = m.member_id
 	    LEFT JOIN chat_room cr ON cru.room_id = cr.room_id
 	    WHERE cru.room_id = #{room_id}
-	    -- 방장이 리스트 가장 위로 오고, 그 뒤로 닉네임 순 정렬
 	    ORDER BY "is_owner" DESC, m.nickname ASC
+	</select>
+	
+	<select id="selectGatheringMembers" parameterType="long" resultType="map">
+	    SELECT DISTINCT
+	        m.member_id AS "member_id", 
+	        m.nickname AS "nickname", 
+	        m.profile_image_url AS "profile_image_url",
+	        'N' AS "is_owner"
+	    FROM chat_room_user cru
+	    JOIN member m ON cru.member_id = m.member_id
+	    LEFT JOIN chat_room cr ON cru.room_id = cr.room_id
+	    WHERE cru.room_id = #{room_id}
+	      AND (cr.owner_id IS NULL OR cru.member_id != cr.owner_id)  
+	    ORDER BY m.nickname ASC
 	</select>
 
 	<select id="getRoomCapacityInfo" resultType="map">

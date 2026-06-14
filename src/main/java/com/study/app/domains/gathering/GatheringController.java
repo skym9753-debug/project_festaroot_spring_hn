@@ -89,9 +89,17 @@ public class GatheringController {
 		return ResponseEntity.ok(detail);
 	}
 
+	// 채팅 참여 목록
 	@GetMapping("/{room_id}/participants")
 	public ResponseEntity<List<Map<String, Object>>> getParticipants(@PathVariable("room_id") Long roomId) {
 		List<Map<String, Object>> participants = gatheringService.getParticipants(roomId);
+		return ResponseEntity.ok(participants);
+	}
+	
+	// 모임 참여 목록
+	@GetMapping("/{room_id}/participants_meet")
+	public ResponseEntity<List<Map<String, Object>>> selectGatheringMembers(@PathVariable("room_id") Long roomId) {
+		List<Map<String, Object>> participants = gatheringService.selectGatheringMembers(roomId);
 		return ResponseEntity.ok(participants);
 	}
 
