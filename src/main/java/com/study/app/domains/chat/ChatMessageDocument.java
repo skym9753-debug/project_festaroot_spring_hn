@@ -1,37 +1,73 @@
 package com.study.app.domains.chat;
 
 import java.time.LocalDateTime;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data				// Getter, Setter, toString 자동 생성
-@NoArgsConstructor	// 기본 생성자 자동 생성
-@AllArgsConstructor // 모든 필드 포함한 생성자 자동 생성
-@Builder			// new 대신 빌더 패턴을 사용한 객체 자동 생성
-@Document(collection="chat_messages") // 오라클 테이블 지정 느낌, 몽고디비에서는 컬렉션 이라고 부름
+@Document(collection="chat_messages") 
 public class ChatMessageDocument {
-// MongoDB용, 채팅메세지 컬럼명을 저장하는 클래스(DTO 느낌)
-	
-	@Id // 몽고디비의 PK 역할
-	private String id; // String으로 선언해서, 데이터를 넣을 때 고유한 문자열을 알아서 1씩 증가 자동으로 채움.
-	
-	@Field("room_id") // 몽고디비에 저장하거나 꺼내올때는 알아서 스케이크케이스로 읽어주는 매핑
-	private String roomId; // 자바 표준 문법 지키기.
-	
-	@Field("member_id") // 발신자 ID
-	private String memberId;
-	
-	@Field("content") // 메세지 본문
-	private String content;
-	
-	@Field("created_at") // 전송일시
-	private LocalDateTime createdAt;
-	
+    
+    @Id
+    private String id;          
+    
+    @Field("room_id")          
+    private Long roomId;        
+    
+    @Field("sender_id")        
+    private String senderId;    
+    
+    @Field("sender_name")      
+    private String senderName;  
+    
+    // 💡 몽고DB에 프로필 이미지 경로를 저장할 필드를 추가합니다.
+    @Field("sender_profile")
+    private String senderProfile; 
+    
+    private String message;     
+    
+    private ChatType type;      
+    
+    @Field("created_at")       
+    private LocalDateTime createdAt = LocalDateTime.now(); 
+
+    public ChatMessageDocument() {}
+
+    // 모든 필드를 포함하는 생성자에 senderProfile 추가
+    public ChatMessageDocument(String id, Long roomId, String senderId, String senderName, String senderProfile, String message, ChatType type, LocalDateTime createdAt) {
+        this.id = id;
+        this.roomId = roomId;
+        this.senderId = senderId;
+        this.senderName = senderName;
+        this.senderProfile = senderProfile; // 💡 추가
+        this.message = message;
+        this.type = type;
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+    }
+
+    // --- Getter / Setter 추가 및 기존 코드 유지 ---
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public Long getRoomId() { return roomId; }
+    public void setRoomId(Long roomId) { this.roomId = roomId; }
+
+    public String getSenderId() { return senderId; }
+    public void setSenderId(String senderId) { this.senderId = senderId; }
+
+    public String getSenderName() { return senderName; }
+    public void setSenderName(String senderName) { this.senderName = senderName; }
+
+    // 💡 senderProfile의 Getter/Setter 직접 구현
+    public String getSenderProfile() { return senderProfile; }
+    public void setSenderProfile(String senderProfile) { this.senderProfile = senderProfile; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+
+    public ChatType getType() { return type; }
+    public void setType(ChatType type) { this.type = type; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

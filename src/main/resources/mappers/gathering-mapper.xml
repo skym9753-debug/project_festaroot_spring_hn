@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.study.app.domains.gathering.GatheringMapper">
+
+	<insert id="insertGathering" parameterType="com.study.app.domains.gathering.GatheringCreateDTO">
+	    <selectKey keyProperty="room_id" resultType="long" order="BEFORE">
+	        SELECT SEQ_CHAT_ROOM.NEXTVAL FROM DUAL
+	    </selectKey> 
+	    INSERT INTO CHAT_ROOM ( 
+	        room_id, room_type, festival_id, owner_id, room_title,
+	        room_description, free_location, free_date, max_capacity, created_at,
+	        room_image
+	    )
+	    VALUES ( 
+	        #{room_id}, #{room_type}, #{festival_id}, #{owner_id},
+	        #{room_title}, #{room_description}, #{free_location}, 
+	        TO_DATE(#{free_date}, 'YYYY-MM-DD'), #{max_capacity}, SYSDATE,
+	        #{room_image}
+	    ) 
+	</insert>
+
+	<insert id="insertRoomUser">
+		INSERT INTO CHAT_ROOM_USER (
+		seq, room_id, member_id, joined_at, last_read_at
+		) VALUES (
+		SEQ_CHAT_ROOM_USER.NEXTVAL, #{room_id}, #{member_id}, SYSDATE, SYSTIMESTAMP
+		)
+	</insert>
+
+	<select id="selectGatheringList" resultType="map">
+		<bind name="startRow" value="(page - 1) * size + 1" />
+		<bind name="endRow" value="page * size" />
+		SELECT * FROM (
+			SELECT ROWNUM AS rnum, res.* FROM (
+				SELECT
+					cr.room_id AS "room_id",
+					LOWER(cr.room_type) AS "room_type",
+					cr.festival_id AS "festival_id",
+					cr.owner_id AS "owner_id",
+					cr.room_title AS "room_title",
+					cr.room_description AS "room_description",
+					cr.free_location AS "free_location",
+					TO_CHAR(cr.free_date, 'YYYY.MM.DD') AS "free_date", 
+					cr.max_capacity AS "max_capacity",
+					TO_CHAR(cr.created_at, 'YYYY-MM-DD') AS "created_at",
+					cr.room_image AS "room_image",
+					m.nickname AS "nickname",
+					m.profile_image_url AS "profile_image_url", (SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count",
+					<choose>
+						<when test="member_id != null and member_id != ''">
+							(SELECT COUNT(*) FROM chat_room_user WHERE room_id = cr.room_id AND member_id = #{member_id})
+						</when>
+						<otherwise>0</otherwise>
+					</choose> AS "is_joined"
+				FROM chat_room cr
+				LEFT JOIN member m ON cr.owner_id = m.member_id 
+				WHERE cr.room_type = 'GROUP'
+				<if test="keyword != null and keyword != ''">
+					AND cr.room_title LIKE '%' || #{keyword} || '%'
+				</if>
+				ORDER BY cr.room_id DESC
+			) res
+		)
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<select id="countGatheringList" resultType="int">
+		SELECT COUNT(*) FROM chat_room 
+		WHERE room_type = 'GROUP'
+		<if test="keyword != null and keyword != ''">
+			AND room_title LIKE '%' || #{keyword} || '%'
+		</if>
+	</select>
+
+	<select id="selectGatheringDetail" parameterType="long"
+		resultType="com.study.app.domains.gathering.GatheringCreateDTO">
+		<choose>
+			<when test="roomId &gt; 0">
+				SELECT
+				cr.room_id,
+				cr.room_type,
+				cr.festival_id,
+				cr.owner_id,
+				NVL(cr.room_title, fi.title || ' 공식 모임') AS room_title,
+				NVL(cr.room_description, NVL(fi.overview, fi.title || ' 공식 모임방입니다.')) AS room_description,
+				NVL(cr.free_location, fi.addr1) AS free_location,
+				NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), 
+				    SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+				    SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2)) AS free_date,
+				NVL(cr.max_capacity, 500) AS max_capacity,
+				cr.created_at,
+				m.nickname,
+				m.profile_image_url, NVL(cr.room_image, fi.first_image) AS room_image,
+				(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS current_count
+				FROM chat_room cr
+				LEFT JOIN member m ON cr.owner_id = m.member_id
+				LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
+				WHERE cr.room_id = #{roomId}
+			</when>
+			<otherwise>
+				SELECT
+				#{roomId} AS room_id,
+				'FESTIVAL' AS room_type,
+				fi.content_id AS festival_id,
+				NULL AS owner_id,
+				fi.title || ' 공식 모임' AS room_title,
+				NVL(fi.overview, fi.title || ' 공식 모임방입니다. 함께 갈 메이트를 구해보세요!') AS room_description,
+				fi.addr1 AS free_location,
+				SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+				SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2) AS free_date,
+				500 AS max_capacity,
+				SYSDATE AS created_at,
+				NULL AS nickname,
+				NULL AS profile_image_url, fi.first_image AS room_image,
+				0 AS current_count
+				FROM festival_info fi
+				WHERE fi.content_id = ABS(#{roomId})
+			</otherwise>
+		</choose>
+	</select>
+
+	<update id="updateGathering" parameterType="com.study.app.domains.gathering.GatheringCreateDTO">
+		UPDATE CHAT_ROOM
+		SET room_title = #{room_title},
+		    room_description = #{room_description},
+		    free_location = #{free_location},
+		    free_date = TO_DATE(#{free_date}, 'YYYY-MM-DD'),
+		    max_capacity = #{max_capacity},
+		    room_image = #{room_image}
+		WHERE room_id = #{room_id}
+	</update>
+
+	<delete id="deleteGathering">
+		DELETE FROM CHAT_ROOM
+		WHERE room_id = #{room_id}
+	</delete>
+
+	<delete id="deleteAllParticipants">
+		DELETE FROM CHAT_ROOM_USER
+		WHERE room_id = #{room_id}
+	</delete>
+
+	<update id="updateOwner">
+		UPDATE CHAT_ROOM
+		SET owner_id = #{new_owner_id}
+		WHERE room_id = #{room_id}
+	</update>
+
+<select id="selectParticipants" parameterType="long" resultType="map">
+	    SELECT
+	        m.member_id AS "member_id", 
+	        m.nickname AS "nickname", 
+	        m.profile_image_url AS "profile_image_url",
+	        CASE WHEN cr.owner_id = cru.member_id THEN 'Y' ELSE 'N' END AS "is_owner"
+	    FROM chat_room_user cru
+	    JOIN member m ON cru.member_id = m.member_id
+	    LEFT JOIN chat_room cr ON cru.room_id = cr.room_id
+	    WHERE cru.room_id = #{room_id}
+	    ORDER BY "is_owner" DESC, m.nickname ASC
+	</select>
+	
+	<select id="selectGatheringMembers" parameterType="long" resultType="map">
+	    SELECT DISTINCT
+	        m.member_id AS "member_id", 
+	        m.nickname AS "nickname", 
+	        m.profile_image_url AS "profile_image_url",
+	        'N' AS "is_owner"
+	    FROM chat_room_user cru
+	    JOIN member m ON cru.member_id = m.member_id
+	    LEFT JOIN chat_room cr ON cru.room_id = cr.room_id
+	    WHERE cru.room_id = #{room_id}
+	      AND (cr.owner_id IS NULL OR cru.member_id != cr.owner_id)  
+	    ORDER BY m.nickname ASC
+	</select>
+
+	<select id="getRoomCapacityInfo" resultType="map">
+		SELECT
+		max_capacity AS "MAX_CAPACITY",
+		(SELECT COUNT(*) FROM chat_room_user WHERE room_id = #{room_id}) AS "CURRENT_COUNT"
+		FROM chat_room
+		WHERE room_id = #{room_id}
+	</select>
+
+	<insert id="insertParticipant">
+		INSERT INTO CHAT_ROOM_USER (
+		seq, room_id, member_id, joined_at, last_read_at
+		) VALUES (
+		SEQ_CHAT_ROOM_USER.NEXTVAL, #{room_id}, #{member_id}, SYSDATE, SYSTIMESTAMP
+		)
+	</insert>
+
+	<delete id="deleteParticipant">
+		DELETE FROM CHAT_ROOM_USER
+		WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</delete>
+
+	<select id="selectFestivalGatheringList" resultType="map">
+		<bind name="startRow" value="(page - 1) * size + 1" />
+		<bind name="endRow" value="page * size" />
+		SELECT * FROM (
+			SELECT ROWNUM AS rnum, res.* FROM (
+				SELECT 
+					NVL(cr.room_id, -fi.content_id) AS "room_id",
+					NVL(LOWER(cr.room_type), 'festival') AS "room_type",
+					fi.content_id AS "festival_id",
+					cr.owner_id AS "owner_id",
+					NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
+					NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "room_description",
+					NVL(cr.free_location, fi.addr1) AS "free_location",
+					SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+					SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2) AS "free_date",
+					NVL(cr.max_capacity, 500) AS "max_capacity",
+					cr.created_at AS "created_at",
+					(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS "current_count",
+					NVL(cr.room_image, fi.first_image) AS "room_image",
+					<choose>
+						<when test="member_id != null and member_id != ''">
+							(SELECT COUNT(*) FROM chat_room_user WHERE room_id = cr.room_id AND member_id = #{member_id})
+						</when>
+						<otherwise>0</otherwise>
+					</choose> AS "is_joined"
+				FROM festival_info fi
+				LEFT JOIN chat_room cr ON fi.content_id = cr.festival_id AND cr.room_type = 'FESTIVAL'
+				<where>
+					<if test="keyword != null and keyword != ''">
+						AND (cr.room_title LIKE '%' || #{keyword} || '%' OR (cr.room_title IS NULL AND fi.title LIKE '%' || #{keyword} || '%'))
+					</if>
+				</where>
+				ORDER BY fi.event_start_date DESC
+			) res
+		)
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<select id="countFestivalGatheringList" resultType="int">
+		SELECT COUNT(*) 
+		FROM festival_info fi
+		LEFT JOIN chat_room cr ON fi.content_id = cr.festival_id AND cr.room_type = 'FESTIVAL'
+		<where>
+			<if test="keyword != null and keyword != ''">
+				AND (cr.room_title LIKE '%' || #{keyword} || '%' OR (cr.room_title IS NULL AND fi.title LIKE '%' || #{keyword} || '%'))
+			</if>
+		</where>
+	</select>
+	
+	<select id="selectJoinedGatheringList" resultType="map">
+		<bind name="startRow" value="(page - 1) * size + 1" />
+		<bind name="endRow" value="page * size" />
+		SELECT * FROM (
+			SELECT ROWNUM AS rnum, res.* FROM (
+				SELECT 
+					cr.room_id AS "room_id",  
+					LOWER(cr.room_type) AS "room_type", 
+					cr.festival_id AS "festival_id",
+					cr.owner_id AS "owner_id",
+					m.nickname AS "nickname",
+					m.profile_image_url AS "profile_image_url", NVL(cr.room_title, fi.title || ' 공식 모임') AS "room_title",
+					NVL(cr.room_description, fi.title || ' 공식 모임방입니다.') AS "room_description",
+					NVL(cr.free_location, fi.addr1) AS "free_location",
+					NVL(TO_CHAR(cr.free_date, 'YYYY.MM.DD'), 
+					    SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
+					    SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2)) AS "free_date",
+					cr.max_capacity AS "max_capacity",
+					NVL(cr.room_image, fi.first_image) AS "room_image", 
+					TO_CHAR(cru.joined_at, 'YYYY-MM-DD HH24:MI:SS') AS "joined_at",
+					(SELECT COUNT(*) FROM chat_room_user sub_cru WHERE sub_cru.room_id = cr.room_id) AS "current_count"
+				FROM chat_room cr
+				JOIN chat_room_user cru ON cr.room_id = cru.room_id
+				LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
+				LEFT JOIN member m ON cr.owner_id = m.member_id
+				WHERE cru.member_id = #{member_id}
+				<if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
+				<if test="filter == '자유 모임'">AND cr.room_type = 'GROUP'</if>
+				<if test="filter == '개설한 모임'">AND cr.owner_id = #{member_id}</if>
+				<if test="keyword != null and keyword != ''">
+					AND (cr.room_title LIKE '%' || #{keyword} || '%' OR (cr.room_title IS NULL AND fi.title LIKE '%' || #{keyword} || '%'))
+				</if>
+				ORDER BY cru.joined_at DESC
+			) res
+		)
+		WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<select id="countJoinedGatheringList" resultType="int">
+		SELECT COUNT(*)
+		FROM chat_room cr
+		JOIN chat_room_user cru ON cr.room_id = cru.room_id
+		LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
+		WHERE cru.member_id = #{member_id}
+		<if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
+		<if test="filter == '자유 모임'">AND cr.room_type = 'GROUP'</if>
+		<if test="filter == '개설한 모임'">AND cr.owner_id = #{member_id}</if>
+		<if test="keyword != null and keyword != ''">
+			AND (cr.room_title LIKE '%' || #{keyword} || '%' OR (cr.room_title IS NULL AND fi.title LIKE '%' || #{keyword} || '%'))
+		</if>
+	</select>
+
+	<select id="checkBanStatus" resultType="int">
+		SELECT COUNT(*)
+		FROM CHAT_ROOM_BAN
+		WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</select>
+	
+	<insert id="insertBanUser">
+	    INSERT INTO CHAT_ROOM_BAN (
+	        SEQ, ROOM_ID, MEMBER_ID, BANNED_AT
+	    ) VALUES (
+	        SEQ_CHAT_ROOM_BAN.NEXTVAL, #{room_id}, #{member_id}, SYSTIMESTAMP
+	    )
+	</insert>
+
+</mapper>

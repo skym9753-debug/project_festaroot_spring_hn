@@ -231,8 +231,13 @@ public class FestivalController {
 	// 축제 목록 > 찜하기
 		// 로그인한 유저의 찜 목록 조회 (GET)
 		@GetMapping("/likeList")
-		public ResponseEntity<?> getMyFestivalLikedIds(@RequestAttribute("id") String memberId) {
+		public ResponseEntity<?> getMyFestivalLikedIds(@RequestAttribute(value = "id", required = false) String memberId) {
 
+			// 만약 인터셉터가 작동하지 않았거나 토큰이 없어서 null 이라면 401을 반환하도록 처리
+		    if (memberId == null) {
+		        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요하거나 토큰 검증에 실패했습니다.");
+		    }
+			
 			// 서비스에서 해당 유저가 찜한 축제 목록 가져오기 (예: [123, 456, 789])
 			List<Long> likedFestivalIds = feServ.getMyFestivalLikedIds(memberId);
 
