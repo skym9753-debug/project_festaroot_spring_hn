@@ -76,6 +76,9 @@
     <select id="selectCommentById" resultType="com.study.app.domains.board.dto.PostCommentDTO">
         SELECT * FROM POST_COMMENT WHERE comment_id = #{comment_id}
     </select>
-
+	
+	<select id="getMyCommentCount" resultType="int">
+		select count(*) from POST_COMMENT where member_id = #{member_id}
+	</select>
 
 </mapper>

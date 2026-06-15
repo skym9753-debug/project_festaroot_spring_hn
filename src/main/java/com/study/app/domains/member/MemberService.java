@@ -24,6 +24,8 @@ import com.study.app.domains.achievement.AchievementDAO;
 import com.study.app.domains.achievement.AchievementService;
 import com.study.app.domains.achievement.dto.LevelSystemDTO;
 import com.study.app.domains.auth.EmailService;
+import com.study.app.domains.board.service.BoardService;
+import com.study.app.domains.board.service.PostCommentService;
 import com.study.app.domains.festival.FestivalDAO;
 import com.study.app.domains.member.dto.FindIdRequestDTO;
 import com.study.app.domains.member.dto.InterestRegionDTO;
@@ -67,6 +69,12 @@ public class MemberService {
 	
 	@Autowired
 	private EmailService emailService;
+	
+	@Autowired
+	private BoardService boardService;
+	
+	@Autowired
+	private PostCommentService postCommentService;
 
 	public MemberProfileDTO getProfile(String member_id) {
 		MemberDTO member = memberDAO.selectMemberById(member_id);
@@ -109,7 +117,13 @@ public class MemberService {
 				profile.setNextLevelExp(nextLv.getRequired_exp());
 			}
 		}
-
+		
+		Integer myPostCount = boardService.getMyPostCount(member_id);
+		profile.setMyPostCount(myPostCount);
+		
+		Integer myCommentCount = postCommentService.getMyCommentCount(member_id);
+		profile.setMyCommentCount(myCommentCount);
+		
 		return profile;
 	}
 

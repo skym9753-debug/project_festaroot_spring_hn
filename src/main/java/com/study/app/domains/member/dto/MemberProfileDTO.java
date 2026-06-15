@@ -17,6 +17,9 @@ public class MemberProfileDTO {
     private String titleName;
     private Long currentExp;
     private Long nextLevelExp;
+    
+    private Integer myPostCount;
+    private Integer myCommentCount;
 
     public MemberProfileDTO() {}
 
@@ -37,8 +40,27 @@ public class MemberProfileDTO {
     public void setCurrentExp(Long currentExp) { this.currentExp = currentExp; }
     public Long getNextLevelExp() { return nextLevelExp; }
     public void setNextLevelExp(Long nextLevelExp) { this.nextLevelExp = nextLevelExp; }
+    
+    
+    
+    
+    public Integer getMyPostCount() {
+		return myPostCount;
+	}
 
-    public List<Map<String, Object>> getLikedFestivals() {
+	public void setMyPostCount(Integer myPostCount) {
+		this.myPostCount = myPostCount;
+	}
+
+	public Integer getMyCommentCount() {
+		return myCommentCount;
+	}
+
+	public void setMyCommentCount(Integer myCommentCount) {
+		this.myCommentCount = myCommentCount;
+	}
+
+	public List<Map<String, Object>> getLikedFestivals() {
         return likedFestivals;
     }
 

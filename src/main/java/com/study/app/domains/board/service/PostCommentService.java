@@ -75,5 +75,8 @@ public class PostCommentService {
 		commentDAO.deleteChildComments(comment_id);
 		return commentDAO.deleteComment(comment_id, member_id);
 	}
-
+	
+	public int getMyCommentCount(String member_id) {
+		return commentDAO.getMyCommentCount(member_id);
+	}
 }

@@ -1,6 +1,5 @@
 package com.study.app.domains.board.dao;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,5 +49,11 @@ public class PostDAO {
 	public int increaseReportCount(Long post_id) {
 		return mybatis.update("Board.increaseReportCount", post_id);
 	}
-
-}
+	
+	public int getMyPostCount(String memberId) {
+		return mybatis.selectOne("Board.getMyPostCount",memberId);
+	}
+	public List<CommunityPostDTO>getMypostList(String member_id){
+		return mybatis.selectList("Board.getMypostList",member_id);
+	}
+ }

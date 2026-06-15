@@ -116,6 +116,11 @@ public class BoardService {
 		postDAO.deletePostById(id);
 		
 	}
-	
+	public Integer getMyPostCount(String memberId) {
+		return postDAO.getMyPostCount(memberId);
+	}
+	public List<CommunityPostDTO> getMypostList(String member_id){
+		return postDAO.getMypostList(member_id);
+	}
 
 }
