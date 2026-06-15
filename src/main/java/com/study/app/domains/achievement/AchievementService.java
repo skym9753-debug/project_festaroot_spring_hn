@@ -75,18 +75,23 @@ public class AchievementService {
      * 다른 서비스에서 활동 성공 시 호출하면 됩니다.
      */
     @Transactional
-    public AchievementResultDTO addActivityExp(String memberId, ActivityType type) {
+    public List<AchievementResultDTO> addActivityExp(String memberId, ActivityType type) {
         log.info("활동 경험치 지급 - 유저: {}, 활동: {}, 점수: {}", memberId, type, type.getExp());
         
-        AchievementResultDTO result = new AchievementResultDTO("활동 보상", type.name() + " 활동 완료", type.getExp());
+        List<AchievementResultDTO> results = new ArrayList<>();
+        AchievementResultDTO activityResult = new AchievementResultDTO("활동 보상", type.name() + " 활동 완료", type.getExp());
         
         // 경험치 지급 및 레벨업 체크 로직 실행
-        addExpAndCheckLevelUp(memberId, type.getExp(), result);
+        addExpAndCheckLevelUp(memberId, type.getExp(), activityResult);
+        results.add(activityResult);
         
         // 업적 진행도도 함께 업데이트 (타입명이 일치하므로 재사용 가능)
-        updateProgress(memberId, type.name());
+        List<AchievementResultDTO> achResults = updateProgress(memberId, type.name());
+        if (achResults != null && !achResults.isEmpty()) {
+            results.addAll(achResults);
+        }
         
-        return result;
+        return results;
     }
     
 
@@ -97,11 +102,8 @@ public class AchievementService {
     public List<AchievementResultDTO> processAttendance(String memberId) {
         log.info("출석 체크 처리 - 유저: {}", memberId);
         
-        List<AchievementResultDTO> results = new ArrayList<>();
-        
         // 1. 기본 활동 경험치 지급 (addActivityExp 내부에서 updateProgress("ATTENDANCE")를 호출함)
-        AchievementResultDTO activityResult = addActivityExp(memberId, ActivityType.ATTENDANCE);
-        results.add(activityResult);
+        List<AchievementResultDTO> results = addActivityExp(memberId, ActivityType.ATTENDANCE);
         
         // 2. 추가적인 업적 체크가 필요하다면 여기서 수행할 수 있지만, 
         // 이미 updateProgress가 호출되었으므로 바로 반환하면 됩니다.

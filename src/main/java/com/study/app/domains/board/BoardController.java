@@ -54,7 +54,7 @@ public class BoardController {
 	private CommentActionService commentActionService;
 	
 	@PostMapping("/post")
-	public ResponseEntity<Void> addPost(
+	public ResponseEntity<Map<String,Object>> addPost(
 			@RequestPart("post") CommunityPostDTO dto, 
 			@RequestPart(value = "files", required = false) List<MultipartFile> files,
 			@RequestHeader("Authorization") String authHeader){
@@ -63,10 +63,11 @@ public class BoardController {
 		String member_id = jwt.getSubject(token);
 		
 		dto.setMember_id(member_id);
+		Map<String,Object> result = new HashMap<>();
+		List<AchievementResultDTO> achievements = boardService.addPost(dto, files);
+		result.put("achievements", achievements);
 		
-	
-		
-		return ResponseEntity.ok().build();
+		return ResponseEntity.ok(result);
 	}
 	
 	@GetMapping("/posts")

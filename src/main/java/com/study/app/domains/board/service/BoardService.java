@@ -33,18 +33,25 @@ public class BoardService {
 	@Autowired
 	private AchievementService achievementService;
 	
+	@Autowired
+	private com.study.app.domains.activity.UserActivityLogService userActivityLogService;
 	
-
-
-
-	public void addPost(CommunityPostDTO dto, List<MultipartFile> files) {
+	@Transactional
+	public List<AchievementResultDTO> addPost(CommunityPostDTO dto, List<MultipartFile> files) {
 		postDAO.insertPost(dto);
-
+		
 		if(files != null && !files.isEmpty()) {
 			fileDAO.insertPostAttachments(dto.getPost_id(), files);	
 		}
 		
+		// 활동 로그 기록
+		com.study.app.domains.activity.dto.UserActivityLogDTO log = new com.study.app.domains.activity.dto.UserActivityLogDTO();
+		log.setMember_id(dto.getMember_id());
+		log.setAction_type("POST_WRITE");
+		log.setContent_id(dto.getPost_id());
+		userActivityLogService.saveLog(log);
 		
+		return achievementService.addActivityExp(dto.getMember_id(), ActivityType.POST);
 	}
 
 	public int totalPostCount(Map<String, Object> params) {
