@@ -24,16 +24,12 @@ public class PostDAO {
 		mybatis.insert("Board.insertPost", dto);
 	}
 	
-	public int selectCount() {
-		return mybatis.selectOne("Board.selectCount");
+	public int selectCount(Map<String, Object> params) {
+		return mybatis.selectOne("Board.selectCount", params);
 	}
 	
-	public List<CommunityPostDTO> selectList(Long startNum, Long endNum) {
-		Map<String, Long> resp = new HashMap<>();
-		resp.put("startNum", startNum);
-		resp.put("endNum", endNum);
-		
-		return mybatis.selectList("Board.selectList", resp);
+	public List<CommunityPostDTO> selectList(Map<String, Object> params) {		
+		return mybatis.selectList("Board.selectList", params);
 	}
 	
 	public CommunityPostDTO selectById(Long id) {

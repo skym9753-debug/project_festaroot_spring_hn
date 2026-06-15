@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Email">
+
+    <!-- 이메일로 인증 정보 조회 -->
+    <select id="selectByEmail"
+            parameterType="String"
+            resultType="com.study.app.domains.auth.dto.EmailVerificationDTO">
+        select
+            email,
+            code,
+            verified,
+            expires_at,
+            created_at
+        from email_verification
+        where email = #{email}
+    </select>
+
+    <!-- 최초 인증번호 저장 -->
+    <insert id="insertCode"
+            parameterType="com.study.app.domains.auth.dto.EmailVerificationDTO">
+        insert into email_verification (
+            email,
+            code,
+            verified,
+            expires_at,
+            created_at
+        ) values (
+            #{email},
+            #{code},
+            'N',
+            #{expires_at},
+            sysdate
+        )
+    </insert>
+
+    <!-- 기존 이메일이면 인증번호 갱신 -->
+    <update id="updateCode"
+            parameterType="com.study.app.domains.auth.dto.EmailVerificationDTO">
+        update email_verification
+        set
+            code = #{code},
+            verified = 'N',
+            expires_at = #{expires_at},
+            created_at = sysdate
+        where email = #{email}
+    </update>
+
+    <!-- 인증 성공 처리 -->
+    <update id="verifyEmail" parameterType="String">
+        update email_verification
+        set verified = 'Y'
+        where email = #{email}
+    </update>
+
+    <!-- 회원가입 시 최종 인증 여부 확인용 -->
+    <select id="isEmailVerified"
+            parameterType="String"
+            resultType="int">
+        select count(*)
+        from email_verification
+        where email = #{email}
+          and verified = 'Y'
+    </select>
+
+</mapper>

@@ -22,9 +22,15 @@ public class SecurityConfig {
             .formLogin(form -> form.disable())
             .httpBasic(basic -> basic.disable())
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            );
-        
+                    .requestMatchers(
+                    		"/api/terms",
+		                    "/api/member/find-id",
+		                    "/api/member/password/send-code",
+		                    "/api/member/password/verify-code",
+		                    "/api/member/password/reset")
+                    .permitAll()
+                    .anyRequest().permitAll()
+                );
         return http.build();
     }
 }

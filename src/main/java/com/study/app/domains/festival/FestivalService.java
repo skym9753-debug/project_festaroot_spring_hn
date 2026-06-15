@@ -8,20 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.app.domains.festival.dto.CommonDetailDTO;
-import com.study.app.domains.festival.dto.EventPlaceDTO;
-import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
+import com.study.app.domains.festival.dto.FestivalLikeDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
 import com.study.app.domains.festival.dto.NearbyPlaceDTO;
@@ -802,4 +803,8 @@ public class FestivalService {
 		}
 		return fdao.getFestivalLikeCount(contentId);
 	}
+	
+
+
+
 }

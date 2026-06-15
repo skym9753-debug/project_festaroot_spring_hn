@@ -35,6 +35,12 @@
    </properties>
    <dependencies>
    
+   
+   <dependency> <!-- 이메일 인증 -->
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+	</dependency>
+
 	<dependency>
 	    <groupId>com.google.cloud</groupId>
 	    <artifactId>google-cloud-storage</artifactId>
