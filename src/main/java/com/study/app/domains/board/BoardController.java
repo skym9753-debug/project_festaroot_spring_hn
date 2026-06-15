@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.achievement.dto.AchievementResultDTO;
 import com.study.app.domains.board.dto.CommunityPostDTO;
 import com.study.app.domains.board.dto.PostAttachmentDTO;
 import com.study.app.domains.board.dto.PostCommentDTO;
@@ -63,7 +64,7 @@ public class BoardController {
 		
 		dto.setMember_id(member_id);
 		
-		boardService.addPost(dto, files);
+	
 		
 		return ResponseEntity.ok().build();
 	}

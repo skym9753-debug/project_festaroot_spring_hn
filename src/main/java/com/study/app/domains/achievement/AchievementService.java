@@ -88,6 +88,7 @@ public class AchievementService {
         
         return result;
     }
+    
 
     /**
      * 출석 체크를 처리합니다. (하루 한 번만 실행되도록 호출부에서 제어 필요)

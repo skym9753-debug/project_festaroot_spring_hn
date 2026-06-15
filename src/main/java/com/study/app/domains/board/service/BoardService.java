@@ -1,11 +1,17 @@
 package com.study.app.domains.board.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.achievement.AchievementService;
+import com.study.app.domains.achievement.AchievementService.ActivityType;
+import com.study.app.domains.achievement.dto.AchievementResultDTO;
 import com.study.app.domains.board.dao.FileDAO;
 import com.study.app.domains.board.dao.PostDAO;
 import com.study.app.domains.board.dto.CommunityPostDTO;
@@ -23,13 +29,19 @@ public class BoardService {
 	
 	@Autowired
 	private uploadService uploadService;
-
+	
+	@Autowired
+	private AchievementService achievementService;
+	
+	
 	public void addPost(CommunityPostDTO dto, List<MultipartFile> files) {
 		postDAO.insertPost(dto);
 
 		if(files != null && !files.isEmpty()) {
 			fileDAO.insertPostAttachments(dto.getPost_id(), files);	
 		}
+		
+		
 	}
 
 	public int totalPostCount() {

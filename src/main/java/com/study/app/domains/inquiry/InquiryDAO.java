@@ -29,6 +29,16 @@ public interface InquiryDAO {
     List<InquiryAttachmentDTO> selectAttachmentsByInquiryId(Long inquiry_id);
 
     /**
+     * 개별 첨부파일 조회
+     */
+    InquiryAttachmentDTO selectAttachmentById(Long attach_id);
+
+    /**
+     * 개별 첨부파일 DB 정보 삭제
+     */
+    int deleteAttachmentById(Long attach_id);
+
+    /**
      * 특정 문의글의 첨부파일 DB 정보 삭제
      */
     int deleteAttachmentsByInquiryId(Long inquiry_id);

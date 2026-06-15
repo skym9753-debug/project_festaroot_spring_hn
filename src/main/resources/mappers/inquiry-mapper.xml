@@ -72,6 +72,16 @@
         SELECT * FROM Inquiry_attachment WHERE inquiry_id = #{inquiry_id}
     </select>
 
+    <!-- 개별 첨부파일 조회 -->
+    <select id="selectAttachmentById" parameterType="long" resultType="com.study.app.domains.inquiry.dto.InquiryAttachmentDTO">
+        SELECT * FROM Inquiry_attachment WHERE attach_id = #{attach_id}
+    </select>
+
+    <!-- 개별 첨부파일 삭제 -->
+    <delete id="deleteAttachmentById" parameterType="long">
+        DELETE FROM Inquiry_attachment WHERE attach_id = #{attach_id}
+    </delete>
+
     <!-- 첨부파일 DB 정보 삭제 -->
     <delete id="deleteAttachmentsByInquiryId" parameterType="long">
         DELETE FROM Inquiry_attachment WHERE inquiry_id = #{inquiry_id}
