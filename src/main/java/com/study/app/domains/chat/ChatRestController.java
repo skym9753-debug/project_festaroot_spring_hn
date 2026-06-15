@@ -39,9 +39,8 @@ public class ChatRestController {
 
 	    try {
 	        if (activeChatId != null) {
-	            // 비즈니스 로직을 통해 Oracle DB의 last_read_at을 현재 시간(SYSTIMESTAMP)으로 변경
 	            chatService.updateLastReadAt(activeChatId, userId);
-	            System.out.println("읽음 상태 DB 동기화 완료 - 유저 ID: " + userId + ", 활성화된 방 ID: " + activeChatId);
+	            // System.out.println("읽음 상태 DB 동기화 완료 - 유저 ID: " + userId + ", 활성화된 방 ID: " + activeChatId);
 	        }
 	        return ResponseEntity.ok(Map.of(
 	            "message", "읽음 상태가 동기화되었습니다.",

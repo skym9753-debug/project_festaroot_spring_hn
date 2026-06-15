@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-
 // MongoRepository<사용할Document클래스, Document 클래스 중 PK(id)의 데이터타입>을 상속받기
 public interface ChatMessageRepository extends MongoRepository<ChatMessageDocument, String> {
 	// 특정 채팅방(roomId)의 모든 메시지를 시간순(createdAt)으로 가져오는 메서드
@@ -21,4 +20,8 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessageDocume
 
 	// 특정 방에서 유저가 마지막으로 읽은 시간(lastReadAt)보다 나중에 온 메시지 개수 카운트 (안읽은 메시지 수)
 	long countByRoomIdAndCreatedAtGreaterThan(Long roomId, LocalDateTime lastReadAt);
+
+	// 특정 방에서 '본인이 보낸 메세지 제외' + 유저가 마지막으로 읽은 시간(lastReadAt)보다 나중에 온 메시지 개수 카운트 (안읽은
+	// 메시지 수)
+	long countByRoomIdAndCreatedAtGreaterThanAndSenderIdNot(Long roomId, LocalDateTime lastReadAt, String senderId);
 }

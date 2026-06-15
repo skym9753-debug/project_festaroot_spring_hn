@@ -76,8 +76,7 @@ public class GatheringService {
 			Long roomId = Long.valueOf(String.valueOf(room.get("room_id")));
 
 			// ① 마지막 메시지 매핑 (MongoDB 조회)
-			ChatMessageDocument lastMsg = chatMessageRepository
-					.findFirstByRoomIdOrderByCreatedAtDesc(roomId)
+			ChatMessageDocument lastMsg = chatMessageRepository.findFirstByRoomIdOrderByCreatedAtDesc(roomId)
 					.orElse(null);
 			// React의 chat.lastMessage와 매핑됨
 			room.put("lastMessage", lastMsg != null ? lastMsg.getMessage() : "대화 내용이 없습니다.");
@@ -93,8 +92,9 @@ public class GatheringService {
 
 			long unreadCount = 0;
 			if (lastReadAt != null) {
-				// 마지막 읽은 시간 이후에 생성된 메시지 카운트 (MongoDB 조회)
-				unreadCount = chatMessageRepository.countByRoomIdAndCreatedAtGreaterThan(roomId, lastReadAt);
+				// 마지막 읽은 시간 이후 + '내가 보내지 않은(SenderIdNot)' 메시지만 카운트
+				unreadCount = chatMessageRepository.countByRoomIdAndCreatedAtGreaterThanAndSenderIdNot(roomId,
+						lastReadAt, member_id);
 			}
 			// React의 chat.unread_count와 매핑됨
 			room.put("unread_count", (int) unreadCount);
