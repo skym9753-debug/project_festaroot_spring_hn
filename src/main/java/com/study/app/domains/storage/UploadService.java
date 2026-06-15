@@ -13,14 +13,15 @@ import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 
 @Service
-public class uploadService {
+public class UploadService {
+	
 
     @Value("${gcp.bucket-name}")
     private String bucketName;
 
     @Autowired
     private Storage storage;
-
+    
     /**
      * GCP 스토리지 파일 업로드
      */
