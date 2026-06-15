@@ -57,13 +57,13 @@ public class AchievementService {
      * 활동 유형별 기본 경험치 정의
      */
     public enum ActivityType {
-        ATTENDANCE(10),
-        POST(20),
-        COMMENT(5),
-        FESTIVAL_LIKE(2),
-        FESTIVAL_REVIEW(30),
-        AI_PLAN(20),
-        RANDOM_PICK(5);
+        ATTENDANCE(10), 				// 출석
+        POST(20),       				// 게시글 
+        COMMENT(5),     				// 댓글
+        FESTIVAL_LIKE(2), 			// 축제 찜하기
+        FESTIVAL_REVIEW(30), 		// 축제 후기
+        AI_PLAN(20), 				// ai 여행플래너
+        RANDOM_PICK(5); 				// 랜덤축제뽑기
 
         private final int exp;
         ActivityType(int exp) { this.exp = exp; }

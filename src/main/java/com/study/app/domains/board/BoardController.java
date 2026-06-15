@@ -133,7 +133,7 @@ public class BoardController {
 
     // 댓글 / 대댓글 작성
     @PostMapping("/posts/{post_id}/comments")
-    public ResponseEntity<Void> addComment(
+    public ResponseEntity< Map<String,Object>> addComment(
             @PathVariable Long post_id,
             @RequestBody PostCommentDTO dto,
             @RequestHeader("Authorization") String authorization
@@ -144,13 +144,16 @@ public class BoardController {
         dto.setPost_id(post_id);
         dto.setMember_id(member_id);
 
-        int result = commentService.addComment(dto);
-
-        if (result > 0) {
-            return ResponseEntity.ok().build();
-        }
-
-        return ResponseEntity.badRequest().build();
+        Map<String,Object> result = new HashMap<>(); 
+        List<AchievementResultDTO> achievements = commentService.addComment(dto);
+        result.put("achievements", achievements);
+        
+        return ResponseEntity.ok(result);
+//        if (result > 0) {
+//            return ResponseEntity.ok().build();
+//        }
+//
+//        return ResponseEntity.badRequest().build();
     }
 
     // 댓글 목록 조회
