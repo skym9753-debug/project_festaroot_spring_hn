@@ -42,5 +42,9 @@ public class PostCommentDAO {
     	return mybatis.delete("PostComment.deleteChildComments", comment_id);
     }
 
+    public PostCommentDTO selectCommentById(Long comment_id) {
+        return mybatis.selectOne("PostComment.selectCommentById", comment_id);
+    }
+
     
 }

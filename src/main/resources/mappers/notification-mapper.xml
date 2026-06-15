@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Notification">
+
+    <insert id="insertNotification">
+        INSERT INTO NOTIFICATION (NOTI_ID, MEMBER_ID, NOTI_TYPE, REFERENCE_ID, CONTENT, IS_READ, CREATED_AT)
+        VALUES (NOTIFICATION_SEQ.NEXTVAL, #{member_id}, #{noti_type}, #{reference_id}, #{content}, 'N', SYSDATE)
+    </insert>
+
+    <select id="selectUnreadNotifications" resultType="com.study.app.domains.notification.dto.NotificationDTO">
+        SELECT * FROM NOTIFICATION 
+        WHERE MEMBER_ID = #{memberId} AND IS_READ = 'N'
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <update id="updateToRead">
+        UPDATE NOTIFICATION SET IS_READ = 'Y' WHERE NOTI_ID = #{notiId}
+    </update>
+
+</mapper>

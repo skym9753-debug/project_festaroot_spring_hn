@@ -72,5 +72,10 @@
           AND member_id = #{member_id}
     </delete>
 
+    <!-- 특정 댓글 조회 -->
+    <select id="selectCommentById" resultType="com.study.app.domains.board.dto.PostCommentDTO">
+        SELECT * FROM POST_COMMENT WHERE comment_id = #{comment_id}
+    </select>
+
 
 </mapper>

@@ -24,6 +24,9 @@ public class AchievementService {
     @Autowired
     private AchievementDAO achievementDAO;
 
+    @Autowired
+    private com.study.app.domains.notification.NotificationService notificationService;
+
     /**
      * 마이페이지용 유저 업적 및 성장 통합 정보를 조회합니다.
      */
@@ -60,9 +63,11 @@ public class AchievementService {
         ATTENDANCE(10), 				// 출석
         POST(20),       				// 게시글 
         COMMENT(5),     				// 댓글
-        FESTIVAL_LIKE(2), 			// 축제 찜하기
-        FESTIVAL_REVIEW(30), 		// 축제 후기
-        AI_PLAN(20), 				// ai 여행플래너
+        LIKE_GIVEN(2),                  // 좋아요 누름
+        RECEIVE_LIKE(10),               // 좋아요 받음
+        FESTIVAL_LIKE(2), 			    // 축제 찜하기
+        FESTIVAL_REVIEW(30), 		    // 축제 후기
+        AI_PLAN(20), 				    // ai 여행플래너
         RANDOM_PICK(5); 				// 랜덤축제뽑기
 
         private final int exp;
@@ -79,7 +84,7 @@ public class AchievementService {
         log.info("활동 경험치 지급 - 유저: {}, 활동: {}, 점수: {}", memberId, type, type.getExp());
         
         List<AchievementResultDTO> results = new ArrayList<>();
-        AchievementResultDTO activityResult = new AchievementResultDTO("활동 보상", type.name() + " 활동 완료", type.getExp());
+        AchievementResultDTO activityResult = new AchievementResultDTO("활동 보상", type.name(), type.getExp());
         
         // 경험치 지급 및 레벨업 체크 로직 실행
         addExpAndCheckLevelUp(memberId, type.getExp(), activityResult);
@@ -150,6 +155,14 @@ public class AchievementService {
         
         // 업적 완료 상태로 변경 및 이력 저장
         achievementDAO.completeAchievement(memberId, ach.getAchievement_id());
+        
+        // 알림 저장
+        com.study.app.domains.notification.dto.NotificationDTO noti = new com.study.app.domains.notification.dto.NotificationDTO();
+        noti.setMember_id(memberId);
+        noti.setNoti_type("ACHIEVEMENT");
+        noti.setReference_id(ach.getAchievement_id());
+        noti.setContent("축하합니다! [" + ach.getAch_title() + "] 업적을 달성했습니다!");
+        notificationService.saveNotification(noti);
         
         // 보상 결과 객체 생성
         AchievementResultDTO result = new AchievementResultDTO(ach.getAch_title(), ach.getAch_desc(), ach.getExp_reward());
