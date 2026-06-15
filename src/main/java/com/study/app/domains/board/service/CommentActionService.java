@@ -52,12 +52,12 @@ public class CommentActionService {
 	            liked = true;
 
                 // 1. 좋아요 누른 사람 보상 (최초 1회만)
-                if (!userActivityLogService.isAlreadyRewarded(member_id, "COMMENT_LIKE_GIVEN", comment_id)) {
+                if (!userActivityLogService.isAlreadyRewarded(member_id, "CMT_LIKE_GIVEN", comment_id)) {
                     achievements = achievementService.addActivityExp(member_id, com.study.app.domains.achievement.AchievementService.ActivityType.LIKE_GIVEN);
                     
                     com.study.app.domains.activity.dto.UserActivityLogDTO log = new com.study.app.domains.activity.dto.UserActivityLogDTO();
                     log.setMember_id(member_id);
-                    log.setAction_type("COMMENT_LIKE_GIVEN");
+                    log.setAction_type("CMT_LIKE_GIVEN");
                     log.setContent_id(comment_id);
                     userActivityLogService.saveLog(log);
                 }
@@ -66,12 +66,12 @@ public class CommentActionService {
                 com.study.app.domains.board.dto.PostCommentDTO comment = postCommentDAO.selectCommentById(comment_id);
                 if (comment != null && !member_id.equals(comment.getMember_id())) {
                     // 업적 연동 (이 댓글에 대해 이 유저가 처음 좋아요를 눌렀을 때만 작성자에게 점수 부여)
-                    if (!userActivityLogService.isAlreadyRewarded(comment.getMember_id(), "COMMENT_RECEIVE_LIKE_DETAIL", comment_id)) {
+                    if (!userActivityLogService.isAlreadyRewarded(comment.getMember_id(), "CMT_RECV_LIKE_DTL", comment_id)) {
                         achievementService.addActivityExp(comment.getMember_id(), com.study.app.domains.achievement.AchievementService.ActivityType.RECEIVE_LIKE);
                         
                         com.study.app.domains.activity.dto.UserActivityLogDTO receiveLog = new com.study.app.domains.activity.dto.UserActivityLogDTO();
                         receiveLog.setMember_id(comment.getMember_id());
-                        receiveLog.setAction_type("COMMENT_RECEIVE_LIKE_DETAIL");
+                        receiveLog.setAction_type("CMT_RECV_LIKE_DTL");
                         receiveLog.setContent_id(comment_id);
                         userActivityLogService.saveLog(receiveLog);
                     }

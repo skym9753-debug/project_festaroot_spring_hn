@@ -30,6 +30,7 @@ public class UserActivityLogDTO {
     }
     
     private String title;
+    private String first_image;
     
     
 
@@ -39,6 +40,14 @@ public class UserActivityLogDTO {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public String getFirst_image() {
+		return first_image;
+	}
+
+	public void setFirst_image(String first_image) {
+		this.first_image = first_image;
 	}
 
 	public Long getLog_id() {
