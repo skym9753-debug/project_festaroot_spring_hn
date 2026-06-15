@@ -22,7 +22,7 @@ public class ChatController {
 		// [시간 동기화 핵심] 프론트엔드 시간 대신, 서버에 도달한 현재 시간으로 세팅
 		message.setCreatedAt(LocalDateTime.now());
 
-		// 💡 1. 처음 입장하거나 퇴장할 때의 시스템 메시지 텍스트 가공 처리 수정
+		// 1. 처음 입장하거나 퇴장할 때의 시스템 메시지 텍스트 가공 처리 수정
 		if (ChatType.ENTER.equals(message.getType())) {
 			message.setMessage(message.getSenderName() + "님이 채팅방 입장하였습니다.");
 		} else if (ChatType.LEAVE.equals(message.getType())) {

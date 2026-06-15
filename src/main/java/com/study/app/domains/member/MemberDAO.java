@@ -2,6 +2,7 @@ package com.study.app.domains.member;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
@@ -25,5 +26,8 @@ public interface MemberDAO {
     int updateMember(MemberDTO memberDTO);
     int deleteInterestThemes(String member_id);
     int deleteInterestRegions(String member_id);
+    
+	// member_id 기준으로 닉네임 조회
+	String selectUserNickname(@Param("member_id") String memberId);
 
 }

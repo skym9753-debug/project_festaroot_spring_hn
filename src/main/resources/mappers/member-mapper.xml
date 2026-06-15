@@ -97,5 +97,11 @@
     <delete id="deleteInterestRegions" parameterType="string">
         DELETE FROM MEMBER_INTEREST_REGION WHERE MEMBER_ID = #{member_id}
     </delete>
+    
+   <select id="selectUserNickname" resultType="string">
+       SELECT nickname
+       FROM member
+       WHERE member_id = #{member_id}
+   </select>
 
 </mapper>
