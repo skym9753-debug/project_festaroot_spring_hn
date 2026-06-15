@@ -8,8 +8,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
+import com.study.app.domains.festival.dto.FestivalLikeDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
 
 @Repository
@@ -150,5 +150,6 @@ public class FestivalDAO {
 	public List<Map<String, Object>> getPopularFestivals() {
 		return mybatis.selectList("Festival.selectPopularFestivals");
 	}
+	
 
 }

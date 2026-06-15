@@ -47,12 +47,12 @@ public class BoardService {
 		
 	}
 
-	public int totalPostCount() {
-		return postDAO.selectCount();
+	public int totalPostCount(Map<String, Object> params) {
+		return postDAO.selectCount(params);
 	}
 
-	public List<CommunityPostDTO> getStartEnd(Long startNum, Long endNum){
-		return postDAO.selectList(startNum, endNum);
+	public List<CommunityPostDTO> getPosts(Map<String, Object> params){
+		return postDAO.selectList(params);
 	}
 
 	public CommunityPostDTO getPostDetail(Long id) {
