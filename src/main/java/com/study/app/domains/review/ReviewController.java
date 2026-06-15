@@ -80,12 +80,13 @@ public class ReviewController {
 
             reviewDTO.setMember_id(memberId);
 
-            int insertResult =
+            List<com.study.app.domains.achievement.dto.AchievementResultDTO> achievements =
                     reviewService.addReview(reviewDTO, images);
 
-            result.put("success", insertResult > 0);
+            result.put("success", true);
             result.put("message", "후기 등록 완료");
             result.put("review_id", reviewDTO.getReview_id());
+            result.put("achievements", achievements);
 
             return ResponseEntity.ok(result);
 

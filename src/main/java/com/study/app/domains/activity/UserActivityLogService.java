@@ -18,4 +18,12 @@ public class UserActivityLogService {
     public List<UserActivityLogDTO> getRecentLogs(String memberId) {
         return userActivityLogDAO.selectRecentLogs(memberId);
     }
+
+    public boolean isAlreadyRewarded(String memberId, String actionType, Long contentId) {
+        java.util.Map<String, Object> params = new java.util.HashMap<>();
+        params.put("member_id", memberId);
+        params.put("action_type", actionType);
+        params.put("content_id", contentId);
+        return userActivityLogDAO.existsLog(params) > 0;
+    }
 }

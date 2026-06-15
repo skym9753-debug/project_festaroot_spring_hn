@@ -26,6 +26,9 @@ public class CommentActionService {
 	 @Autowired
 	    private com.study.app.domains.notification.NotificationService notificationService;
 
+	 @Autowired
+	    private com.study.app.domains.activity.UserActivityLogService userActivityLogService;
+
 	    // 댓글 / 대댓글 좋아요 토글
 	    public Map<String, Object> toggleCommentLike(
 	            Long comment_id,
@@ -48,14 +51,30 @@ public class CommentActionService {
 	            commentActionDAO.increaseCommentLikeCount(comment_id);
 	            liked = true;
 
-                // 1. 좋아요 누른 사람 보상
-                achievements = achievementService.addActivityExp(member_id, com.study.app.domains.achievement.AchievementService.ActivityType.LIKE_GIVEN);
+                // 1. 좋아요 누른 사람 보상 (최초 1회만)
+                if (!userActivityLogService.isAlreadyRewarded(member_id, "COMMENT_LIKE_GIVEN", comment_id)) {
+                    achievements = achievementService.addActivityExp(member_id, com.study.app.domains.achievement.AchievementService.ActivityType.LIKE_GIVEN);
+                    
+                    com.study.app.domains.activity.dto.UserActivityLogDTO log = new com.study.app.domains.activity.dto.UserActivityLogDTO();
+                    log.setMember_id(member_id);
+                    log.setAction_type("COMMENT_LIKE_GIVEN");
+                    log.setContent_id(comment_id);
+                    userActivityLogService.saveLog(log);
+                }
 
                 // 2. 좋아요 받은 사람 보상 및 알림
                 com.study.app.domains.board.dto.PostCommentDTO comment = postCommentDAO.selectCommentById(comment_id);
                 if (comment != null && !member_id.equals(comment.getMember_id())) {
-                    // 업적 연동
-                    achievementService.addActivityExp(comment.getMember_id(), com.study.app.domains.achievement.AchievementService.ActivityType.RECEIVE_LIKE);
+                    // 업적 연동 (이 댓글에 대해 이 유저가 처음 좋아요를 눌렀을 때만 작성자에게 점수 부여)
+                    if (!userActivityLogService.isAlreadyRewarded(comment.getMember_id(), "COMMENT_RECEIVE_LIKE_DETAIL", comment_id)) {
+                        achievementService.addActivityExp(comment.getMember_id(), com.study.app.domains.achievement.AchievementService.ActivityType.RECEIVE_LIKE);
+                        
+                        com.study.app.domains.activity.dto.UserActivityLogDTO receiveLog = new com.study.app.domains.activity.dto.UserActivityLogDTO();
+                        receiveLog.setMember_id(comment.getMember_id());
+                        receiveLog.setAction_type("COMMENT_RECEIVE_LIKE_DETAIL");
+                        receiveLog.setContent_id(comment_id);
+                        userActivityLogService.saveLog(receiveLog);
+                    }
 
                     // 실시간 좋아요 알림 생성
                     com.study.app.domains.member.dto.MemberDTO liker = memberDAO.selectMemberById(member_id);

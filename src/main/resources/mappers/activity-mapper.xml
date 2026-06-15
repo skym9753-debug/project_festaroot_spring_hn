@@ -56,4 +56,12 @@
           AND TRUNC(CREATED_AT) = TRUNC(SYSDATE)
     </select>
 
+    <select id="existsLog" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM USER_ACTIVITY_LOG
+        WHERE MEMBER_ID = #{member_id}
+          AND ACTION_TYPE = #{action_type}
+          AND CONTENT_ID = #{content_id}
+    </select>
+
 </mapper>
