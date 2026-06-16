@@ -1,9 +1,11 @@
-package com.study.app.domains.chat;
+package com.study.app.domains.chat.dto;
 
 import java.time.LocalDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import com.study.app.domains.chat.ChatType;
 
 @Document(collection="chat_messages") 
 public class ChatMessageDocument {

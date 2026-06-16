@@ -10,8 +10,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.study.app.domains.chat.ChatMessageDocument;
 import com.study.app.domains.chat.ChatMessageRepository;
+import com.study.app.domains.chat.dto.ChatMessageDocument;
 import com.study.app.domains.member.MemberDAO;
 
 @Service

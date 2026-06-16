@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.study.app.domains.chat.dto.ChatMessageDocument;
 import com.study.app.domains.gathering.GatheringMapper;
 
 @Service
