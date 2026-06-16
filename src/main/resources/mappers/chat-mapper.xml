@@ -1,9 +1,37 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="Chat">
-	
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+<mapper namespace="com.study.app.domains.chat.ChatRoomMapper">
+
+	<select id="findPrivateRoomBetweenUsers" resultType="long">
+		SELECT cr.room_id
+		FROM chat_room cr
+		WHERE cr.room_type = 'DIRECT'
+		AND cr.room_id IN (SELECT room_id FROM chat_room_user WHERE member_id =
+		#{userA})
+		AND cr.room_id IN (SELECT room_id FROM chat_room_user WHERE member_id =
+		#{userB})
+	</select>
+
+	<select id="getNextRoomIdSequence" resultType="long">
+		SELECT SEQ_CHAT_ROOM.NEXTVAL FROM DUAL
+	</select>
+
+	<insert id="insertChatRoom">
+		INSERT INTO CHAT_ROOM (
+		room_id, room_type, room_title, created_at, max_capacity
+		) VALUES (
+		#{roomId}, #{roomType}, #{roomTitle}, SYSDATE, 2
+		)
+	</insert>
+
+	<insert id="insertChatRoomMember">
+		INSERT INTO CHAT_ROOM_USER (
+		seq, room_id, member_id, joined_at, last_read_at
+		) VALUES (
+		SEQ_CHAT_ROOM_USER.NEXTVAL, #{roomId}, #{memberId}, SYSDATE,
+		SYSTIMESTAMP
+		)
+	</insert>
 
 </mapper>
