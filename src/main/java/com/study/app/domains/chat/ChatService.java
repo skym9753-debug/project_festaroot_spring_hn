@@ -64,6 +64,21 @@ public class ChatService {
 		// 3. 채팅방 참여 멤버에 두 사람 매핑 등록
 		chatRoomMapper.insertChatRoomMember(newRoomId, userA);
 		chatRoomMapper.insertChatRoomMember(newRoomId, userB);
+		
+		ChatMessageDocument systemMsg = new ChatMessageDocument();
+
+		systemMsg.setRoomId(newRoomId);
+
+		systemMsg.setSenderId("SYSTEM");
+		systemMsg.setSenderName("SYSTEM");
+
+		systemMsg.setType(ChatType.ENTER);
+
+		systemMsg.setMessage("채팅이 시작되었습니다.");
+
+		systemMsg.setCreatedAt(LocalDateTime.now());
+
+		chatMessageRepository.save(systemMsg);
 
 		return newRoomId;
 	}
@@ -86,17 +101,27 @@ public class ChatService {
 		}
 	}
 	
-	// 
+	// 채팅 목록 조회
 	public List<Map<String, Object>> getUserChatRoomList(String userId) {
+		System.out.println("채팅목록 조회 userId = " + userId);
 	    // 1. Oracle DB에서 해당 유저가 참여 중인 채팅방 목록을 가져옵니다.
 	    // (※ 기존에 사용하던 Mapper의 목록 조회 메서드명으로 매칭해줘)
 	    List<Map<String, Object>> rooms = chatRoomMapper.getChatRoomsByUserId(userId); 
 
+	    rooms.forEach(room -> {
+	        System.out.println("rooms 값 확인"+room);
+	    });
+	    
 	    // 2. 각 채팅방을 순회하며 MongoDB에서 최신 메시지를 꺼내와 조립하고 필터링합니다.
 	    return rooms.stream()
-	        .map(room -> {
+	        .map(room -> {	        	
+
+	            System.out.println("room_id = " + room.get("room_id"));
+
 	            // DB 타입에 따라 Long 변환 처리
-	            Long roomId = ((Number) room.get("ROOM_ID")).longValue();
+	            Long roomId = ((Number) room.get("room_id")).longValue();
+
+	            System.out.println("roomId = " + roomId);
 	            
 	            // MongoDB에서 이 방의 가장 최근 메시지 딱 1개 조회
 	            Optional<ChatMessageDocument> lastMsgOpt = chatMessageRepository.findFirstByRoomIdOrderByCreatedAtDesc(roomId);
@@ -111,15 +136,15 @@ public class ChatService {
 	            }
 	            return room;
 	        })
-	        .filter(room -> {
-	            String roomType = (String) room.get("ROOM_TYPE");
-	            // 1:1 채팅방(DIRECT)인데 최신 메시지가 없다면 목록에서 제외시킴
-	            if ("DIRECT".equalsIgnoreCase(roomType)) {
-	                return room.get("last_message") != null;
-	            }
-	            // 모임 채팅방은 메시지가 없어도 목록에 보여줌
-	            return true; 
-	        })
+//	        .filter(room -> {
+//	            String roomType = (String) room.get("room_type");
+//	            // 1:1 채팅방(DIRECT)인데 최신 메시지가 없다면 목록에서 제외시킴
+//	            if ("DIRECT".equalsIgnoreCase(roomType)) {
+//	                return room.get("last_message") != null;
+//	            }
+//	            // 모임 채팅방은 메시지가 없어도 목록에 보여줌
+//	            return true; 
+//	        })
 	        .toList();
 	}
 }

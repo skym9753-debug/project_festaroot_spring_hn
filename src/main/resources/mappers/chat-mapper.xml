@@ -60,15 +60,62 @@
 	</delete>
 
 	<select id="getChatRoomsByUserId" resultType="map">
-		SELECT 
-			cr.room_id AS ROOM_ID, 
-			cr.room_type AS ROOM_TYPE, 
-			cr.room_title AS ROOM_TITLE, 
-			cr.created_at AS CREATED_AT, 
-			cr.max_capacity AS MAX_CAPACITY
-		FROM chat_room cr
-		JOIN chat_room_user cru ON cr.room_id = cru.room_id
-		WHERE cru.member_id = #{userId}
+	    SELECT
+	        cr.room_id AS "room_id",
+	        cr.room_type AS "room_type",
+	
+	        CASE
+	            WHEN cr.room_type = 'DIRECT' THEN (
+	                SELECT m.nickname
+	                FROM chat_room_user cru2
+	                JOIN member m
+	                    ON cru2.member_id = m.member_id
+	                WHERE cru2.room_id = cr.room_id
+	                  AND cru2.member_id != #{userId}
+	            )
+	
+	            WHEN cr.room_type = 'FESTIVAL' THEN fi.title
+	
+	            ELSE cr.room_title
+	        END AS "room_title",
+	
+	        CASE
+	            WHEN cr.room_type = 'DIRECT' THEN (
+	                SELECT m.profile_image_url
+	                FROM chat_room_user cru2
+	                JOIN member m
+	                    ON cru2.member_id = m.member_id
+	                WHERE cru2.room_id = cr.room_id
+	                  AND cru2.member_id != #{userId}
+	            )
+	
+	            WHEN cr.room_type = 'FESTIVAL' THEN fi.first_image
+	
+	            ELSE cr.room_image
+	        END AS "room_image",
+	
+	        (
+	            SELECT COUNT(*)
+	            FROM chat_room_user cru3
+	            WHERE cru3.room_id = cr.room_id
+	        ) AS "current_count",
+	
+	        cr.max_capacity AS "max_capacity",
+	
+	        cru.joined_at AS "joined_at",
+	        cru.last_read_at AS "last_read_at"
+	
+	    FROM chat_room cr
+	
+	    JOIN chat_room_user cru
+	        ON cr.room_id = cru.room_id
+	
+	    LEFT JOIN festival_info fi
+	        ON cr.festival_id = fi.content_id
+	
+	    WHERE cru.member_id = #{userId}
+	
+	    ORDER BY cr.room_id DESC
 	</select>
 
 </mapper>

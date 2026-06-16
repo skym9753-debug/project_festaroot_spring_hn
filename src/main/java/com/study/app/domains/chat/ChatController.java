@@ -21,7 +21,7 @@ public class ChatController { // MongoDB용 Controller
 	@MessageMapping("/chat/message")
 	public void message(ChatMessageDocument message) {
 
-		// [시간 동기화 핵심] 프론트엔드 시간 대신, 서버에 도달한 현재 시간으로 세팅
+		// 프론트엔드 시간 대신, 서버에 도달한 현재 시간으로 세팅
 		message.setCreatedAt(LocalDateTime.now());
 
 		// 1. 처음 입장하거나 퇴장할 때, 퇴장당했을때 의 시스템 메시지 텍스트 가공 처리 수정

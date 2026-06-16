@@ -88,13 +88,29 @@ public class ChatRestController { // 채팅 웹소켓용
 		}
 	}
 	
+	// 채팅방 목록
 	@GetMapping("/rooms/user/{userId}")
 	public ResponseEntity<?> getUserChatRooms(@PathVariable("userId") String userId) {
+
+	    System.out.println("컨트롤러 진입");
+
 	    try {
 	        List<Map<String, Object>> roomList = chatService.getUserChatRoomList(userId);
+
+	        System.out.println("최종 반환값 = " + roomList);
+
 	        return ResponseEntity.ok(roomList);
+
 	    } catch (Exception e) {
-	        return ResponseEntity.internalServerError().body(Map.of("message", "채팅방 목록을 불러오는 중 오류가 발생했습니다."));
+
+	        e.printStackTrace();
+
+	        return ResponseEntity.internalServerError().body(
+	            Map.of(
+	                "message", "채팅방 목록을 불러오는 중 오류가 발생했습니다.",
+	                "error", e.getMessage()
+	            )
+	        );
 	    }
 	}
 }
