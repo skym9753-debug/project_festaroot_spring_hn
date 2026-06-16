@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import com.study.app.domains.chat.dto.ChatMessageDocument;
 
 @Controller
-public class ChatController {
+public class ChatController { // MongoDB용 Controller
 
 	private final SimpMessageSendingOperations messagingTemplate;
 	private final ChatMessageRepository chatMessageRepository;

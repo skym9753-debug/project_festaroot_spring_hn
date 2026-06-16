@@ -56,15 +56,45 @@ public class ChatRestController { // 채팅 웹소켓용
 		}
 	}
 
-	@PostMapping("/private")
-	public ResponseEntity<Map<String, Object>> createOrGetPrivateRoom(@RequestBody ChatPrivateRequestDTO dto) {
+	@PostMapping("/direct")
+	public ResponseEntity<?> createOrGetPrivateRoom(@RequestBody ChatPrivateRequestDTO dto) {
+		try {
+			// 서비스단에서 차단 예외 발생 시 catch 하도록 구조 변경
+			Long roomId = chatService.getOrCreatePrivateRoom(dto.getCurrentUserId(), dto.getTargetMemberId());
+			Map<String, Object> response = new HashMap<>();
+			response.put("room_id", roomId);
+			return ResponseEntity.ok(response);
+		} catch (IllegalStateException e) {
+			// 임포트 없이 숫자로 직관적으로 403을 넘기는 방법
+			return ResponseEntity.status(403).body(Map.of("message", e.getMessage()));
+		} catch (Exception e) {
+			return ResponseEntity.internalServerError().body(Map.of("message", "서버 오류가 발생했습니다."));
+		}
+	}
 
-		// 서비스 단에서 기존 방 조회 또는 신규 생성 후 room_id 반환
-		Long roomId = chatService.getOrCreatePrivateRoom(dto.getCurrentUserId(), dto.getTargetMemberId());
+	// 1:1 채팅방 퇴장 및 차단 요청 처리 API
+	@PostMapping("/rooms/{room_id}/leave")
+	public ResponseEntity<?> leavePrivateRoom(@PathVariable("room_id") Long roomId,
+			@RequestBody Map<String, Object> payload) {
+		try {
+			String memberId = (String) payload.get("memberId");
+			boolean isBlock = (boolean) payload.get("isBlock");
+			String targetMemberId = (String) payload.get("targetMemberId");
 
-		Map<String, Object> response = new HashMap<>();
-		response.put("room_id", roomId);
-
-		return ResponseEntity.ok(response);
+			chatService.leavePrivateRoom(roomId, memberId, isBlock, targetMemberId);
+			return ResponseEntity.ok(Map.of("message", "채팅방 퇴장 처리가 완료되었습니다."));
+		} catch (Exception e) {
+			return ResponseEntity.internalServerError().body(Map.of("message", "퇴장 처리 중 오류가 발생했습니다."));
+		}
+	}
+	
+	@GetMapping("/rooms/user/{userId}")
+	public ResponseEntity<?> getUserChatRooms(@PathVariable("userId") String userId) {
+	    try {
+	        List<Map<String, Object>> roomList = chatService.getUserChatRoomList(userId);
+	        return ResponseEntity.ok(roomList);
+	    } catch (Exception e) {
+	        return ResponseEntity.internalServerError().body(Map.of("message", "채팅방 목록을 불러오는 중 오류가 발생했습니다."));
+	    }
 	}
 }

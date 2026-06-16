@@ -7,10 +7,8 @@
 		SELECT cr.room_id
 		FROM chat_room cr
 		WHERE cr.room_type = 'DIRECT'
-		AND cr.room_id IN (SELECT room_id FROM chat_room_user WHERE member_id =
-		#{userA})
-		AND cr.room_id IN (SELECT room_id FROM chat_room_user WHERE member_id =
-		#{userB})
+		AND cr.room_id IN (SELECT room_id FROM chat_room_user WHERE member_id = #{userA})
+		AND cr.room_id IN (SELECT room_id FROM chat_room_user WHERE member_id = #{userB})
 	</select>
 
 	<select id="getNextRoomIdSequence" resultType="long">
@@ -19,19 +17,58 @@
 
 	<insert id="insertChatRoom">
 		INSERT INTO CHAT_ROOM (
-		room_id, room_type, room_title, created_at, max_capacity
+			room_id, room_type, room_title, created_at, max_capacity
 		) VALUES (
-		#{roomId}, #{roomType}, #{roomTitle}, SYSDATE, 2
+			#{roomId}, #{roomType}, #{roomTitle}, SYSDATE, 2
 		)
 	</insert>
 
 	<insert id="insertChatRoomMember">
 		INSERT INTO CHAT_ROOM_USER (
-		seq, room_id, member_id, joined_at, last_read_at
+			seq, room_id, member_id, joined_at, last_read_at
 		) VALUES (
-		SEQ_CHAT_ROOM_USER.NEXTVAL, #{roomId}, #{memberId}, SYSDATE,
-		SYSTIMESTAMP
+			SEQ_CHAT_ROOM_USER.NEXTVAL, #{roomId}, #{memberId}, SYSDATE, SYSTIMESTAMP
 		)
 	</insert>
+
+	<select id="checkBlockStatus" resultType="int">
+		SELECT COUNT(*)
+		FROM MEMBER_BLOCK
+		WHERE (member_id = #{userA} AND blocked_id = #{userB})
+		   OR (member_id = #{userB} AND blocked_id = #{userA})
+	</select>
+
+	<insert id="insertBlockUser">
+		INSERT INTO MEMBER_BLOCK (
+			block_seq, member_id, blocked_id, blocked_at
+		) VALUES (
+			SEQ_MEMBER_BLOCK.NEXTVAL, #{memberId}, #{blockedId}, SYSDATE
+		)
+	</insert>
+
+	<delete id="deleteChatRoomUser">
+		DELETE FROM CHAT_ROOM_USER
+		WHERE room_id = #{roomId} AND member_id = #{memberId}
+	</delete>
+
+	<select id="countUsersInRoom" resultType="int">
+		SELECT COUNT(*) FROM CHAT_ROOM_USER WHERE room_id = #{roomId}
+	</select>
+
+	<delete id="deleteChatRoom">
+		DELETE FROM CHAT_ROOM WHERE room_id = #{roomId}
+	</delete>
+
+	<select id="getChatRoomsByUserId" resultType="map">
+		SELECT 
+			cr.room_id AS ROOM_ID, 
+			cr.room_type AS ROOM_TYPE, 
+			cr.room_title AS ROOM_TITLE, 
+			cr.created_at AS CREATED_AT, 
+			cr.max_capacity AS MAX_CAPACITY
+		FROM chat_room cr
+		JOIN chat_room_user cru ON cr.room_id = cru.room_id
+		WHERE cru.member_id = #{userId}
+	</select>
 
 </mapper>

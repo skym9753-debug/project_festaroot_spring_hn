@@ -3,6 +3,8 @@ package com.study.app.domains.chat;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,17 +42,22 @@ public class ChatService {
 	public void updateLastReadAt(Long roomId, String memberId) {
 		gatheringMapper.updateLastReadAt(roomId, memberId);
 	}
-
+	
 	// 1:1 채팅방 존재 확인 및 생성
 	@Transactional
 	public Long getOrCreatePrivateRoom(String userA, String userB) {
+		// 방을 조회하거나 생성하기 전에 두 사람 간의 차단 여부를 먼저 확인
+		if (chatRoomMapper.checkBlockStatus(userA, userB) > 0) {
+			throw new IllegalStateException("차단된 사용자 간에는 1:1 채팅을 시작할 수 없습니다.");
+		}
+
 		// 1. 이미 존재하는 1:1 채팅방이 있는지 검사
 		Long existingRoomId = chatRoomMapper.findPrivateRoomBetweenUsers(userA, userB);
 		if (existingRoomId != null) {
 			return existingRoomId;
 		}
 
-		// 2. 존재하지 않는다면 신규 채팅방 마스터 생성 (room_type = 'PRIVATE')
+		// 2. 존재하지 않는다면 신규 채팅방 마스터 생성
 		Long newRoomId = chatRoomMapper.getNextRoomIdSequence();
 		chatRoomMapper.insertChatRoom(newRoomId, "DIRECT", "1:1 채팅방");
 
@@ -59,5 +66,60 @@ public class ChatService {
 		chatRoomMapper.insertChatRoomMember(newRoomId, userB);
 
 		return newRoomId;
+	}
+
+	// 1:1 채팅방 나가기 및 차단 처리 비즈니스 로직
+	@Transactional
+	public void leavePrivateRoom(Long roomId, String memberId, boolean isBlockRequested, String targetMemberId) {
+		// 1. 차단하고 나가기 요청인 경우 차단 데이터 추가
+		if (isBlockRequested && targetMemberId != null) {
+			chatRoomMapper.insertBlockUser(memberId, targetMemberId);
+		}
+
+		// 2. CHAT_ROOM_USER 테이블에서 내 매핑 행 삭제
+		chatRoomMapper.deleteChatRoomUser(roomId, memberId);
+
+		// 3. 방에 남은 유저 수가 0명인지 확인 후 청소
+		if (chatRoomMapper.countUsersInRoom(roomId) == 0) {
+			chatRoomMapper.deleteChatRoom(roomId);
+			// 필요시 MongoDB의 해당 방 메시지 내역을 지우는 로직을 여기에 추가해도 됨.
+		}
+	}
+	
+	// 
+	public List<Map<String, Object>> getUserChatRoomList(String userId) {
+	    // 1. Oracle DB에서 해당 유저가 참여 중인 채팅방 목록을 가져옵니다.
+	    // (※ 기존에 사용하던 Mapper의 목록 조회 메서드명으로 매칭해줘)
+	    List<Map<String, Object>> rooms = chatRoomMapper.getChatRoomsByUserId(userId); 
+
+	    // 2. 각 채팅방을 순회하며 MongoDB에서 최신 메시지를 꺼내와 조립하고 필터링합니다.
+	    return rooms.stream()
+	        .map(room -> {
+	            // DB 타입에 따라 Long 변환 처리
+	            Long roomId = ((Number) room.get("ROOM_ID")).longValue();
+	            
+	            // MongoDB에서 이 방의 가장 최근 메시지 딱 1개 조회
+	            Optional<ChatMessageDocument> lastMsgOpt = chatMessageRepository.findFirstByRoomIdOrderByCreatedAtDesc(roomId);
+	            
+	            if (lastMsgOpt.isPresent()) {
+	                ChatMessageDocument lastMsg = lastMsgOpt.get();
+	                room.put("last_message", lastMsg.getMessage());
+	                room.put("last_message_time", lastMsg.getCreatedAt());
+	            } else {
+	                room.put("last_message", null);
+	                room.put("last_message_time", null);
+	            }
+	            return room;
+	        })
+	        .filter(room -> {
+	            String roomType = (String) room.get("ROOM_TYPE");
+	            // 1:1 채팅방(DIRECT)인데 최신 메시지가 없다면 목록에서 제외시킴
+	            if ("DIRECT".equalsIgnoreCase(roomType)) {
+	                return room.get("last_message") != null;
+	            }
+	            // 모임 채팅방은 메시지가 없어도 목록에 보여줌
+	            return true; 
+	        })
+	        .toList();
 	}
 }
