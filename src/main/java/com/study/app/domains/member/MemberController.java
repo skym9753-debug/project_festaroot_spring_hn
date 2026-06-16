@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import com.study.app.domains.member.dto.MemberDTO;
 import com.study.app.domains.member.dto.MemberProfileDTO;
 import com.study.app.domains.member.dto.PasswordFindRequestDTO;
 import com.study.app.domains.member.dto.ResetPasswordDTO;
+import com.study.app.domains.member.dto.UpdatePasswordDTO;
 import com.study.app.domains.member.dto.VerifyCodeDTO;
 
 @RestController
@@ -152,6 +154,19 @@ public class MemberController {
             "success", true,
             "message", "비밀번호가 변경되었습니다."
         ));
+    }
+    
+    @PutMapping("/password/update")
+    public ResponseEntity<Void> updatePassword(@RequestBody UpdatePasswordDTO dto){
+    			
+    		memberService.updatePassword(dto);
+    		return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> withdrawMember(@PathVariable("id") String id) {
+        memberService.withdrawMember(id);
+        return ResponseEntity.ok().build();
     }
 
 }

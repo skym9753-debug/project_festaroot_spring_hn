@@ -87,6 +87,7 @@
             <if test="reside_area_code != null">RESIDE_AREA_CODE = #{reside_area_code},</if>
             <if test="reside_sigungu_code != null">RESIDE_SIGUNGU_CODE = #{reside_sigungu_code},</if>
             <if test="profile_image_url != null">PROFILE_IMAGE_URL = #{profile_image_url}</if>
+            <if test="email != null">email = #{email}</if>
         </set>
         WHERE MEMBER_ID = #{member_id}
     </update>
@@ -142,6 +143,20 @@
 	<update id="updatePassword">
 	    UPDATE member
 	    SET password = #{password}
+	    WHERE member_id = #{member_id}
+	</update>
+	
+	<update id="withdrawMember">
+	    UPDATE member
+	    SET status = 'DELETED',
+	        name = '탈퇴회원',
+	        nickname = '탈퇴한사용자',
+	        phone = '000-0000-0000',
+	        email = member_id || '@withdrawn.com',
+	        birthdate = NULL,
+	        password = 'WITHDRAWN_USER_PASSWORD',
+	        profile_image_url = NULL,
+	        social_id = NULL
 	    WHERE member_id = #{member_id}
 	</update>
 	

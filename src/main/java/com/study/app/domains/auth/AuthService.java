@@ -75,6 +75,11 @@ public class AuthService {
         MemberDTO storedMember = authDAO.selectMemberById(loginDTO.getMember_id());
         
         if (storedMember != null) {
+            // 탈퇴한 회원인지 체크
+            if ("DELETED".equals(storedMember.getStatus())) {
+                throw new RuntimeException("탈퇴 처리된 계정입니다. 고객센터에 문의하세요.");
+            }
+
         	// Use BCryptPasswordEncoder.matches() to compare passwords
         	if (bCryptPasswordEncoder.matches(loginDTO.getPassword(), storedMember.getPassword())) {
         		// Passwords match, generate JWT token

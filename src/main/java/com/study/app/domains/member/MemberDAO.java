@@ -13,6 +13,7 @@ import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
 import com.study.app.domains.member.dto.MemberDTO;
 import com.study.app.domains.member.dto.PasswordFindRequestDTO;
+import com.study.app.domains.member.dto.UpdatePasswordDTO;
 
 @Repository
 public class MemberDAO {
@@ -99,6 +100,10 @@ public class MemberDAO {
 
 	public int updatePassword(Map<String, Object> params) {
 		return mybatis.update("Member.updatePassword", params);
+	}
+
+	public int withdrawMember(String member_id) {
+		return mybatis.update("Member.withdrawMember", member_id);
 	}
 
 	// member_id 기준으로 닉네임 조회
