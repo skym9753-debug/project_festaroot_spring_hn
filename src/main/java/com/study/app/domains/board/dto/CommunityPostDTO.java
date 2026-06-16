@@ -18,6 +18,7 @@ public class CommunityPostDTO {
     
     // 닉네임
     private String nickname;
+    private String profile_image_url;
     
     // 삭제할 파일 ID 목록
     private List<Long> deleteFileIds;
@@ -40,6 +41,16 @@ public class CommunityPostDTO {
 		this.updated_at = updated_at;
 		this.nickname = nickname;
 		this.deleteFileIds = deleteFileIds;
+	}
+	
+	
+
+	public String getProfile_image_url() {
+		return profile_image_url;
+	}
+
+	public void setProfile_image_url(String profile_image_url) {
+		this.profile_image_url = profile_image_url;
 	}
 
 	public Long getPost_id() {
