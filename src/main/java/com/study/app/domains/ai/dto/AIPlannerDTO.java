@@ -1,6 +1,7 @@
 package com.study.app.domains.ai.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -81,206 +82,236 @@ public class AIPlannerDTO {
     private String addr1;
     private String map_x;
     private String map_y;
+    
+    // savePlanner 사용하기 위한 필드
+    private List<AIPlannerStepDTO> steps;
 
     public AIPlannerDTO() {}
 
-    public Long getPlanner_id() {
-        return planner_id;
-    }
+	public AIPlannerDTO(Long planner_id, String member_id, Long content_id, String title, LocalDate visit_date,
+			String start_location, Integer people_count, String companion_type, String transport_type,
+			String start_time, String end_time, String user_input, String weather_summary, String rag_query,
+			String recommendation_reason, String planner_type, String course_style, String route_notice,
+			String festival_title, String first_image, String addr1, String map_x, String map_y,
+			List<AIPlannerStepDTO> steps) {
+		super();
+		this.planner_id = planner_id;
+		this.member_id = member_id;
+		this.content_id = content_id;
+		this.title = title;
+		this.visit_date = visit_date;
+		this.start_location = start_location;
+		this.people_count = people_count;
+		this.companion_type = companion_type;
+		this.transport_type = transport_type;
+		this.start_time = start_time;
+		this.end_time = end_time;
+		this.user_input = user_input;
+		this.weather_summary = weather_summary;
+		this.rag_query = rag_query;
+		this.recommendation_reason = recommendation_reason;
+		this.planner_type = planner_type;
+		this.course_style = course_style;
+		this.route_notice = route_notice;
+		this.festival_title = festival_title;
+		this.first_image = first_image;
+		this.addr1 = addr1;
+		this.map_x = map_x;
+		this.map_y = map_y;
+		this.steps = steps;
+	}
 
-    public void setPlanner_id(Long planner_id) {
-        this.planner_id = planner_id;
-    }
+	public Long getPlanner_id() {
+		return planner_id;
+	}
 
-    public String getMember_id() {
-        return member_id;
-    }
+	public void setPlanner_id(Long planner_id) {
+		this.planner_id = planner_id;
+	}
 
-    public void setMember_id(String member_id) {
-        this.member_id = member_id;
-    }
+	public String getMember_id() {
+		return member_id;
+	}
 
-    public Long getContent_id() {
-        return content_id;
-    }
+	public void setMember_id(String member_id) {
+		this.member_id = member_id;
+	}
 
-    public void setContent_id(Long content_id) {
-        this.content_id = content_id;
-    }
+	public Long getContent_id() {
+		return content_id;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public void setContent_id(Long content_id) {
+		this.content_id = content_id;
+	}
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    public LocalDate getVisit_date() {
-        return visit_date;
-    }
+	public void setTitle(String title) {
+		this.title = title;
+	}
 
-    public void setVisit_date(LocalDate visit_date) {
-        this.visit_date = visit_date;
-    }
+	public LocalDate getVisit_date() {
+		return visit_date;
+	}
 
-    public String getStart_location() {
-        return start_location;
-    }
+	public void setVisit_date(LocalDate visit_date) {
+		this.visit_date = visit_date;
+	}
 
-    public void setStart_location(String start_location) {
-        this.start_location = start_location;
-    }
+	public String getStart_location() {
+		return start_location;
+	}
 
-    public Integer getPeople_count() {
-        return people_count;
-    }
+	public void setStart_location(String start_location) {
+		this.start_location = start_location;
+	}
 
-    public void setPeople_count(Integer people_count) {
-        this.people_count = people_count;
-    }
+	public Integer getPeople_count() {
+		return people_count;
+	}
 
-    public String getCompanion_type() {
-        return companion_type;
-    }
+	public void setPeople_count(Integer people_count) {
+		this.people_count = people_count;
+	}
 
-    public void setCompanion_type(String companion_type) {
-        this.companion_type = companion_type;
-    }
+	public String getCompanion_type() {
+		return companion_type;
+	}
 
-    public String getTransport_type() {
-        return transport_type;
-    }
+	public void setCompanion_type(String companion_type) {
+		this.companion_type = companion_type;
+	}
 
-    public void setTransport_type(String transport_type) {
-        this.transport_type = transport_type;
-    }
+	public String getTransport_type() {
+		return transport_type;
+	}
 
-    public String getStart_time() {
-        return start_time;
-    }
+	public void setTransport_type(String transport_type) {
+		this.transport_type = transport_type;
+	}
 
-    public void setStart_time(String start_time) {
-        this.start_time = start_time;
-    }
+	public String getStart_time() {
+		return start_time;
+	}
 
-    public String getEnd_time() {
-        return end_time;
-    }
+	public void setStart_time(String start_time) {
+		this.start_time = start_time;
+	}
 
-    public void setEnd_time(String end_time) {
-        this.end_time = end_time;
-    }
+	public String getEnd_time() {
+		return end_time;
+	}
 
-    public String getUser_input() {
-        return user_input;
-    }
+	public void setEnd_time(String end_time) {
+		this.end_time = end_time;
+	}
 
-    public void setUser_input(String user_input) {
-        this.user_input = user_input;
-    }
+	public String getUser_input() {
+		return user_input;
+	}
 
-    public String getWeather_summary() {
-        return weather_summary;
-    }
+	public void setUser_input(String user_input) {
+		this.user_input = user_input;
+	}
 
-    public void setWeather_summary(String weather_summary) {
-        this.weather_summary = weather_summary;
-    }
+	public String getWeather_summary() {
+		return weather_summary;
+	}
 
-    public String getRag_query() {
-        return rag_query;
-    }
+	public void setWeather_summary(String weather_summary) {
+		this.weather_summary = weather_summary;
+	}
 
-    public void setRag_query(String rag_query) {
-        this.rag_query = rag_query;
-    }
+	public String getRag_query() {
+		return rag_query;
+	}
 
-    public String getRecommendation_reason() {
-        return recommendation_reason;
-    }
+	public void setRag_query(String rag_query) {
+		this.rag_query = rag_query;
+	}
 
-    public void setRecommendation_reason(String recommendation_reason) {
-        this.recommendation_reason = recommendation_reason;
-    }
+	public String getRecommendation_reason() {
+		return recommendation_reason;
+	}
 
-    public String getPlanner_type() {
-        return planner_type;
-    }
+	public void setRecommendation_reason(String recommendation_reason) {
+		this.recommendation_reason = recommendation_reason;
+	}
 
-    public void setPlanner_type(String planner_type) {
-        this.planner_type = planner_type;
-    }
+	public String getPlanner_type() {
+		return planner_type;
+	}
 
-    public String getCourse_style() {
-        return course_style;
-    }
+	public void setPlanner_type(String planner_type) {
+		this.planner_type = planner_type;
+	}
 
-    public void setCourse_style(String course_style) {
-        this.course_style = course_style;
-    }
+	public String getCourse_style() {
+		return course_style;
+	}
 
-    public String getRoute_notice() {
-        return route_notice;
-    }
+	public void setCourse_style(String course_style) {
+		this.course_style = course_style;
+	}
 
-    public void setRoute_notice(String route_notice) {
-        this.route_notice = route_notice;
-    }
+	public String getRoute_notice() {
+		return route_notice;
+	}
 
-    public String getFestival_title() {
-        return festival_title;
-    }
+	public void setRoute_notice(String route_notice) {
+		this.route_notice = route_notice;
+	}
 
-    public void setFestival_title(String festival_title) {
-        this.festival_title = festival_title;
-    }
+	public String getFestival_title() {
+		return festival_title;
+	}
 
-    public String getFirst_image() {
-        return first_image;
-    }
+	public void setFestival_title(String festival_title) {
+		this.festival_title = festival_title;
+	}
 
-    public void setFirst_image(String first_image) {
-        this.first_image = first_image;
-    }
+	public String getFirst_image() {
+		return first_image;
+	}
 
-    public String getAddr1() {
-        return addr1;
-    }
+	public void setFirst_image(String first_image) {
+		this.first_image = first_image;
+	}
 
-    public void setAddr1(String addr1) {
-        this.addr1 = addr1;
-    }
+	public String getAddr1() {
+		return addr1;
+	}
 
-    public String getMap_x() {
-        return map_x;
-    }
+	public void setAddr1(String addr1) {
+		this.addr1 = addr1;
+	}
 
-    public void setMap_x(String map_x) {
-        this.map_x = map_x;
-    }
+	public String getMap_x() {
+		return map_x;
+	}
 
-    public String getMap_y() {
-        return map_y;
-    }
+	public void setMap_x(String map_x) {
+		this.map_x = map_x;
+	}
 
-    public void setMap_y(String map_y) {
-        this.map_y = map_y;
-    }
+	public String getMap_y() {
+		return map_y;
+	}
 
-    // 개발 완료 후 삭제 예정
-    @Override
-    public String toString() {
-        return "AIPlannerDTO{" +
-                "planner_id=" + planner_id +
-                ", member_id='" + member_id + '\'' +
-                ", content_id=" + content_id +
-                ", title='" + title + '\'' +
-                ", visit_date=" + visit_date +
-                ", people_count=" + people_count +
-                ", companion_type='" + companion_type + '\'' +
-                ", course_style='" + course_style + '\'' +
-                ", planner_type='" + planner_type + '\'' +
-                '}';
-    }
+	public void setMap_y(String map_y) {
+		this.map_y = map_y;
+	}
+
+	public List<AIPlannerStepDTO> getSteps() {
+		return steps;
+	}
+
+	public void setSteps(List<AIPlannerStepDTO> steps) {
+		this.steps = steps;
+	}
+
+  
 }

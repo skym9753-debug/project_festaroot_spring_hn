@@ -61,13 +61,20 @@ public class PlannerController {
         return ResponseEntity.status(401).body(result);
     }
 
+    
+    
+
+
+    
     /**
-     * AI 축제 코스 추천 생성
+     * AI 플래너 미리보기 생성
      *
-     * POST /ai/planner
+     * POST /ai/planner/preview
+     *
+     * DB에 저장하지 않고, 화면에 보여줄 코스만 생성한다.
      */
-    @PostMapping("/planner")
-    public ResponseEntity<Map<String, Object>> createPlanner(
+    @PostMapping("/planner/preview")
+    public ResponseEntity<Map<String, Object>> previewPlanner(
             @RequestBody AIPlannerDTO plannerDTO,
             @RequestHeader(value = "Authorization", required = false) String authorization
     ) {
@@ -77,18 +84,35 @@ public class PlannerController {
             return unauthorizedResponse();
         }
 
-        Map<String, Object> result = plannerService.createPlanner(plannerDTO, memberId);
-        
-        System.out.println(result);
+        Map<String, Object> result = plannerService.previewPlanner(plannerDTO, memberId);
 
-        /*
-         * success=false는 서버 에러가 아니라
-         * 입력값 검증 실패, 축제 기간 불일치, 축제 정보 없음 같은 업무 로직 실패이므로
-         * 500이 아니라 200으로 내려준다.
-         */
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * AI 플래너 저장
+     *
+     * POST /ai/planner/save
+     *
+     * 사용자가 마음에 든 코스만 마이페이지에 저장한다.
+     */
+    @PostMapping("/planner/save")
+    public ResponseEntity<Map<String, Object>> savePlanner(
+            @RequestBody AIPlannerDTO plannerDTO,
+            @RequestHeader(value = "Authorization", required = false) String authorization
+    ) {
+        String memberId = resolveMemberId(authorization);
+
+        if (memberId == null) {
+            return unauthorizedResponse();
+        }
+
+        Map<String, Object> result = plannerService.savePlanner(plannerDTO, memberId);
+
+        return ResponseEntity.ok(result);
+    }
+    
+    
     /**
      * 내 AI 플래너 목록 조회
      *
