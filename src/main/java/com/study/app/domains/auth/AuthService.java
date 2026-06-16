@@ -59,7 +59,6 @@ public class AuthService {
     @Value("${naver.redirect-uri}")
     private String naverRedirectUri;
     
-    
     // 구글 로그인
     @Value("${google.client-id}")
     private String googleClientId;
@@ -89,8 +88,7 @@ public class AuthService {
         Map<String, Object> result = new HashMap<>();
 
         KakaoTokenResponse tokenResponse = getKakaoAccessToken(code);
-        
-
+      
         if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
             result.put("success", false);
             result.put("message", "카카오 access token 발급 실패");
@@ -131,8 +129,6 @@ public class AuthService {
 
         // 신규 회원
         String generatedMemberId = "kakao_" + socialId;
-        
-        System.out.println(generatedMemberId);
 
         result.put("member_id", generatedMemberId);
         result.put("social_provider", socialProvider);
@@ -175,8 +171,7 @@ public class AuthService {
 
         return response.getBody();
     }
-
-
+    
     private KakaoUserResponse getKakaoUserInfo(String accessToken) {
         String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
 
@@ -186,8 +181,6 @@ public class AuthService {
 
         HttpEntity<String> request = new HttpEntity<>(headers);
         
-        
-
         try {
             ResponseEntity<KakaoUserResponse> response = restTemplate.exchange(userInfoUrl, HttpMethod.GET, request, KakaoUserResponse.class);
             if (response.getStatusCode() == HttpStatus.OK) {
@@ -200,7 +193,6 @@ public class AuthService {
         return null;
     }
     
-    
     public Map<String, Object> naverLogin(
             String code,
             String state) {
@@ -209,10 +201,6 @@ public class AuthService {
 
         NaverTokenResponse tokenResponse =
             getNaverAccessToken(code, state);
-        
-        
-        System.out.println("accessToken = "
-        	    + tokenResponse.getAccessToken());
 
         if(tokenResponse == null) {
             result.put("success", false);
@@ -253,8 +241,6 @@ public class AuthService {
             result.put("social_provider", member.getSocial_provider());
             result.put("social_id", member.getSocial_id());
             
-
-
             return result;
         }
 
@@ -352,16 +338,12 @@ public class AuthService {
 
         GoogleTokenResponse tokenResponse =
             getGoogleAccessToken(code);
-        
-
 
         if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
             result.put("success", false);
             result.put("message", "구글 access token 발급 실패");
             return result;
         }
-
-        System.out.println("google accessToken = " + tokenResponse.getAccessToken());
 
         GoogleUserResponse userResponse =
             getGoogleUserInfo(tokenResponse.getAccessToken());

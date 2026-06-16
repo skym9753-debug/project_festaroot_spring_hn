@@ -24,6 +24,9 @@ public class AchievementService {
     @Autowired
     private AchievementDAO achievementDAO;
 
+    @Autowired
+    private com.study.app.domains.notification.NotificationService notificationService;
+
     /**
      * 마이페이지용 유저 업적 및 성장 통합 정보를 조회합니다.
      */
@@ -57,13 +60,15 @@ public class AchievementService {
      * 활동 유형별 기본 경험치 정의
      */
     public enum ActivityType {
-        ATTENDANCE(10),
-        POST(20),
-        COMMENT(5),
-        FESTIVAL_LIKE(2),
-        FESTIVAL_REVIEW(30),
-        AI_PLAN(20),
-        RANDOM_PICK(5);
+        ATTENDANCE(10), 				// 출석
+        POST(20),       				// 게시글 
+        COMMENT(5),     				// 댓글
+        LIKE_GIVEN(2),                  // 좋아요 누름
+        RECEIVE_LIKE(10),               // 좋아요 받음
+        FESTIVAL_LIKE(2), 			    // 축제 찜하기
+        FESTIVAL_REVIEW(30), 		    // 축제 후기
+        AI_PLAN(20), 				    // ai 여행플래너
+        RANDOM_PICK(5); 				// 랜덤축제뽑기
 
         private final int exp;
         ActivityType(int exp) { this.exp = exp; }
@@ -75,19 +80,25 @@ public class AchievementService {
      * 다른 서비스에서 활동 성공 시 호출하면 됩니다.
      */
     @Transactional
-    public AchievementResultDTO addActivityExp(String memberId, ActivityType type) {
+    public List<AchievementResultDTO> addActivityExp(String memberId, ActivityType type) {
         log.info("활동 경험치 지급 - 유저: {}, 활동: {}, 점수: {}", memberId, type, type.getExp());
         
-        AchievementResultDTO result = new AchievementResultDTO("활동 보상", type.name() + " 활동 완료", type.getExp());
+        List<AchievementResultDTO> results = new ArrayList<>();
+        AchievementResultDTO activityResult = new AchievementResultDTO("활동 보상", type.name(), type.getExp());
         
         // 경험치 지급 및 레벨업 체크 로직 실행
-        addExpAndCheckLevelUp(memberId, type.getExp(), result);
+        addExpAndCheckLevelUp(memberId, type.getExp(), activityResult);
+        results.add(activityResult);
         
         // 업적 진행도도 함께 업데이트 (타입명이 일치하므로 재사용 가능)
-        updateProgress(memberId, type.name());
+        List<AchievementResultDTO> achResults = updateProgress(memberId, type.name());
+        if (achResults != null && !achResults.isEmpty()) {
+            results.addAll(achResults);
+        }
         
-        return result;
+        return results;
     }
+    
 
     /**
      * 출석 체크를 처리합니다. (하루 한 번만 실행되도록 호출부에서 제어 필요)
@@ -96,11 +107,8 @@ public class AchievementService {
     public List<AchievementResultDTO> processAttendance(String memberId) {
         log.info("출석 체크 처리 - 유저: {}", memberId);
         
-        List<AchievementResultDTO> results = new ArrayList<>();
-        
         // 1. 기본 활동 경험치 지급 (addActivityExp 내부에서 updateProgress("ATTENDANCE")를 호출함)
-        AchievementResultDTO activityResult = addActivityExp(memberId, ActivityType.ATTENDANCE);
-        results.add(activityResult);
+        List<AchievementResultDTO> results = addActivityExp(memberId, ActivityType.ATTENDANCE);
         
         // 2. 추가적인 업적 체크가 필요하다면 여기서 수행할 수 있지만, 
         // 이미 updateProgress가 호출되었으므로 바로 반환하면 됩니다.
@@ -147,6 +155,14 @@ public class AchievementService {
         
         // 업적 완료 상태로 변경 및 이력 저장
         achievementDAO.completeAchievement(memberId, ach.getAchievement_id());
+        
+        // 알림 저장
+        com.study.app.domains.notification.dto.NotificationDTO noti = new com.study.app.domains.notification.dto.NotificationDTO();
+        noti.setMember_id(memberId);
+        noti.setNoti_type("ACHIEVEMENT");
+        noti.setReference_id(ach.getAchievement_id());
+        noti.setContent("축하합니다! [" + ach.getAch_title() + "] 업적을 달성했습니다!");
+        notificationService.saveNotification(noti);
         
         // 보상 결과 객체 생성
         AchievementResultDTO result = new AchievementResultDTO(ach.getAch_title(), ach.getAch_desc(), ach.getExp_reward());

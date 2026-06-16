@@ -84,15 +84,29 @@ public class InquiryService {
             throw new RuntimeException("해당 문의를 찾을 수 없습니다.");
         }
         
-        // 2. 본문 업데이트 (카테고리, 제목, 내용)
+        // 2. 본문 업데이트 전, 본문에서 삭제된 이미지 처리
+        uploadService.deleteRemovedImages(existing.getContent(), inquiryDTO.getContent());
+        
+        // 3. 본문 업데이트 (카테고리, 제목, 내용)
         inquiryDTO.setInquiry_id(inquiryId);
         inquiryDAO.updateInquiry(inquiryDTO);
 
-        // 3. 파일 처리 (새로운 파일이 있는 경우만)
+        // 4. 명시적으로 삭제 요청된 첨부파일 처리
+        if (inquiryDTO.getDeleteFileIds() != null) {
+            for (Long attachId : inquiryDTO.getDeleteFileIds()) {
+                InquiryAttachmentDTO attach = inquiryDAO.selectAttachmentById(attachId);
+                if (attach != null) {
+                    // GCP 파일 삭제
+                    uploadService.deleteFile(attach.getFile_path());
+                    // DB 삭제
+                    inquiryDAO.deleteAttachmentById(attachId);
+                }
+            }
+        }
+
+        // 5. 새로운 파일 추가
         List<MultipartFile> files = inquiryDTO.getFiles();
         if (files != null && !files.isEmpty()) {
-            // (옵션) 기존 첨부파일을 모두 지우고 새로 등록할지, 추가할지 결정 필요
-            // 여기서는 '추가'하는 방식으로 구현 (기존 파일 유지)
             List<InquiryAttachmentDTO> attachments = new ArrayList<>();
             for (MultipartFile file : files) {
                 if (file != null && !file.isEmpty()) {

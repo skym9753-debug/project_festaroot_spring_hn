@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.achievement.AchievementService;
+import com.study.app.domains.achievement.AchievementService.ActivityType;
 import com.study.app.domains.review.dto.FestivalReviewDTO;
 import com.study.app.domains.review.dto.FestivalReviewImageDTO;
 import com.study.app.domains.review.dto.ReviewReportDTO;
@@ -20,6 +22,12 @@ public class ReviewService {
 	
 	@Autowired
 	private UploadService uploadService;
+	
+	@Autowired
+	private AchievementService achievementService;
+
+	@Autowired
+	private com.study.app.domains.activity.UserActivityLogService userActivityLogService;
 
     public List<FestivalReviewDTO> getReviews(Long content_id, String sortType) {
 
@@ -37,9 +45,9 @@ public class ReviewService {
     }
 
     @Transactional
-    public int addReview(FestivalReviewDTO reviewDTO, List<MultipartFile> images) throws Exception {
+    public List<com.study.app.domains.achievement.dto.AchievementResultDTO> addReview(FestivalReviewDTO reviewDTO, List<MultipartFile> images) throws Exception {
 
-        int result = reviewDAO.insertReview(reviewDTO);
+        reviewDAO.insertReview(reviewDTO);
 
         if (images != null) {
             for (MultipartFile image : images) {
@@ -59,7 +67,14 @@ public class ReviewService {
             }
         }
 
-        return result;
+        // 활동 로그 기록
+//        com.study.app.domains.activity.dto.UserActivityLogDTO log = new com.study.app.domains.activity.dto.UserActivityLogDTO();
+//        log.setMember_id(reviewDTO.getMember_id());
+//        log.setAction_type("FESTIVAL_REVIEW");
+//        log.setContent_id(reviewDTO.getReview_id());
+//        userActivityLogService.saveLog(log);
+
+        return achievementService.addActivityExp(reviewDTO.getMember_id(), ActivityType.FESTIVAL_REVIEW);
     }
 
     @Transactional

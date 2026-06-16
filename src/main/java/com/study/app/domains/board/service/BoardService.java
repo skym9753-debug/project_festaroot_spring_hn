@@ -1,12 +1,17 @@
 package com.study.app.domains.board.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.achievement.AchievementService;
+import com.study.app.domains.achievement.AchievementService.ActivityType;
+import com.study.app.domains.achievement.dto.AchievementResultDTO;
 import com.study.app.domains.board.dao.FileDAO;
 import com.study.app.domains.board.dao.PostDAO;
 import com.study.app.domains.board.dto.CommunityPostDTO;
@@ -24,13 +29,29 @@ public class BoardService {
 	
 	@Autowired
 	private UploadService uploadService;
-
-	public void addPost(CommunityPostDTO dto, List<MultipartFile> files) {
+	
+	@Autowired
+	private AchievementService achievementService;
+	
+	@Autowired
+	private com.study.app.domains.activity.UserActivityLogService userActivityLogService;
+	
+	@Transactional
+	public List<AchievementResultDTO> addPost(CommunityPostDTO dto, List<MultipartFile> files) {
 		postDAO.insertPost(dto);
-
+		
 		if(files != null && !files.isEmpty()) {
 			fileDAO.insertPostAttachments(dto.getPost_id(), files);	
 		}
+		
+		// 활동 로그 기록
+//		com.study.app.domains.activity.dto.UserActivityLogDTO log = new com.study.app.domains.activity.dto.UserActivityLogDTO();
+//		log.setMember_id(dto.getMember_id());
+//		log.setAction_type("POST_WRITE");
+//		log.setContent_id(dto.getPost_id());
+//		userActivityLogService.saveLog(log);
+		
+		return achievementService.addActivityExp(dto.getMember_id(), ActivityType.POST);
 	}
 
 	public int totalPostCount(Map<String, Object> params) {
@@ -95,6 +116,11 @@ public class BoardService {
 		postDAO.deletePostById(id);
 		
 	}
-	
+	public Integer getMyPostCount(String memberId) {
+		return postDAO.getMyPostCount(memberId);
+	}
+	public List<CommunityPostDTO> getMypostList(String member_id){
+		return postDAO.getMypostList(member_id);
+	}
 
 }

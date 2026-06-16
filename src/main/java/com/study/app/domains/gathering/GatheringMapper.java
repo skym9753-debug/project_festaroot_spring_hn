@@ -1,5 +1,6 @@
 package com.study.app.domains.gathering;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -67,9 +68,18 @@ public interface GatheringMapper {
 	int countJoinedGatheringList(@Param("member_id") String member_id, @Param("filter") String filter,
 			@Param("keyword") String keyword);
 
-	// [추가] 밴 여부 확인 (카운트가 1 이상이면 밴 유저)
+	// 밴 여부 확인 (카운트가 1 이상이면 밴 유저)
 	int checkBanStatus(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 
-	// [추가] 강퇴 시 밴 유저 리스트에 등록
+	// 강퇴 시 밴 유저 리스트에 등록
 	int insertBanUser(@Param("room_id") Long roomId, @Param("member_id") String memberId);
+
+	// 채팅방 입장 시간 추적
+	LocalDateTime selectUserJoinedAt(@Param("room_id") Long roomId, @Param("member_id") String memberId);
+
+	// 마지막으로 보낸 메세지 추적
+	LocalDateTime selectLastReadAt(@Param("room_id") Long roomId, @Param("member_id") String memberId);
+
+	// 마지막으로 읽은 메세지 추적
+	int updateLastReadAt(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 }

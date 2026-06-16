@@ -411,5 +411,13 @@
         set report_count = NVL(report_count, 0) + 1
         where post_id = #{post_id}
     </update>
-
+    
+    
+    <select id="getMyPostCount" resultType="int">
+    		select count(*) from community_post where member_id = #{memberId}
+    </select>
+	
+	<select id="getMypostList" resultType="com.study.app.domains.board.dto.CommunityPostDTO">
+		select * from community_post where member_id = #{memberId} order by post_id desc
+	</select>
 </mapper>

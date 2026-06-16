@@ -9,4 +9,5 @@ public interface UserActivityLogDAO {
     int insertLog(UserActivityLogDTO log);
     List<UserActivityLogDTO> selectRecentLogs(String member_id);
     int checkTodayAttendance(String member_id);
+    int existsLog(java.util.Map<String, Object> params);
 }

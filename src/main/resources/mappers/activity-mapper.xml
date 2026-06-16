@@ -35,13 +35,23 @@
             CONTENT_ID,
             KEYWORD,
             CREATED_AT,
-            TITLE
+            TITLE,
+            FIRST_IMAGE
         FROM (
             SELECT 
                 L.*, 
-                F.TITLE 
+                CASE 
+                    WHEN L.ACTION_TYPE = 'FESTIVAL_REVIEW' THEN FR_REVIEW.TITLE
+                    ELSE F.TITLE 
+                END as TITLE,
+                CASE 
+                    WHEN L.ACTION_TYPE = 'FESTIVAL_REVIEW' THEN FR_REVIEW.FIRST_IMAGE
+                    ELSE F.FIRST_IMAGE 
+                END as FIRST_IMAGE
             FROM USER_ACTIVITY_LOG L
-            LEFT JOIN FESTIVAL_INFO F ON L.CONTENT_ID = F.CONTENT_ID
+            LEFT JOIN FESTIVAL_INFO F ON L.CONTENT_ID = F.CONTENT_ID AND L.ACTION_TYPE NOT IN ('FESTIVAL_REVIEW', 'POST_WRITE', 'CMT_LIKE_GIVEN', 'LIKE_GIVEN')
+            LEFT JOIN FESTIVAL_REVIEW R ON L.CONTENT_ID = R.REVIEW_ID AND L.ACTION_TYPE = 'FESTIVAL_REVIEW'
+            LEFT JOIN FESTIVAL_INFO FR_REVIEW ON R.CONTENT_ID = FR_REVIEW.CONTENT_ID
             WHERE L.MEMBER_ID = #{member_id}
             ORDER BY L.CREATED_AT DESC
         )
@@ -54,6 +64,14 @@
         WHERE MEMBER_ID = #{member_id}
           AND ACTION_TYPE = 'ATTENDANCE'
           AND TRUNC(CREATED_AT) = TRUNC(SYSDATE)
+    </select>
+
+    <select id="existsLog" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM USER_ACTIVITY_LOG
+        WHERE MEMBER_ID = #{member_id}
+          AND ACTION_TYPE = #{action_type}
+          AND CONTENT_ID = #{content_id}
     </select>
 
 </mapper>

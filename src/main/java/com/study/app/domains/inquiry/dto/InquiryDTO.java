@@ -17,7 +17,16 @@ public class InquiryDTO {
 	
 	private List<MultipartFile> files;
 	private List<InquiryAttachmentDTO> attachments;
-	
+	private List<Long> deleteFileIds;
+
+	public List<Long> getDeleteFileIds() {
+		return deleteFileIds;
+	}
+
+	public void setDeleteFileIds(List<Long> deleteFileIds) {
+		this.deleteFileIds = deleteFileIds;
+	}
+
 	public List<InquiryAttachmentDTO> getAttachments() {
 		return attachments;
 	}

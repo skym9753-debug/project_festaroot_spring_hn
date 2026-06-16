@@ -97,4 +97,43 @@ public class UploadService {
             deleteFile(fileUrl);
         }
     }
+
+    /**
+     * 기존 본문과 새 본문을 비교하여, 삭제된 이미지만 GCP에서 제거
+     */
+    public void deleteRemovedImages(String oldContent, String newContent) {
+        if (oldContent == null || oldContent.isEmpty()) {
+            return;
+        }
+
+        // GCP URL 추출을 위한 패턴
+        String prefix = String.format("https://storage.googleapis.com/%s/", bucketName);
+        String patternString = java.util.regex.Pattern.quote(prefix) + "[^\"'\\s>]+";
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(patternString);
+
+        // 1. 기존 본문의 모든 이미지 URL 추출
+        java.util.HashSet<String> oldUrls = new java.util.HashSet<>();
+        java.util.regex.Matcher oldMatcher = pattern.matcher(oldContent);
+        while (oldMatcher.find()) {
+            oldUrls.add(oldMatcher.group());
+        }
+
+        if (oldUrls.isEmpty()) return;
+
+        // 2. 새 본문의 모든 이미지 URL 추출
+        java.util.HashSet<String> newUrls = new java.util.HashSet<>();
+        if (newContent != null && !newContent.isEmpty()) {
+            java.util.regex.Matcher newMatcher = pattern.matcher(newContent);
+            while (newMatcher.find()) {
+                newUrls.add(newMatcher.group());
+            }
+        }
+
+        // 3. 기존에는 있었으나 새 본문에는 없는 URL 삭제
+        for (String url : oldUrls) {
+            if (!newUrls.contains(url)) {
+                deleteFile(url);
+            }
+        }
+    }
 }
