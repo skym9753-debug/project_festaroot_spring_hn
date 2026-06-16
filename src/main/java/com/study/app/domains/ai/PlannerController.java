@@ -77,7 +77,9 @@ public class PlannerController {
             return unauthorizedResponse();
         }
 
-        Map<String, Object> result = plannerService.createPlannerWithDummySteps(plannerDTO, memberId);
+        Map<String, Object> result = plannerService.createPlanner(plannerDTO, memberId);
+        
+        System.out.println(result);
 
         /*
          * success=false는 서버 에러가 아니라
