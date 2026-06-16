@@ -42,9 +42,5 @@ public class JWTUtil {
 	public String getSubject(String token) {
 		return validation(token).getSubject();
 	}
-	
-	
-	
-	
-	
+		
 }

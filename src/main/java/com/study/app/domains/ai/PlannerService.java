@@ -55,7 +55,7 @@ public class PlannerService {
      * - 축제장 좌표 + TourAPI 주변 장소 + 날씨 요약 기반 코스 생성
      */
     @Transactional
-    public HashMap<String, Object> createPlannerWithDummySteps(AIPlannerDTO plannerDTO, String memberId) {
+    public HashMap<String, Object> createPlanner(AIPlannerDTO plannerDTO, String memberId) {
 
         HashMap<String, Object> result = new HashMap<>();
 
