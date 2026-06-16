@@ -204,5 +204,21 @@
         WHERE planner_id = #{planner_id}
           AND member_id = #{member_id}
     </delete>
+    
+    <!-- Festival DB 조회 -->
+    <select id="selectFestivalByContentId" resultType="com.study.app.domains.festival.dto.FestivalDTO">
+    SELECT
+        content_id,
+        title,
+        addr1,
+        first_image,
+        map_x,
+        map_y,
+        event_start_date,
+        event_end_date,
+        overview
+    FROM festival_info
+    WHERE content_id = #{content_id}
+</select>
 
 </mapper>

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.study.app.domains.ai.dto.AIPlannerDTO;
 import com.study.app.domains.ai.dto.AIPlannerStepDTO;
+import com.study.app.domains.festival.dto.FestivalDTO;
 
 @Repository
 public class PlannerDAO {
@@ -73,5 +74,14 @@ public class PlannerDAO {
         params.put("member_id", member_id);
 
         return mybatis.delete("Planner.deletePlanner", params);
+    }
+    
+	/**
+	 * Festival DB 조회
+	 */
+    public FestivalDTO selectFestivalByContentId(Long content_id) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("content_id", content_id);
+        return mybatis.selectOne("Planner.selectFestivalByContentId", params);
     }
 }
