@@ -117,5 +117,12 @@
 	
 	    ORDER BY cr.room_id DESC
 	</select>
+	
+	<select id="getLastReadAt" resultType="java.time.LocalDateTime">
+	    SELECT last_read_at
+	    FROM chat_room_user
+	    WHERE room_id = #{roomId}
+	      AND member_id = #{memberId}
+	</select>
 
 </mapper>

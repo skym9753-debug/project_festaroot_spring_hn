@@ -42,7 +42,7 @@ public class ChatService {
 	public void updateLastReadAt(Long roomId, String memberId) {
 		gatheringMapper.updateLastReadAt(roomId, memberId);
 	}
-	
+
 	// 1:1 채팅방 존재 확인 및 생성
 	@Transactional
 	public Long getOrCreatePrivateRoom(String userA, String userB) {
@@ -64,7 +64,7 @@ public class ChatService {
 		// 3. 채팅방 참여 멤버에 두 사람 매핑 등록
 		chatRoomMapper.insertChatRoomMember(newRoomId, userA);
 		chatRoomMapper.insertChatRoomMember(newRoomId, userB);
-		
+
 		ChatMessageDocument systemMsg = new ChatMessageDocument();
 
 		systemMsg.setRoomId(newRoomId);
@@ -72,7 +72,7 @@ public class ChatService {
 		systemMsg.setSenderId("SYSTEM");
 		systemMsg.setSenderName("SYSTEM");
 
-		systemMsg.setType(ChatType.ENTER);
+		systemMsg.setType(ChatType.DM);
 
 		systemMsg.setMessage("채팅이 시작되었습니다.");
 
@@ -100,42 +100,51 @@ public class ChatService {
 			// 필요시 MongoDB의 해당 방 메시지 내역을 지우는 로직을 여기에 추가해도 됨.
 		}
 	}
-	
+
 	// 채팅 목록 조회
 	public List<Map<String, Object>> getUserChatRoomList(String userId) {
 		System.out.println("채팅목록 조회 userId = " + userId);
-	    // 1. Oracle DB에서 해당 유저가 참여 중인 채팅방 목록을 가져옵니다.
-	    // (※ 기존에 사용하던 Mapper의 목록 조회 메서드명으로 매칭해줘)
-	    List<Map<String, Object>> rooms = chatRoomMapper.getChatRoomsByUserId(userId); 
+		// 1. Oracle DB에서 해당 유저가 참여 중인 채팅방 목록을 가져옵니다.
+		// (※ 기존에 사용하던 Mapper의 목록 조회 메서드명으로 매칭해줘)
+		List<Map<String, Object>> rooms = chatRoomMapper.getChatRoomsByUserId(userId);
 
-	    rooms.forEach(room -> {
-	        System.out.println("rooms 값 확인"+room);
-	    });
-	    
-	    // 2. 각 채팅방을 순회하며 MongoDB에서 최신 메시지를 꺼내와 조립하고 필터링합니다.
-	    return rooms.stream()
-	        .map(room -> {	        	
+		rooms.forEach(room -> {
+			System.out.println("rooms 값 확인" + room);
+		});
 
-	            System.out.println("room_id = " + room.get("room_id"));
+		// 2. 각 채팅방을 순회하며 MongoDB에서 최신 메시지를 꺼내와 조립하고 필터링합니다.
+		return rooms.stream().map(room -> {
 
-	            // DB 타입에 따라 Long 변환 처리
-	            Long roomId = ((Number) room.get("room_id")).longValue();
+			System.out.println("room_id = " + room.get("room_id"));
 
-	            System.out.println("roomId = " + roomId);
-	            
-	            // MongoDB에서 이 방의 가장 최근 메시지 딱 1개 조회
-	            Optional<ChatMessageDocument> lastMsgOpt = chatMessageRepository.findFirstByRoomIdOrderByCreatedAtDesc(roomId);
-	            
-	            if (lastMsgOpt.isPresent()) {
-	                ChatMessageDocument lastMsg = lastMsgOpt.get();
-	                room.put("last_message", lastMsg.getMessage());
-	                room.put("last_message_time", lastMsg.getCreatedAt());
-	            } else {
-	                room.put("last_message", null);
-	                room.put("last_message_time", null);
-	            }
-	            return room;
-	        })
+			// DB 타입에 따라 Long 변환 처리
+			Long roomId = ((Number) room.get("room_id")).longValue();
+
+			System.out.println("roomId = " + roomId);
+
+			// MongoDB에서 이 방의 가장 최근 메시지 딱 1개 조회
+			Optional<ChatMessageDocument> lastMsgOpt = chatMessageRepository
+					.findFirstByRoomIdOrderByCreatedAtDesc(roomId);
+
+			if (lastMsgOpt.isPresent()) {
+				ChatMessageDocument lastMsg = lastMsgOpt.get();
+				room.put("last_message", lastMsg.getMessage());
+				room.put("last_message_time", lastMsg.getCreatedAt());
+			}
+			LocalDateTime lastReadAt = chatRoomMapper.getLastReadAt(roomId, userId);
+
+			long unreadCount = 0;
+
+			if (lastReadAt != null) {
+
+				unreadCount = chatMessageRepository.countByRoomIdAndCreatedAtGreaterThanAndSenderIdNot(roomId,
+						lastReadAt, userId);
+			}
+
+			room.put("unread_count", unreadCount);
+
+			return room;
+		})
 //	        .filter(room -> {
 //	            String roomType = (String) room.get("room_type");
 //	            // 1:1 채팅방(DIRECT)인데 최신 메시지가 없다면 목록에서 제외시킴
@@ -145,6 +154,6 @@ public class ChatService {
 //	            // 모임 채팅방은 메시지가 없어도 목록에 보여줌
 //	            return true; 
 //	        })
-	        .toList();
+				.toList();
 	}
 }

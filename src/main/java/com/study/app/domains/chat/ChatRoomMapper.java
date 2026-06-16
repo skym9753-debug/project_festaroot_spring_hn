@@ -1,5 +1,6 @@
 package com.study.app.domains.chat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -39,4 +40,7 @@ public interface ChatRoomMapper {
 
 	// 특정 유저가 참여하고 있는 모든 채팅방 목록 조회
 	List<Map<String, Object>> getChatRoomsByUserId(@Param("userId") String userId);
+
+	// 메세지 읽음 확인
+	LocalDateTime getLastReadAt(@Param("roomId") Long roomId, @Param("memberId") String memberId);
 }
