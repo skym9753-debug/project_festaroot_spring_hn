@@ -144,5 +144,11 @@
 	    SET password = #{password}
 	    WHERE member_id = #{member_id}
 	</update>
+	
+   <select id="selectUserNickname" resultType="string">
+       SELECT nickname
+       FROM member
+       WHERE member_id = #{member_id}
+   </select>
 
 </mapper>

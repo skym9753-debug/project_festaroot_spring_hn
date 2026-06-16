@@ -19,6 +19,24 @@
 	        #{room_image}
 	    ) 
 	</insert>
+	
+	<select id="selectUserJoinedAt" resultType="java.time.LocalDateTime">
+	    SELECT joined_at 
+	    FROM chat_room_user 
+	    WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</select>
+	
+	<select id="selectLastReadAt" resultType="java.time.LocalDateTime">
+	    SELECT last_read_at
+	    FROM chat_room_user
+	    WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</select>
+	
+	<update id="updateLastReadAt">
+	    UPDATE chat_room_user
+	    SET last_read_at = SYSTIMESTAMP
+	    WHERE room_id = #{room_id} AND member_id = #{member_id}
+	</update>
 
 	<insert id="insertRoomUser">
 		INSERT INTO CHAT_ROOM_USER (
@@ -147,7 +165,7 @@
 		WHERE room_id = #{room_id}
 	</update>
 
-<select id="selectParticipants" parameterType="long" resultType="map">
+	<select id="selectParticipants" parameterType="long" resultType="map">
 	    SELECT
 	        m.member_id AS "member_id", 
 	        m.nickname AS "nickname", 
