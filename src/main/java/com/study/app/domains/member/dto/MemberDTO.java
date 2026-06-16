@@ -26,6 +26,7 @@ public class MemberDTO {
 	
 	// 추가
 	private String social_id;
+	private String status;
 	
 	
 	// 관심분야, 관심지역 받는 변수
@@ -37,7 +38,7 @@ public class MemberDTO {
 	public MemberDTO(String member_id, String password, String name, String nickname, String phone, String email,
 			LocalDate birthdate, String gender, String addr_sido, String addr_sigungu, String reside_area_code,
 			String reside_sigungu_code, String profile_image_url, String social_provider, Long exp_point, Long title_id,
-			LocalDateTime created_at, String social_id) {
+			LocalDateTime created_at, String social_id, String status) {
 		super();
 		this.member_id = member_id;
 		this.password = password;
@@ -57,6 +58,7 @@ public class MemberDTO {
 		this.title_id = title_id;
 		this.created_at = created_at;
 		this.social_id = social_id;
+		this.status = status;
 	}
 
 	public String getMember_id() {
@@ -201,6 +203,14 @@ public class MemberDTO {
 
 	public void setSocial_id(String social_id) {
 		this.social_id = social_id;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 	
 	// 관심분야, 관심지역 관련

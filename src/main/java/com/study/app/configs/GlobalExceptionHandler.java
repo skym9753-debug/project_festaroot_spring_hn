@@ -21,14 +21,11 @@ public class GlobalExceptionHandler {
                 .body("JWT 토큰이 만료되었습니다.");
     }
 
-    @ExceptionHandler(JWTVerificationException.class)
-    public ResponseEntity<String> handleJwt(
-            JWTVerificationException e
-    ) {
-
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException e) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body("유효하지 않은 토큰입니다.");
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
     }
 
 }

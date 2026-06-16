@@ -34,6 +34,7 @@ import com.study.app.domains.member.dto.MemberDTO;
 import com.study.app.domains.member.dto.MemberProfileDTO;
 import com.study.app.domains.member.dto.PasswordFindRequestDTO;
 import com.study.app.domains.member.dto.ResetPasswordDTO;
+import com.study.app.domains.member.dto.UpdatePasswordDTO;
 import com.study.app.domains.member.dto.VerifyCodeDTO;
 import com.study.app.domains.storage.UploadService;
 import com.study.app.utils.JWTUtil;
@@ -405,5 +406,33 @@ public class MemberService {
         if (memberId.length() <= 4) return memberId.charAt(0) + "***";
         return memberId.substring(0, 4) + "*".repeat(memberId.length() - 4);
     }
+    
+	@Transactional
+	public void updatePassword(UpdatePasswordDTO dto) {
+		MemberDTO member = memberDAO.selectMemberById(dto.getMember_id());
+		if (member == null) {
+			throw new RuntimeException("일치하는 회원 정보가 없습니다.");
+		}
+
+		if (bCryptPasswordEncoder.matches(dto.getCurrent_password(), member.getPassword())) {
+			Map<String, Object> params = new HashMap<>();
+			String encodedPassword = bCryptPasswordEncoder.encode(dto.getNew_password());
+			params.put("member_id", dto.getMember_id());
+			params.put("password", encodedPassword);
+			memberDAO.updatePassword(params);
+		} else {
+			throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+		}
+	}
+
+	@Transactional
+	public void withdrawMember(String member_id) {
+		// 1. 관심 지역 및 테마 삭제 (선택 사항이나 개인정보 보호를 위해 권장)
+		memberDAO.deleteInterestRegions(member_id);
+		memberDAO.deleteInterestThemes(member_id);
+
+		// 2. 회원 상태 변경 및 개인정보 마스킹 (Mapper에서 처리)
+		memberDAO.withdrawMember(member_id);
+	}
 
 }
