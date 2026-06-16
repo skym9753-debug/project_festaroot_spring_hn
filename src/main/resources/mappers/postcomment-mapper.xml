@@ -39,7 +39,8 @@
 	        pc.updated_at,
 	        pc.like_count,
 	        pc.report_count,
-	        m.nickname
+	        m.nickname,
+	        m.profile_image_url
 	    FROM POST_COMMENT pc
 	    LEFT JOIN MEMBER m
 	        ON pc.member_id = m.member_id

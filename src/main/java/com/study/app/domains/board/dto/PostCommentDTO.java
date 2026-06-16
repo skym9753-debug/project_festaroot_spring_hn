@@ -15,6 +15,7 @@ public class PostCommentDTO {
     private LocalDateTime updated_at;
     
     private String nickname;
+    private String profile_image_url;
     private List<PostCommentDTO> children; // 대댓글
     
     // 좋아요, 신고
@@ -41,12 +42,24 @@ public class PostCommentDTO {
 		this.like_count = like_count;
 		this.report_count = report_count;
 	}
+	
+	
+	
+
+	public String getProfile_image_url() {
+		return profile_image_url;
+	}
+
+
+	public void setProfile_image_url(String profile_image_url) {
+		this.profile_image_url = profile_image_url;
+	}
 
 
 	public Long getComment_id() {
 		return comment_id;
 	}
-
+	
 
 	public void setComment_id(Long comment_id) {
 		this.comment_id = comment_id;
