@@ -12,8 +12,6 @@ public class EmailDAO {
 	@Autowired
     private SqlSessionTemplate mybatis;
 
-
-
     public EmailVerificationDTO selectByEmail(String email) {
         return mybatis.selectOne("Email.selectByEmail", email);
     }

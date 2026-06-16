@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Planner">
+
+    <!-- AI 플래너 마스터 저장 -->
+    <insert id="insertPlanner" parameterType="com.study.app.domains.ai.dto.AIPlannerDTO">
+        <selectKey keyProperty="planner_id" resultType="Long" order="BEFORE">
+            SELECT seq_ai_planner.NEXTVAL FROM dual
+        </selectKey>
+
+        INSERT INTO ai_planner (
+            planner_id,
+            member_id,
+            content_id,
+            title,
+            visit_date,
+            start_location,
+            people_count,
+            companion_type,
+            transport_type,
+            start_time,
+            end_time,
+            user_input,
+            weather_summary,
+            rag_query,
+            recommendation_reason,
+            planner_type,
+            course_style,
+            route_notice,
+            created_at
+        ) VALUES (
+            #{planner_id},
+            #{member_id},
+            #{content_id},
+            #{title},
+            #{visit_date, jdbcType=DATE},
+            #{start_location},
+            #{people_count},
+            #{companion_type},
+            #{transport_type},
+            #{start_time},
+            #{end_time},
+            #{user_input, jdbcType=CLOB},
+            #{weather_summary},
+            #{rag_query},
+            #{recommendation_reason, jdbcType=CLOB},
+            #{planner_type},
+            #{course_style},
+            #{route_notice},
+            SYSDATE
+        )
+    </insert>
+
+    <!-- AI 플래너 step 저장 -->
+    <insert id="insertPlannerStep" parameterType="com.study.app.domains.ai.dto.AIPlannerStepDTO">
+        <selectKey keyProperty="step_id" resultType="Long" order="BEFORE">
+            SELECT seq_ai_planner_step.NEXTVAL FROM dual
+        </selectKey>
+
+        INSERT INTO ai_planner_step (
+            step_id,
+            planner_id,
+            step_order,
+            time_label,
+            title,
+            description,
+            type,
+            place_name,
+            address,
+            x,
+            y,
+            reason,
+            kakao_place_url,
+            source_content_id,
+            content_type_id,
+            distance,
+            first_image,
+            source_api,
+            created_at
+        ) VALUES (
+            #{step_id},
+            #{planner_id},
+            #{step_order},
+            #{time_label},
+            #{title},
+            #{description, jdbcType=CLOB},
+            #{type},
+            #{place_name},
+            #{address},
+            #{x},
+            #{y},
+            #{reason},
+            #{kakao_place_url},
+            #{source_content_id},
+            #{content_type_id},
+            #{distance},
+            #{first_image},
+            #{source_api},
+            SYSDATE
+        )
+    </insert>
+
+    <!-- 내 AI 플래너 목록 조회 -->
+    <select id="selectMyPlanners" resultType="com.study.app.domains.ai.dto.AIPlannerDTO">
+        SELECT
+            ap.planner_id,
+            ap.member_id,
+            ap.content_id,
+            ap.title,
+            ap.visit_date,
+            ap.start_location,
+            ap.people_count,
+            ap.companion_type,
+            ap.transport_type,
+            ap.start_time,
+            ap.end_time,
+            ap.user_input,
+            ap.weather_summary,
+            ap.rag_query,
+            ap.recommendation_reason,
+            ap.planner_type,
+            ap.course_style,
+            ap.route_notice,
+            ap.created_at,
+            fi.title AS festival_title,
+            fi.first_image,
+            fi.addr1,
+            fi.map_x,
+            fi.map_y
+        FROM ai_planner ap
+        LEFT JOIN festival_info fi
+            ON ap.content_id = fi.content_id
+        WHERE ap.member_id = #{member_id}
+        ORDER BY ap.created_at DESC
+    </select>
+
+    <!-- AI 플래너 상세 조회 -->
+    <select id="selectPlannerById" resultType="com.study.app.domains.ai.dto.AIPlannerDTO">
+        SELECT
+            ap.planner_id,
+            ap.member_id,
+            ap.content_id,
+            ap.title,
+            ap.visit_date,
+            ap.start_location,
+            ap.people_count,
+            ap.companion_type,
+            ap.transport_type,
+            ap.start_time,
+            ap.end_time,
+            ap.user_input,
+            ap.weather_summary,
+            ap.rag_query,
+            ap.recommendation_reason,
+            ap.planner_type,
+            ap.course_style,
+            ap.route_notice,
+            ap.created_at,
+            fi.title AS festival_title,
+            fi.first_image,
+            fi.addr1,
+            fi.map_x,
+            fi.map_y
+        FROM ai_planner ap
+        LEFT JOIN festival_info fi
+            ON ap.content_id = fi.content_id
+        WHERE ap.planner_id = #{planner_id}
+          AND ap.member_id = #{member_id}
+    </select>
+
+    <!-- AI 플래너 step 목록 조회 -->
+    <select id="selectPlannerSteps" resultType="com.study.app.domains.ai.dto.AIPlannerStepDTO">
+        SELECT
+            step_id,
+            planner_id,
+            step_order,
+            time_label,
+            title,
+            description,
+            type,
+            place_name,
+            address,
+            x,
+            y,
+            reason,
+            kakao_place_url,
+            source_content_id,
+            content_type_id,
+            distance,
+            first_image,
+            source_api,
+            created_at
+        FROM ai_planner_step
+        WHERE planner_id = #{planner_id}
+        ORDER BY step_order ASC
+    </select>
+
+    <!-- AI 플래너 삭제 -->
+    <delete id="deletePlanner">
+        DELETE FROM ai_planner
+        WHERE planner_id = #{planner_id}
+          AND member_id = #{member_id}
+    </delete>
+
+</mapper>
