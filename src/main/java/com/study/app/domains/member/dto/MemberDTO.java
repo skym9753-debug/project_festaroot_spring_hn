@@ -27,6 +27,7 @@ public class MemberDTO {
 	// 추가
 	private String social_id;
 	private String status;
+	private String role;
 	
 	
 	// 관심분야, 관심지역 받는 변수
@@ -38,7 +39,8 @@ public class MemberDTO {
 	public MemberDTO(String member_id, String password, String name, String nickname, String phone, String email,
 			LocalDate birthdate, String gender, String addr_sido, String addr_sigungu, String reside_area_code,
 			String reside_sigungu_code, String profile_image_url, String social_provider, Long exp_point, Long title_id,
-			LocalDateTime created_at, String social_id, String status) {
+			LocalDateTime created_at, String social_id, String status, String role, List<String> regions,
+			List<String> themes) {
 		super();
 		this.member_id = member_id;
 		this.password = password;
@@ -59,6 +61,9 @@ public class MemberDTO {
 		this.created_at = created_at;
 		this.social_id = social_id;
 		this.status = status;
+		this.role = role;
+		this.regions = regions;
+		this.themes = themes;
 	}
 
 	public String getMember_id() {
@@ -196,7 +201,7 @@ public class MemberDTO {
 	public void setCreated_at(LocalDateTime created_at) {
 		this.created_at = created_at;
 	}
-	
+
 	public String getSocial_id() {
 		return social_id;
 	}
@@ -212,24 +217,31 @@ public class MemberDTO {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	
-	// 관심분야, 관심지역 관련
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
 	public List<String> getRegions() {
-	    return regions;
+		return regions;
 	}
 
 	public void setRegions(List<String> regions) {
-	    this.regions = regions;
+		this.regions = regions;
 	}
 
 	public List<String> getThemes() {
-	    return themes;
+		return themes;
 	}
 
 	public void setThemes(List<String> themes) {
-	    this.themes = themes;
+		this.themes = themes;
 	}
-	
-	
+
+
 
 }
