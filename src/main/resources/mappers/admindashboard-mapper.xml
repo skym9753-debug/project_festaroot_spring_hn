@@ -5,18 +5,30 @@
 
 <mapper namespace="AdminDashboard">
 
-	<!--컬럼명 조정-->
-	<resultMap id="recentReportMap"
-	           type="com.study.app.domains.admin.dto.RecentReportDTO">
-	    <result property="id" column="id"/>
-	    <result property="type" column="report_type"/>
-	    <result property="target" column="target"/>
-	    <result property="reporter" column="reporter"/>
-	    <result property="date" column="report_date"/>
-	    <result property="status" column="status"/>
-	</resultMap>
 
-    <!-- 상단 핵심 통계 -->
+    <!-- 최근 신고 목록 컬럼 매핑 -->
+    <resultMap id="recentReportMap"
+               type="com.study.app.domains.admin.dto.RecentReportDTO">
+        <result property="id" column="id"/>
+        <result property="type" column="report_type"/>
+        <result property="target" column="target"/>
+        <result property="reporter" column="reporter"/>
+        <result property="date" column="report_date"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!-- 최근 운영 이슈 컬럼 매핑 -->
+    <resultMap id="recentIssueMap"
+               type="com.study.app.domains.admin.dto.RecentIssueDTO">
+        <result property="type" column="issue_type"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="time" column="issue_time"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+
+    <!-- 상단 핵심 통계: 현재 DB 기준 -->
     <select id="selectSummary"
             resultType="com.study.app.domains.admin.dto.AdminSummaryDTO">
         SELECT
@@ -73,7 +85,7 @@
     </select>
 
 
-    <!-- 최근 7일 운영 통계 -->
+    <!-- 최근 7일 운영 통계: 선택한 기준일 기준 -->
     <select id="selectWeeklyStats"
             resultType="com.study.app.domains.admin.dto.WeeklyStatDTO">
         SELECT
@@ -82,7 +94,7 @@
             NVL(p.post_count, 0) AS posts,
             NVL(r.report_count, 0) AS reports
         FROM (
-            SELECT TRUNC(SYSDATE) - 7 + LEVEL AS base_date
+            SELECT TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 7 + LEVEL AS base_date
             FROM dual
             CONNECT BY LEVEL &lt;= 7
         ) d
@@ -90,7 +102,8 @@
             SELECT TRUNC(created_at) AS created_date,
                    COUNT(*) AS member_count
             FROM member
-            WHERE created_at &gt;= TRUNC(SYSDATE) - 6
+            WHERE created_at &gt;= TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 6
+            AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
             GROUP BY TRUNC(created_at)
         ) m
         ON d.base_date = m.created_date
@@ -98,7 +111,8 @@
             SELECT TRUNC(created_at) AS created_date,
                    COUNT(*) AS post_count
             FROM community_post
-            WHERE created_at &gt;= TRUNC(SYSDATE) - 6
+            WHERE created_at &gt;= TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 6
+            AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
             AND NVL(is_visible, 'Y') = 'Y'
             AND category != 'NOTICE'
             GROUP BY TRUNC(created_at)
@@ -108,7 +122,8 @@
             SELECT TRUNC(created_at) AS created_date,
                    COUNT(*) AS report_count
             FROM post_report
-            WHERE created_at &gt;= TRUNC(SYSDATE) - 6
+            WHERE created_at &gt;= TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 6
+            AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
             GROUP BY TRUNC(created_at)
         ) r
         ON d.base_date = r.created_date
@@ -116,7 +131,7 @@
     </select>
 
 
-    <!-- 축제 상태 통계 -->
+    <!-- 축제 상태 통계: 현재 날짜 기준 -->
     <select id="selectFestivalStatusStats"
             resultType="com.study.app.domains.admin.dto.FestivalStatusStatDTO">
         SELECT
@@ -145,7 +160,7 @@
     </select>
 
 
-    <!-- 지역별 축제 데이터 TOP 5 -->
+    <!-- 지역별 축제 데이터 TOP 5: 현재 DB 기준 -->
     <select id="selectRegionStats"
             resultType="com.study.app.domains.admin.dto.RegionStatDTO">
         SELECT *
@@ -163,7 +178,7 @@
     </select>
 
 
-    <!-- 인기 축제 TOP 5 -->
+    <!-- 인기 축제 TOP 5: 현재 DB 기준 -->
     <select id="selectPopularFestivals"
             resultType="com.study.app.domains.admin.dto.PopularFestivalDTO">
         SELECT
@@ -193,39 +208,39 @@
     </select>
 
 
-    <!-- 최근 신고 접수 -->
-	<select id="selectRecentReports"
-	        resultMap="recentReportMap">
-	    SELECT *
-	    FROM (
-	        SELECT
-	            'RPT-' || LPAD(pr.report_id, 5, '0') AS id,
-	            pr.reason AS report_type,
-	            NVL(cp.title, '삭제되었거나 확인 불가한 게시글') AS target,
-	            pr.member_id AS reporter,
-	            TO_CHAR(pr.created_at, 'YYYY.MM.DD HH24:MI') AS report_date,
-	            NVL(pr.status, '접수') AS status
-	        FROM post_report pr
-	        LEFT JOIN community_post cp
-	        ON pr.post_id = cp.post_id
-	        ORDER BY pr.created_at DESC
-	    )
-	    WHERE ROWNUM &lt;= 4
-	</select>
+    <!-- 최근 신고 접수: 현재 DB 기준 -->
+    <select id="selectRecentReports"
+            resultMap="recentReportMap">
+        SELECT *
+        FROM (
+            SELECT
+                'RPT-' || LPAD(pr.report_id, 5, '0') AS id,
+                pr.reason AS report_type,
+                NVL(cp.title, '삭제되었거나 확인 불가한 게시글') AS target,
+                pr.member_id AS reporter,
+                TO_CHAR(pr.created_at, 'YYYY.MM.DD HH24:MI') AS report_date,
+                NVL(pr.status, '접수') AS status
+            FROM post_report pr
+            LEFT JOIN community_post cp
+            ON pr.post_id = cp.post_id
+            ORDER BY pr.created_at DESC
+        )
+        WHERE ROWNUM &lt;= 4
+    </select>
 
 
-    <!-- 최근 운영 이슈 -->
+    <!-- 최근 운영 이슈: 현재 DB 기준 -->
     <select id="selectRecentIssues"
-            resultType="com.study.app.domains.admin.dto.RecentIssueDTO">
+            resultMap="recentIssueMap">
         SELECT *
         FROM (
             SELECT *
             FROM (
                 SELECT
-                    'inquiry' AS type,
+                    'inquiry' AS issue_type,
                     '새 문의가 접수되었습니다.' AS title,
                     title AS description,
-                    TO_CHAR(created_at, 'YYYY.MM.DD HH24:MI') AS time,
+                    TO_CHAR(created_at, 'YYYY.MM.DD HH24:MI') AS issue_time,
                     CASE
                         WHEN status = 'PENDING' THEN '대기'
                         WHEN status = 'COMPLETED' THEN '완료'
@@ -238,10 +253,10 @@
                 UNION ALL
 
                 SELECT
-                    'report' AS type,
+                    'report' AS issue_type,
                     '신고 검토가 필요합니다.' AS title,
                     reason AS description,
-                    TO_CHAR(created_at, 'YYYY.MM.DD HH24:MI') AS time,
+                    TO_CHAR(created_at, 'YYYY.MM.DD HH24:MI') AS issue_time,
                     NVL(status, '접수') AS status,
                     created_at
                 FROM post_report
@@ -250,10 +265,10 @@
                 UNION ALL
 
                 SELECT
-                    'notice' AS type,
+                    'notice' AS issue_type,
                     '공지사항 노출 상태를 확인하세요.' AS title,
                     title AS description,
-                    TO_CHAR(created_at, 'YYYY.MM.DD HH24:MI') AS time,
+                    TO_CHAR(created_at, 'YYYY.MM.DD HH24:MI') AS issue_time,
                     CASE
                         WHEN NVL(is_visible, 'Y') = 'Y' THEN '노출'
                         ELSE '숨김'
@@ -266,5 +281,4 @@
         )
         WHERE ROWNUM &lt;= 4
     </select>
-
 </mapper>

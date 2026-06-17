@@ -1,6 +1,8 @@
 package com.study.app.domains.admin.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +25,24 @@ public class AdminDashboardDAO {
     // mapper XML의 namespace
     private static final String NAMESPACE = "AdminDashboard";
 
+    // 최근 7일 통계 기준일 파라미터 생성
+    private Map<String, Object> getBaseDateParam(String baseDate) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("baseDate", baseDate);
+        return param;
+    }
+
     // 상단 핵심 통계
     public AdminSummaryDTO selectSummary() {
-    	AdminSummaryDTO dto = mybatis.selectOne(NAMESPACE + ".selectSummary");
-    	return dto;
+        return mybatis.selectOne(NAMESPACE + ".selectSummary");
     }
 
     // 최근 7일 운영 통계
-    public List<WeeklyStatDTO> selectWeeklyStats() {
-        return mybatis.selectList(NAMESPACE + ".selectWeeklyStats");
+    public List<WeeklyStatDTO> selectWeeklyStats(String baseDate) {
+        return mybatis.selectList(
+                NAMESPACE + ".selectWeeklyStats",
+                getBaseDateParam(baseDate)
+        );
     }
 
     // 축제 상태 통계
