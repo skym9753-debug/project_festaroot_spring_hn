@@ -92,12 +92,8 @@ public class ChatRestController { // 채팅 웹소켓용
 	@GetMapping("/rooms/user/{userId}")
 	public ResponseEntity<?> getUserChatRooms(@PathVariable("userId") String userId) {
 
-	    System.out.println("컨트롤러 진입");
-
 	    try {
 	        List<Map<String, Object>> roomList = chatService.getUserChatRoomList(userId);
-
-	        System.out.println("최종 반환값 = " + roomList);
 
 	        return ResponseEntity.ok(roomList);
 
