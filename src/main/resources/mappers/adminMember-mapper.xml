@@ -20,7 +20,7 @@
         <result property="suspensionEndDate" column="suspension_end_date" />
     </resultMap>
 
-	<select id="selectAdminMemberList" resultMap="memberResponseMap">
+	<select id="selectFilteredMembers" resultMap="memberResponseMap">
 	    WITH LatestReports AS (
 	        SELECT 
 	            TARGET_MEMBER_ID,
