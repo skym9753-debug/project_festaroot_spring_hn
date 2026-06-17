@@ -1,0 +1,107 @@
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.app.domains.admin.mapper.AdminMemberMapper">
+
+    <resultMap id="memberResponseMap" type="com.study.app.domains.admin.dto.AdminMemberDTO$Response">
+        <id property="id" column="member_id" />
+        <result property="nickname" column="nickname" />
+        <result property="email" column="email" />
+        <result property="role" column="role" />
+        <result property="status" column="status" />
+        <result property="provider" column="provider" />
+        <result property="joinedAt" column="joined_at" />
+        <result property="lastLogin" column="last_login" />
+        <result property="reports" column="reports" />
+        <result property="reportReason" column="report_reason" />
+        <result property="lastReportDate" column="last_report_date" />
+        <result property="processingResult" column="processing_result" />
+        <result property="suspensionEndDate" column="suspension_end_date" />
+    </resultMap>
+
+    <select id="selectFilteredMembers" resultMap="memberResponseMap">
+        SELECT 
+            member_id,
+            nickname,
+            email,
+            role,
+            status,
+            provider,
+            TO_CHAR(joined_at, 'YYYY.MM.DD') AS joined_at,
+            TO_CHAR(last_login, 'YYYY.MM.DD HH24:MI') AS last_login,
+            reports,
+            report_reason,
+            TO_CHAR(last_report_date, 'YYYY.MM.DD') AS last_report_date,
+            processing_result,
+            TO_CHAR(suspension_end_date, 'YYYY.MM.DD') AS suspension_end_date
+        FROM member
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    nickname LIKE '%' || #{keyword} || '%'
+                    OR email LIKE '%' || #{keyword} || '%'
+                    OR member_id LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+            
+            <if test="role != null and role != 'all' and role != ''">
+                AND role = #{role}
+            </if>
+            
+            <if test="status != null and status != 'all' and status != ''">
+                AND status = #{status}
+            </if>
+            
+            <if test="startDate != null and startDate != ''">
+                AND create_at &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+            </if>
+            
+            <if test="endDate != null and endDate != ''">
+                AND create_at &lt;= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+            </if>
+        </where>
+        
+        <choose>
+            <when test="sortBy == 'oldest'">
+                ORDER BY create_at ASC
+            </when>
+            <when test="sortBy == 'lastLogin'">
+                ORDER BY last_login DESC NULLS LAST
+            </when>
+            <when test="sortBy == 'reports'">
+                ORDER BY reports DESC, create_at DESC
+            </when>
+            <otherwise>
+                ORDER BY joined_at DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="updateMemberSuspension">
+        UPDATE members
+        SET 
+            status = 'SUSPENDED',
+            suspension_end_date = SYSDATE + #{days},
+            processing_result = #{days} || '일 정지 처분'
+        WHERE member_id = #{id}
+    </update>
+
+    <update id="updateMemberBlacklist">
+        UPDATE members
+        SET 
+            status = 'BLACKLISTED',
+            suspension_end_date = TO_DATE('9999-12-31', 'YYYY-MM-DD'),
+            processing_result = '영구 정지 처분'
+        WHERE member_id = #{id}
+    </update>
+
+    <update id="updateMemberRestore">
+        UPDATE members
+        SET 
+            status = 'ACTIVE',
+            suspension_end_date = NULL,
+            processing_result = '제재 해제 복원'
+        WHERE member_id = #{id}
+    </update>
+
+</mapper>
