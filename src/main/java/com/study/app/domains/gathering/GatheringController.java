@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.achievement.AchievementService;
+import com.study.app.domains.achievement.AchievementService.ActivityType;
+import com.study.app.domains.achievement.dto.AchievementResultDTO;
+import com.study.app.domains.activity.UserActivityLogService;
+import com.study.app.domains.activity.dto.UserActivityLogDTO;
 import com.study.app.domains.storage.UploadService;
 
 @RestController
@@ -28,6 +33,9 @@ public class GatheringController {
 
 	@Autowired
 	private UploadService uploadService;
+	
+	 @Autowired private AchievementService achievementService;
+     @Autowired private UserActivityLogService userActivityLogService;
 
 	// 모임 이미지 업로드
 	@PostMapping("/image")
@@ -117,7 +125,27 @@ public class GatheringController {
 
 			Long actualRoomId = gatheringService.joinGathering(roomId, memberId);
 			if (actualRoomId != null) {
-				return ResponseEntity.ok(Map.of("success", true, "message", "모임 참여가 완료되었습니다.", "roomId", actualRoomId));
+				Map<String, Object> response = new HashMap<>();
+				response.put("success", true);
+				response.put("message", "모임 참여가 완료되었습니다.");
+				response.put("roomId", actualRoomId);
+
+				// [업적 연동] 어뷰징 방지 및 업적 카운트
+				String actionType = "GROUP_JOIN";
+				if (!userActivityLogService.isAlreadyRewarded(memberId, actionType, roomId)) {
+					// 1. 업적 진행도 업데이트
+					List<AchievementResultDTO> achievements = achievementService.addActivityExp(memberId, ActivityType.GROUP);
+					response.put("achievements", achievements);
+
+					// 2. 활동 로그 저장 (재가입 시 업적 중복 방지용)
+					UserActivityLogDTO log = new UserActivityLogDTO();
+					log.setMember_id(memberId);
+					log.setAction_type(actionType);
+					log.setContent_id(roomId);
+					userActivityLogService.saveLog(log);
+				}
+
+				return ResponseEntity.ok(response);
 			} else {
 				return ResponseEntity.badRequest().body(Map.of("message", "정원이 가득 찼습니다."));
 			}
