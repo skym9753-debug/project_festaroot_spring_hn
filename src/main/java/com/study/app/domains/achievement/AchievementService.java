@@ -68,6 +68,8 @@ public class AchievementService {
         FESTIVAL_LIKE(2), 			    // 축제 찜하기
         FESTIVAL_REVIEW(30), 		    // 축제 후기
         AI_PLAN(20), 				    // ai 여행플래너
+        AI_SAVE(30),                    // ai 플래너 저장
+        GROUP(30),                      // 모임 가입
         RANDOM_PICK(5); 				// 랜덤축제뽑기
 
         private final int exp;

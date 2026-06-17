@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.study.app.domains.achievement.AchievementService;
+import com.study.app.domains.achievement.AchievementService.ActivityType;
+import com.study.app.domains.achievement.dto.AchievementResultDTO;
 import com.study.app.domains.ai.dto.AIPlannerDTO;
 import com.study.app.utils.JWTUtil;
 
@@ -22,10 +25,12 @@ import com.study.app.utils.JWTUtil;
 public class PlannerController {
 
     private final PlannerService plannerService;
+    private final AchievementService achievementService;
     private final JWTUtil jwtUtil;
 
-    public PlannerController(PlannerService plannerService, JWTUtil jwtUtil) {
+    public PlannerController(PlannerService plannerService, AchievementService achievementService, JWTUtil jwtUtil) {
         this.plannerService = plannerService;
+        this.achievementService = achievementService;
         this.jwtUtil = jwtUtil;
     }
 
@@ -61,11 +66,6 @@ public class PlannerController {
         return ResponseEntity.status(401).body(result);
     }
 
-    
-    
-
-
-    
     /**
      * AI 플래너 미리보기 생성
      *
@@ -85,6 +85,12 @@ public class PlannerController {
         }
 
         Map<String, Object> result = plannerService.previewPlanner(plannerDTO, memberId);
+
+        // 업적 연동: 코스 생성 성공 시 (AI_PLAN)
+        if (Boolean.TRUE.equals(result.get("success"))) {
+            List<AchievementResultDTO> achievements = achievementService.addActivityExp(memberId, ActivityType.AI_PLAN);
+            result.put("achievements", achievements);
+        }
 
         return ResponseEntity.ok(result);
     }
@@ -109,9 +115,14 @@ public class PlannerController {
 
         Map<String, Object> result = plannerService.savePlanner(plannerDTO, memberId);
 
+        // 업적 연동: 플래너 저장 성공 시 (AI_SAVE)
+        if (Boolean.TRUE.equals(result.get("success"))) {
+            List<AchievementResultDTO> achievements = achievementService.addActivityExp(memberId, ActivityType.AI_SAVE);
+            result.put("achievements", achievements);
+        }
+
         return ResponseEntity.ok(result);
     }
-    
     
     /**
      * 내 AI 플래너 목록 조회
