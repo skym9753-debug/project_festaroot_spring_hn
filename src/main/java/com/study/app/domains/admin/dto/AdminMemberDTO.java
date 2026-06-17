@@ -80,14 +80,14 @@ public class AdminMemberDTO {
 		}
 
 	}
-	
-	//-------------------------------------------
+
+	// -------------------------------------------
 
 	// 정지 기간 요청용 DTO
 	public static class SuspendRequest {
 		private int suspensionDays;
 
-		int getSuspensionDays() {
+		public int getSuspensionDays() {
 			return suspensionDays;
 		}
 
@@ -104,12 +104,12 @@ public class AdminMemberDTO {
 			this.suspensionDays = suspensionDays;
 		}
 
-		void setSuspensionDays(int suspensionDays) {
+		public void setSuspensionDays(int suspensionDays) {
 			this.suspensionDays = suspensionDays;
 		}
 	}
-	
-	//-------------------------------------------
+
+	// -------------------------------------------
 
 	// 클라이언트에 반환할 회원 상세 정보 포맷 DTO
 	public static class Response {
@@ -157,107 +157,107 @@ public class AdminMemberDTO {
 			this.suspensionEndDate = suspensionEndDate;
 		}
 
-		String getId() {
+		public String getId() {
 			return id;
 		}
 
-		void setId(String id) {
+		public void setId(String id) {
 			this.id = id;
 		}
 
-		String getNickname() {
+		public String getNickname() {
 			return nickname;
 		}
 
-		void setNickname(String nickname) {
+		public void setNickname(String nickname) {
 			this.nickname = nickname;
 		}
 
-		String getEmail() {
+		public String getEmail() {
 			return email;
 		}
 
-		void setEmail(String email) {
+		public void setEmail(String email) {
 			this.email = email;
 		}
 
-		String getRole() {
+		public String getRole() {
 			return role;
 		}
 
-		void setRole(String role) {
+		public void setRole(String role) {
 			this.role = role;
 		}
 
-		String getStatus() {
+		public String getStatus() {
 			return status;
 		}
 
-		void setStatus(String status) {
+		public void setStatus(String status) {
 			this.status = status;
 		}
 
-		String getProvider() {
+		public String getProvider() {
 			return provider;
 		}
 
-		void setProvider(String provider) {
+		public void setProvider(String provider) {
 			this.provider = provider;
 		}
 
-		String getJoinedAt() {
+		public String getJoinedAt() {
 			return joinedAt;
 		}
 
-		void setJoinedAt(String joinedAt) {
+		public void setJoinedAt(String joinedAt) {
 			this.joinedAt = joinedAt;
 		}
 
-		String getLastLogin() {
+		public String getLastLogin() {
 			return lastLogin;
 		}
 
-		void setLastLogin(String lastLogin) {
+		public void setLastLogin(String lastLogin) {
 			this.lastLogin = lastLogin;
 		}
 
-		int getReports() {
+		public int getReports() {
 			return reports;
 		}
 
-		void setReports(int reports) {
+		public void setReports(int reports) {
 			this.reports = reports;
 		}
 
-		String getReportReason() {
+		public String getReportReason() {
 			return reportReason;
 		}
 
-		void setReportReason(String reportReason) {
+		public void setReportReason(String reportReason) {
 			this.reportReason = reportReason;
 		}
 
-		String getLastReportDate() {
+		public String getLastReportDate() {
 			return lastReportDate;
 		}
 
-		void setLastReportDate(String lastReportDate) {
+		public void setLastReportDate(String lastReportDate) {
 			this.lastReportDate = lastReportDate;
 		}
 
-		String getProcessingResult() {
+		public String getProcessingResult() {
 			return processingResult;
 		}
 
-		void setProcessingResult(String processingResult) {
+		public void setProcessingResult(String processingResult) {
 			this.processingResult = processingResult;
 		}
 
-		String getSuspensionEndDate() {
+		public String getSuspensionEndDate() {
 			return suspensionEndDate;
 		}
 
-		void setSuspensionEndDate(String suspensionEndDate) {
+		public void setSuspensionEndDate(String suspensionEndDate) {
 			this.suspensionEndDate = suspensionEndDate;
 		}
 	}
