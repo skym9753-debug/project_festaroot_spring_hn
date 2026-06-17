@@ -6,14 +6,13 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.study.app.domains.auth.dto.LoginDTO;
+import com.study.app.utils.JWTUtil;
 
 @RestController
 @RequestMapping("/auth")
@@ -22,9 +21,13 @@ public class AuthController {
 	@Autowired
 	public AuthService authService;
 	
+	@Autowired
+	public JWTUtil jwtUtil;
+	
 	@PostMapping("/login")
 	public ResponseEntity<Map<String, Object>> login(@RequestBody LoginDTO loginDTO) {
 	    String token = authService.login(loginDTO);
+	    String role = jwtUtil.getRole(token);
 
 	    Map<String, Object> result = new HashMap<>();
 	    
@@ -32,6 +35,7 @@ public class AuthController {
 	        result.put("success", true);
 	        result.put("message", loginDTO.getMember_id() + "님, 환영합니다!");
 	        result.put("token", token);
+	        result.put("role", role);
 
 	        return ResponseEntity.ok(result);
 
