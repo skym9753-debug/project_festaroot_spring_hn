@@ -81,6 +81,7 @@ public class GatheringController {
 		return ResponseEntity.ok(result);
 	}
 
+	// 모임 상세페이지
 	@GetMapping("/{room_id}")
 	public ResponseEntity<GatheringCreateDTO> getGatheringDetail(@PathVariable("room_id") Long roomId) {
 		GatheringCreateDTO detail = gatheringService.selectGatheringDetail(roomId);

@@ -1,9 +1,11 @@
-package com.study.app.domains.chat;
+package com.study.app.domains.chat.dto;
 
 import java.time.LocalDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import com.study.app.domains.chat.ChatType;
 
 @Document(collection="chat_messages") 
 public class ChatMessageDocument {
@@ -39,7 +41,7 @@ public class ChatMessageDocument {
         this.roomId = roomId;
         this.senderId = senderId;
         this.senderName = senderName;
-        this.senderProfile = senderProfile; // 💡 추가
+        this.senderProfile = senderProfile;
         this.message = message;
         this.type = type;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
@@ -58,7 +60,6 @@ public class ChatMessageDocument {
     public String getSenderName() { return senderName; }
     public void setSenderName(String senderName) { this.senderName = senderName; }
 
-    // 💡 senderProfile의 Getter/Setter 직접 구현
     public String getSenderProfile() { return senderProfile; }
     public void setSenderProfile(String senderProfile) { this.senderProfile = senderProfile; }
 
