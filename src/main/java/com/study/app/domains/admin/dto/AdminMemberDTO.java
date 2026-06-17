@@ -124,7 +124,7 @@ public class AdminMemberDTO {
 		private int reports;
 		private String reportReason;
 		private String lastReportDate;
-		private String processingResult;
+		private String resultStatus;
 		private String suspensionEndDate;
 
 		@Override
@@ -132,7 +132,7 @@ public class AdminMemberDTO {
 			return "Response [id=" + id + ", nickname=" + nickname + ", email=" + email + ", role=" + role + ", status="
 					+ status + ", provider=" + provider + ", joinedAt=" + joinedAt + ", lastLogin=" + lastLogin
 					+ ", reports=" + reports + ", reportReason=" + reportReason + ", lastReportDate=" + lastReportDate
-					+ ", processingResult=" + processingResult + ", suspensionEndDate=" + suspensionEndDate + "]";
+					+ ", resultStatus=" + resultStatus + ", suspensionEndDate=" + suspensionEndDate + "]";
 		}
 
 		public Response() {
@@ -140,7 +140,7 @@ public class AdminMemberDTO {
 
 		public Response(String id, String nickname, String email, String role, String status, String provider,
 				String joinedAt, String lastLogin, int reports, String reportReason, String lastReportDate,
-				String processingResult, String suspensionEndDate) {
+				String resultStatus, String suspensionEndDate) {
 			super();
 			this.id = id;
 			this.nickname = nickname;
@@ -153,7 +153,7 @@ public class AdminMemberDTO {
 			this.reports = reports;
 			this.reportReason = reportReason;
 			this.lastReportDate = lastReportDate;
-			this.processingResult = processingResult;
+			this.resultStatus = resultStatus;
 			this.suspensionEndDate = suspensionEndDate;
 		}
 
@@ -245,12 +245,12 @@ public class AdminMemberDTO {
 			this.lastReportDate = lastReportDate;
 		}
 
-		public String getProcessingResult() {
-			return processingResult;
+		public String getResultStatus() {
+			return resultStatus;
 		}
 
-		public void setProcessingResult(String processingResult) {
-			this.processingResult = processingResult;
+		public void setResultStatus(String resultStatus) {
+			this.resultStatus = resultStatus;
 		}
 
 		public String getSuspensionEndDate() {

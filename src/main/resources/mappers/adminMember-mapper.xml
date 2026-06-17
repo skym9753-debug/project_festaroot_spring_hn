@@ -16,84 +16,47 @@
         <result property="reports" column="reports" />
         <result property="reportReason" column="report_reason" />
         <result property="lastReportDate" column="last_report_date" />
-        <result property="processingResult" column="processing_result" />
+        <result property="resultStatus" column="result_status" />
         <result property="suspensionEndDate" column="suspension_end_date" />
     </resultMap>
 
-    <select id="selectFilteredMembers" resultMap="memberResponseMap">
-        WITH LatestReports AS (
-            SELECT 
-                TARGET_MEMBER_ID,
-                REASON,
-                CREATED_AT,
-                ROW_NUMBER() OVER (PARTITION BY TARGET_MEMBER_ID ORDER BY CREATED_AT DESC) as rn
-            FROM MEMBER_REPORT_HISTORY
-        ),
-        ReportStats AS (
-            SELECT 
-                TARGET_MEMBER_ID,
-                COUNT(*) AS REPORT_COUNT,
-                MAX(CREATED_AT) AS LATEST_REPORT_DATE
-            FROM MEMBER_REPORT_HISTORY
-            GROUP BY TARGET_MEMBER_ID
-        )
-        SELECT 
-            m.MEMBER_ID,
-            m.NICKNAME,
-            m.EMAIL,
-            m.ROLE,
-            m.STATUS,
-            m.SOCIAL_PROVIDER AS provider,
-            TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD') AS joined_at,
-            TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD HH24:MI') AS last_login,
-            NVL(s.REPORT_COUNT, 0) AS reports,
-            r.REASON AS report_reason,
-            TO_CHAR(s.LATEST_REPORT_DATE, 'YYYY.MM.DD') AS last_report_date,
-            NVL(m.PROCESSING_RESULT, '없음') AS processing_result,
-            TO_CHAR(m.SUSPENSION_END_DATE, 'YYYY.MM.DD') AS suspension_end_date
-        FROM MEMBER m
-        LEFT JOIN ReportStats s ON m.MEMBER_ID = s.TARGET_MEMBER_ID
-        LEFT JOIN LatestReports r ON m.MEMBER_ID = r.TARGET_MEMBER_ID AND r.rn = 1
-        <where>
-            <if test="keyword != null and keyword != ''">
-                AND (
-                    m.NICKNAME LIKE '%' || #{keyword} || '%'
-                    OR m.EMAIL LIKE '%' || #{keyword} || '%'
-                    OR m.MEMBER_ID LIKE '%' || #{keyword} || '%'
-                )
-            </if>
-            
-            <if test="role != null and role != 'all' and role != ''">
-                AND m.ROLE = #{role}
-            </if>
-            
-            <if test="status != null and status != 'all' and status != ''">
-                AND m.STATUS = #{status}
-            </if>
-            
-            <if test="startDate != null and startDate != ''">
-                AND m.CREATED_AT &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
-            </if>
-            <if test="endDate != null and endDate != ''">
-                AND m.CREATED_AT &lt;= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
-            </if>
-        </where>
-        
-        <choose>
-            <when test="sortBy == 'oldest'">
-                ORDER BY m.CREATED_AT ASC
-            </when>
-            <when test="sortBy == 'lastLogin'">
-                ORDER BY m.CREATED_AT DESC
-            </when>
-            <when test="sortBy == 'reports'">
-                ORDER BY NVL(s.REPORT_COUNT, 0) DESC, m.CREATED_AT DESC
-            </when>
-            <otherwise>
-                ORDER BY m.CREATED_AT DESC
-            </otherwise>
-        </choose>
-    </select>
+	<select id="selectAdminMemberList" resultMap="memberResponseMap">
+	    WITH LatestReports AS (
+	        SELECT 
+	            TARGET_MEMBER_ID,
+	            REASON,
+	            RESULT_STATUS,
+	            CREATED_AT,
+	            ROW_NUMBER() OVER (PARTITION BY TARGET_MEMBER_ID ORDER BY CREATED_AT DESC) as rn
+	        FROM MEMBER_REPORT_HISTORY
+	    ),
+	    ReportStats AS (
+	        SELECT 
+	            TARGET_MEMBER_ID,
+	            COUNT(*) AS REPORT_COUNT,
+	            MAX(CREATED_AT) AS LATEST_REPORT_DATE
+	        FROM MEMBER_REPORT_HISTORY
+	        GROUP BY TARGET_MEMBER_ID
+	    )
+	    SELECT 
+	        m.MEMBER_ID,
+	        m.NICKNAME,
+	        m.EMAIL,
+	        m.ROLE,
+	        m.STATUS,
+	        m.SOCIAL_PROVIDER AS provider,
+	        TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD HH24:MI') AS joined_at,
+	        TO_CHAR(m.LAST_LOGIN, 'YYYY.MM.DD HH24:MI') AS last_login, -- 진짜 최근접속일 연결
+	        NVL(s.REPORT_COUNT, 0) AS reports,
+	        r.REASON AS report_reason,
+	        TO_CHAR(s.LATEST_REPORT_DATE, 'YYYY.MM.DD') AS last_report_date,
+	        NVL(r.RESULT_STATUS, '없음') AS result_status,
+	        TO_CHAR(m.SUSPENSION_END_DATE, 'YYYY.MM.DD') AS suspension_end_date -- 회원 테이블의 정지 기한 연결
+	    FROM MEMBER m
+	    LEFT JOIN ReportStats s ON m.MEMBER_ID = s.TARGET_MEMBER_ID
+	    LEFT JOIN LatestReports r ON m.MEMBER_ID = r.TARGET_MEMBER_ID AND r.rn = 1                                           
+	    ORDER BY m.CREATED_AT DESC
+	</select>
 
     <update id="updateMemberSuspension">
         UPDATE MEMBER
