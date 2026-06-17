@@ -10,18 +10,24 @@ public class AdminMemberDTO {
 		private String sortBy;
 		private String startDate;
 		private String endDate;
+		private int page = 1; // 프론트 기본값 1
+		private int size = 10;
+
+		// Oracle ROWNUM 또는 OFFSET 변환을 위한 getter
+		public int getOffset() {
+			return (this.page - 1) * this.size;
+		}
 
 		@Override
 		public String toString() {
 			return "SearchParam [keyword=" + keyword + ", role=" + role + ", status=" + status + ", sortBy=" + sortBy
-					+ ", startDate=" + startDate + ", endDate=" + endDate + "]";
+					+ ", startDate=" + startDate + ", endDate=" + endDate + ", page=" + page + ", size=" + size + "]";
 		}
 
-		public SearchParam() {
-		}
+		public SearchParam() {}
 
-		public SearchParam(String keyword, String role, String status, String sortBy, String startDate,
-				String endDate) {
+		public SearchParam(String keyword, String role, String status, String sortBy, String startDate, String endDate,
+				int page, int size) {
 			super();
 			this.keyword = keyword;
 			this.role = role;
@@ -29,6 +35,8 @@ public class AdminMemberDTO {
 			this.sortBy = sortBy;
 			this.startDate = startDate;
 			this.endDate = endDate;
+			this.page = page;
+			this.size = size;
 		}
 
 		public String getKeyword() {
@@ -77,6 +85,22 @@ public class AdminMemberDTO {
 
 		public void setEndDate(String endDate) {
 			this.endDate = endDate;
+		}
+
+		public int getPage() {
+			return page;
+		}
+
+		public void setPage(int page) {
+			this.page = page;
+		}
+
+		public int getSize() {
+			return size;
+		}
+
+		public void setSize(int size) {
+			this.size = size;
 		}
 
 	}

@@ -7,35 +7,49 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.study.app.domains.admin.dao.AdminMemberMapper;
 import com.study.app.domains.admin.dto.AdminMemberDTO;
+import com.study.app.domains.admin.dto.AdminPageResponseDTO;
 
 @Service
-@Transactional // 제어/수정 작업이 많으므로 트랜잭션 어노테이션 추가
+@Transactional
 public class AdminMemberService {
 
-    private final AdminMemberMapper adminMemberMapper;
+	private final AdminMemberMapper adminMemberMapper;
 
-    public AdminMemberService(AdminMemberMapper adminMemberMapper) {
-        this.adminMemberMapper = adminMemberMapper;
-    }
+	// 생성자 주입
+	public AdminMemberService(AdminMemberMapper adminMemberMapper) {
+		this.adminMemberMapper = adminMemberMapper;
+	}
 
-    // 조건별 회원 목록 조회
-    @Transactional(readOnly = true)
-    public List<AdminMemberDTO.Response> findFilteredMembers(AdminMemberDTO.SearchParam params) {
-        return adminMemberMapper.selectFilteredMembers(params);
-    }
+	// 조건별 회원 목록 조회 (페이징 연산 포함)
+	@Transactional(readOnly = true)
+	public AdminPageResponseDTO findFilteredMembers(AdminMemberDTO.SearchParam params) {
+		// 1. 페이징 처리된 필터링 목록 조회
+		List<AdminMemberDTO.Response> memberList = adminMemberMapper.selectFilteredMembers(params);
 
-    // 회원 기간 제한 정지 (상태를 SUSPENDED로 변경 및 정지 기한 일수 계산)
-    public void suspendMember(String id, int suspensionDays) {
-        adminMemberMapper.updateMemberSuspension(id, suspensionDays);
-    }
+		// 2. 검색 조건에 맞는 전체 데이터 개수 조회 (네비게이터 계산용)
+		long totalElements = adminMemberMapper.selectFilteredMembersCount(params);
 
-    // 회원 블랙리스트 영구 정지 (상태를 BLACKLISTED로 변경)
-    public void blacklistMember(String id) {
-        adminMemberMapper.updateMemberBlacklist(id);
-    }
+		// 3. 전체 페이지 수 계산 (올림 처리)
+		int totalPages = (int) Math.ceil((double) totalElements / params.getSize());
+		if (totalPages == 0)
+			totalPages = 1; // 데이터가 하나도 없을 때도 기본 1페이지로 설정
 
-    // 회원 제재 해제 복원 (상태를 ACTIVE로 복구 및 정지 기한 초기화)
-    public void restoreMember(String id) {
-        adminMemberMapper.updateMemberRestore(id);
-    }
+		// 4. 프론트엔드가 요구하는 포맷으로 패키징하여 반환
+		return new AdminPageResponseDTO(memberList, totalPages, totalElements, params.getPage());
+	}
+
+	// 회원 기간 제한 정지 처리
+	public void suspendMember(String id, int days) {
+		adminMemberMapper.updateMemberSuspension(id, days);
+	}
+
+	// 회원 블랙리스트 영구 정지 처리
+	public void blacklistMember(String id) {
+		adminMemberMapper.updateMemberBlacklist(id);
+	}
+
+	// 회원 제재 해제 및 복원 처리
+	public void restoreMember(String id) {
+		adminMemberMapper.updateMemberRestore(id);
+	}
 }
