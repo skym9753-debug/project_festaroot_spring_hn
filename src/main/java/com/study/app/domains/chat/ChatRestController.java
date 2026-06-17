@@ -12,18 +12,39 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.study.app.domains.chat.dto.ChatMessageDocument;
 import com.study.app.domains.chat.dto.ChatPrivateRequestDTO;
+import com.study.app.domains.storage.UploadService;
 
 @RestController
 @RequestMapping("/api/chat")
 public class ChatRestController { // 채팅 웹소켓용
 
 	private final ChatService chatService;
+	private final UploadService uploadService;
 
-	public ChatRestController(ChatService chatService) {
+	// 생성자 주입
+	public ChatRestController(ChatService chatService, UploadService uploadService) {
 		this.chatService = chatService;
+		this.uploadService = uploadService;
+	}
+
+	// 채팅 이미지 업로드 API 추가
+	@PostMapping("/image")
+	public ResponseEntity<?> uploadChatImage(@RequestParam("file") MultipartFile file) {
+		try {
+			// GCP storage의 'chat' 폴더에 분리 저장
+			String imageUrl = uploadService.upload(file, "chat");
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			response.put("imageUrl", imageUrl); // 프론트가 쓸 URL 리턴
+			return ResponseEntity.ok(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body("채팅 이미지 업로드 실패: " + e.getMessage());
+		}
 	}
 
 	// 특정 채팅방의 과거 대화 내역 조회(Oracle의 가입 시간 'joined_at' 이후의 MongoDB 메시지만 필터링해서 가져옴)
@@ -87,26 +108,22 @@ public class ChatRestController { // 채팅 웹소켓용
 			return ResponseEntity.internalServerError().body(Map.of("message", "퇴장 처리 중 오류가 발생했습니다."));
 		}
 	}
-	
+
 	// 채팅방 목록
 	@GetMapping("/rooms/user/{userId}")
 	public ResponseEntity<?> getUserChatRooms(@PathVariable("userId") String userId) {
 
-	    try {
-	        List<Map<String, Object>> roomList = chatService.getUserChatRoomList(userId);
+		try {
+			List<Map<String, Object>> roomList = chatService.getUserChatRoomList(userId);
 
-	        return ResponseEntity.ok(roomList);
+			return ResponseEntity.ok(roomList);
 
-	    } catch (Exception e) {
+		} catch (Exception e) {
 
-	        e.printStackTrace();
+			e.printStackTrace();
 
-	        return ResponseEntity.internalServerError().body(
-	            Map.of(
-	                "message", "채팅방 목록을 불러오는 중 오류가 발생했습니다.",
-	                "error", e.getMessage()
-	            )
-	        );
-	    }
+			return ResponseEntity.internalServerError()
+					.body(Map.of("message", "채팅방 목록을 불러오는 중 오류가 발생했습니다.", "error", e.getMessage()));
+		}
 	}
 }
