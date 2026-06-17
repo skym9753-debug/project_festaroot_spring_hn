@@ -82,7 +82,13 @@ public class AuthService {
         	// Use BCryptPasswordEncoder.matches() to compare passwords
         	if (bCryptPasswordEncoder.matches(loginDTO.getPassword(), storedMember.getPassword())) {
         		// Passwords match, generate JWT token
-        		return jwtUtil.createToken(storedMember.getMember_id());
+        		
+        		String role = storedMember.getRole();
+                // role 값이 없으면 일반 사용자로 처리
+                if (role == null || role.trim().isEmpty()) {
+                    role = "user";
+                }
+        		return jwtUtil.createToken(storedMember.getMember_id(), storedMember.getRole());
         	}
         }
         return null; // Login failed
@@ -119,7 +125,7 @@ public class AuthService {
 
         // 기존 회원
         if (member != null) {
-            String token = jwtUtil.createToken(member.getMember_id());
+            String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
             result.put("isNewUser", false);
@@ -232,7 +238,8 @@ public class AuthService {
 
             String token =
                 jwtUtil.createToken(
-                    member.getMember_id()
+                    member.getMember_id(),
+                    member.getRole()
                 );
 
             result.put("success", true);
@@ -369,7 +376,7 @@ public class AuthService {
             );
 
         if (member != null) {
-            String token = jwtUtil.createToken(member.getMember_id());
+            String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
             result.put("isNewUser", false);

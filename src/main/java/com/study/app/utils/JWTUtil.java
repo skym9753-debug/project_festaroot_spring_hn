@@ -23,10 +23,11 @@ public class JWTUtil {
 		this.alg = Algorithm.HMAC256(secret);
 		this.jwt = JWT.require(alg).build();
 	}
-	
-	public String createToken(String id) {
+	// 토큰 생성
+	public String createToken(String id, String role) {
 		return JWT.create()
 				.withSubject(id)
+				.withClaim("role", role) // "user" or "admin"
 				.withIssuedAt(new Date())
 				.withExpiresAt(new Date(System.currentTimeMillis() + expiration))
 				.sign(alg);
@@ -41,6 +42,11 @@ public class JWTUtil {
 	// subject 편하게 꺼내는 함수
 	public String getSubject(String token) {
 		return validation(token).getSubject();
+	}
+	
+	// role 편하게 꺼내는 함수
+	public String getRole(String token) {
+		return validation(token).getClaim("role").asString();
 	}
 		
 }
