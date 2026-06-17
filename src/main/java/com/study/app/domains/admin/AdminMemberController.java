@@ -25,7 +25,7 @@ public class AdminMemberController {
 	// 조건별 회원 목록 조회 (페이징 객체 반환하도록 수정)
 	@GetMapping("") 
 	public ResponseEntity<AdminPageResponseDTO> getMembers(AdminMemberDTO.SearchParam params) {
-		System.out.println("수신된 검색 필터 조건: " + params.toString());
+//		System.out.println("수신된 검색 필터 조건: " + params.toString());
 
 		// 서비스 단에서 목록과 토탈 카운트를 연산하여 DTO로 묶어 반환받음
 		AdminPageResponseDTO response = adminMemberService.findFilteredMembers(params);

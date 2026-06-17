@@ -24,6 +24,7 @@
         SELECT COUNT(*)
         FROM MEMBER m
         <where>
+        	m.ROLE != 'ADMIN'
             <if test="keyword != null and keyword != ''">
                 AND (
                     m.MEMBER_ID LIKE '%' || #{keyword} || '%'
@@ -100,6 +101,7 @@
             LEFT JOIN LatestReports r ON m.MEMBER_ID = r.TARGET_MEMBER_ID AND r.rn = 1                                           
             
             <where>
+            	m.ROLE != 'ADMIN'
                 <if test="keyword != null and keyword != ''">
                     AND (
                         m.MEMBER_ID LIKE '%' || #{keyword} || '%'
