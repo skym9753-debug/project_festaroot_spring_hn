@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="InquiryAnswer">
+  	
+  	<!-- [관리자] 문의 답변 저장 -->
+    <insert id="insertInquiryAnswer" parameterType="com.study.app.domains.inquiry.dto.InquiryAnswerDTO">
+        <selectKey keyProperty="answer_id" resultType="long" order="BEFORE">
+            SELECT inquiry_answer_seq.nextval FROM dual
+        </selectKey>
+        INSERT INTO INQUIRY_ANSWER (
+            answer_id,
+            inquiry_id,
+            admin_id,
+            content,
+            created_at
+        ) VALUES (
+            #{answer_id},
+            #{inquiry_id},
+            #{admin_id},
+            #{content},
+            SYSDATE
+        )
+    </insert>
+    <select id="getAnswerByInquiryId" resultType="com.study.app.domains.inquiry.dto.InquiryAnswerDTO">
+    		select * from inquiry_answer where inquiry_id = #{inquiryId}
+    </select>
+  	
+  </mapper>

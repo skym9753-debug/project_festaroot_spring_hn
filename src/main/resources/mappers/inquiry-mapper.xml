@@ -100,4 +100,17 @@
             content = #{content}
         WHERE inquiry_id = #{inquiry_id}
     </update>
+    
+    <select id="getInquiryList" resultType="com.study.app.domains.inquiry.dto.InquiryDTO">
+    		select * from user_inquiry order by inquiry_id desc
+    </select>
+
+    
+
+    <!-- [관리자] 문의 상태 업데이트 -->
+    <update id="updateInquiryStatus">
+        UPDATE User_inquiry
+        SET status = #{status}
+        WHERE inquiry_id = #{inquiry_id}
+    </update>
 </mapper>

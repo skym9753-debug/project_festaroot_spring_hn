@@ -4,6 +4,8 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import com.study.app.domains.inquiry.dto.InquiryAttachmentDTO;
 import com.study.app.domains.inquiry.dto.InquiryDTO;
+import com.study.app.domains.inquiry.dto.InquiryAnswerDTO;
+import java.util.Map;
 
 @Mapper
 public interface InquiryDAO {
@@ -62,4 +64,21 @@ public interface InquiryDAO {
      * 문의 상세 조회
      */
     InquiryDTO inquiryDetail(Long inquiry_id);
+    
+    /**
+     * 문의 내역 리스트
+     */
+    List<InquiryDTO> getInquiryList();
+
+    /**
+     * [관리자] 문의 답변 저장
+     */
+    int insertInquiryAnswer(InquiryAnswerDTO dto);
+    
+    
+
+    /**
+     * [관리자] 문의 상태 업데이트
+     */
+    int updateInquiryStatus(Map<String, Object> params);
 }

@@ -2,13 +2,16 @@ package com.study.app.domains.inquiry;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.study.app.domains.inquiry.dto.InquiryAnswerDTO;
 import com.study.app.domains.inquiry.dto.InquiryAttachmentDTO;
 import com.study.app.domains.inquiry.dto.InquiryDTO;
 import com.study.app.domains.storage.UploadService;
@@ -18,9 +21,27 @@ public class InquiryService {
 
     @Autowired
     private InquiryDAO inquiryDAO;
+    
+    @Autowired
+    private InquiryAnswerDAO inquiryAnswerDAO;
 
     @Autowired
     private UploadService uploadService;
+
+    /**
+     * [관리자] 문의 답변 등록 및 상태 변경
+     */
+    @Transactional
+    public void saveInquiryAnswer(InquiryAnswerDTO answerDTO) {
+        // 1. 답변 저장
+    		inquiryAnswerDAO.insertInquiryAnswer(answerDTO);
+
+        // 2. 문의 상태 업데이트 (PENDING -> ANSWERED)
+        Map<String, Object> params = new HashMap<>();
+        params.put("inquiry_id", answerDTO.getInquiry_id());
+        params.put("status", "ANSWERED");
+        inquiryDAO.updateInquiryStatus(params);
+    }
 
     /**
      * 문의 등록 및 파일 업로드 처리
@@ -69,6 +90,8 @@ public class InquiryService {
         if (dto != null) {
             List<InquiryAttachmentDTO> attachments = inquiryDAO.selectAttachmentsByInquiryId(inquiryId);
             dto.setAttachments(attachments);
+            InquiryAnswerDTO iadto = inquiryAnswerDAO.getAnswerByInquiryId(inquiryId);
+            dto.setAnswer(iadto);
         }
         return dto;
     }
@@ -157,5 +180,9 @@ public class InquiryService {
         // 3. DB 데이터 삭제 (자식 테이블 -> 부모 테이블)
         inquiryDAO.deleteAttachmentsByInquiryId(inquiryId);
         inquiryDAO.deleteInquiry(inquiryId);
+    }
+    
+    public List<InquiryDTO> getInquiryList(){
+    		return inquiryDAO.getInquiryList();
     }
 }
