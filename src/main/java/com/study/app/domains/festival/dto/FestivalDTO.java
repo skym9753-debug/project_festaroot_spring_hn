@@ -61,6 +61,9 @@ public class FestivalDTO {
     // 평균 평점 (예: 4.50)
     private Double rating_avg;
     
+    // 공개 여부 (Y/N)
+    private String is_visible;
+    
     // 테마 정보
     private List<ThemeMasterDTO> themes;
     
@@ -70,7 +73,8 @@ public class FestivalDTO {
 			String sigungu_code, String first_image, String first_image2, Double map_x, Double map_y, Integer map_level,
 			String event_start_date, String event_end_date, String overview, String spon_place,
 			String use_time_festival, String sponsor1_tel, String homepage, String created_time, String modified_time,
-			String indexed_modified_time, Long view_count, Long like_count, Long review_count, Double rating_avg) {
+			String indexed_modified_time, Long view_count, Long like_count, Long review_count, Double rating_avg,
+			String is_visible) {
 		super();
 		this.content_id = content_id;
 		this.title = title;
@@ -97,6 +101,15 @@ public class FestivalDTO {
 		this.like_count = like_count;
 		this.review_count = review_count;
 		this.rating_avg = rating_avg;
+		this.is_visible = is_visible;
+	}
+
+	public String getIs_visible() {
+		return is_visible;
+	}
+
+	public void setIs_visible(String is_visible) {
+		this.is_visible = is_visible;
 	}
 
 	public Long getContent_id() {
