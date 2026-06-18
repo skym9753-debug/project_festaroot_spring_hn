@@ -472,8 +472,24 @@ public class FestivalService {
 							System.out.println("overview length = "
 									+ (dto.getOverview() == null ? 0 : dto.getOverview().length()));
 
-							fdao.upsertFestival(dto);
-							fdao.updateFestivalDetail(dto);
+
+						    // 기존에 있던 fdao.updateFestivalDetail(dto); 은 
+						    // 새로 만든 updateFestival 쿼리가 모든 컬럼을 한 번에 갱신하므로 더 이상 호출할 필요가 없어서 제거함.
+
+							if (dbFestival == null) {
+						        // 신규 데이터인 경우 처리
+						        fdao.insertFestival(dto);
+						        System.out.println("[신규 등록 완료] contentId = " + dto.getContent_id());
+						        
+						    } else if (isUpdated || needCommon || needIntro) {
+						        // 이미 있는 데이터지만, API 수정일이 바뀌었거나 누락된 상세 정보가 채워진 경우에만 업데이트
+						        fdao.updateFestival(dto);
+						        System.out.println("[기존 수정 완료] contentId = " + dto.getContent_id());
+						        
+						    } else {
+						        // 변동 사항이 전혀 없는 경우 DB 작업을 하지 않고 스킵
+						        System.out.println("[변동 없음 - 스킵] contentId = " + dto.getContent_id());
+						    }
 
 						} catch (Exception e) {
 							System.out.println("저장 실패 contentId = " + dto.getContent_id());
