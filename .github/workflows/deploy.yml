@@ -18,9 +18,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 1. GitHub Secrets에서 값을 가져와 설정 파일 생성
-      - name: Create secret file
-        run: echo "${{ secrets.APPLICATION_SECRET }}" > src/main/resources/application-secret.properties
+      # 1. 설정 파일 및 JSON 키 파일 생성
+      - name: Create secret files
+        run: |
+          echo "${{ secrets.APPLICATION_SECRET }}" > src/main/resources/application-secret.properties
+          echo "${{ secrets.GCP_JSON_KEY }}" > src/main/resources/GCP-festaroute.json
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
@@ -45,27 +47,9 @@ jobs:
             mkdir -p ~/app
             cd ~/app
             
+            # (이전과 동일한 프로세스 종료 및 실행 로직)
             CURRENT_PID=$(pgrep -f 'java -jar' | grep -v "$$" || true)
+            if [ -n "$CURRENT_PID" ]; then sudo kill -15 $CURRENT_PID; sleep 3; fi
             
-            if [ -z "$CURRENT_PID" ]; then
-              echo "현재 구동 중인 스프링 부트 애플리케이션이 없습니다."
-            else
-              echo "구동 중인 스프링 부트 프로세스 발견 (PIDs: $CURRENT_PID)"
-              for pid in $CURRENT_PID; do
-                echo "스프링 부트 프로세스 종료 시도 (PID: $pid)"
-                sudo kill -15 $pid 2>/dev/null || true
-              done
-              sleep 3
-            fi
-            
-            JAR_NAME=$(ls -tr *.jar 2>/dev/null | grep -v 'original' | grep -v 'plain' | tail -n 1 || true)
-            
-            if [ -z "$JAR_NAME" ]; then
-              echo "❌ 에러: ~/app 디렉토리에 실행할 JAR 파일이 존재하지 않습니다!"
-              exit 1
-            fi
-            
-            echo "실행할 JAR 파일: $JAR_NAME"
+            JAR_NAME=$(ls -tr *.jar 2>/dev/null | grep -v 'original' | grep -v 'plain' | tail -n 1)
             sudo bash -c "nohup java -jar $JAR_NAME > nohup.out 2>&1 < /dev/null &"
-            sleep 1
-            echo "🚀 새 애플리케이션이 관리자(sudo) 권한으로 백그라운드 구동 명령을 받았습니다."
