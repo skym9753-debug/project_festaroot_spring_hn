@@ -18,11 +18,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 1. 설정 파일 및 JSON 키 파일 생성
+      # 1. 안전하게 설정 파일 및 JSON 키 파일 생성
       - name: Create secret files
+        shell: bash
         run: |
-          echo "${{ secrets.APPLICATION_SECRET }}" > src/main/resources/application-secret.properties
-          echo "${{ secrets.GCP_JSON_KEY }}" > src/main/resources/GCP-festaroute.json
+          cat <<EOF > src/main/resources/application-secret.properties
+          ${{ secrets.APPLICATION_SECRET }}
+          EOF
+          
+          cat <<EOF > src/main/resources/GCP-festaroute.json
+          ${{ secrets.GCP_JSON_KEY }}
+          EOF
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
@@ -47,9 +53,21 @@ jobs:
             mkdir -p ~/app
             cd ~/app
             
-            # (이전과 동일한 프로세스 종료 및 실행 로직)
+            # 기존 프로세스 종료
             CURRENT_PID=$(pgrep -f 'java -jar' | grep -v "$$" || true)
-            if [ -n "$CURRENT_PID" ]; then sudo kill -15 $CURRENT_PID; sleep 3; fi
+            if [ -n "$CURRENT_PID" ]; then
+              echo "기존 프로세스 종료 중 (PID: $CURRENT_PID)..."
+              sudo kill -15 $CURRENT_PID
+              sleep 5
+            fi
             
+            # 새 JAR 파일 실행
             JAR_NAME=$(ls -tr *.jar 2>/dev/null | grep -v 'original' | grep -v 'plain' | tail -n 1)
+            if [ -z "$JAR_NAME" ]; then
+              echo "실행할 JAR 파일을 찾을 수 없습니다."
+              exit 1
+            fi
+            
+            echo "애플리케이션 실행: $JAR_NAME"
             sudo bash -c "nohup java -jar $JAR_NAME > nohup.out 2>&1 < /dev/null &"
+            echo "배포 완료."
