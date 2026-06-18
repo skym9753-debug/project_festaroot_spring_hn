@@ -8,9 +8,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,6 +17,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      # 1. GitHub Secrets에서 값을 가져와 설정 파일 생성
+      - name: Create secret file
+        run: echo "${{ secrets.APPLICATION_SECRET }}" > src/main/resources/application-secret.properties
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
