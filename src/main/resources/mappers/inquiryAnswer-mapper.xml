@@ -27,5 +27,8 @@
     <select id="getAnswerByInquiryId" resultType="com.study.app.domains.inquiry.dto.InquiryAnswerDTO">
     		select * from inquiry_answer where inquiry_id = #{inquiryId}
     </select>
+    <update id="updateAnswer">
+    		update inquiry_answer set content = #{content} where inquiry_id = #{inquiry_id}
+    </update>
   	
   </mapper>

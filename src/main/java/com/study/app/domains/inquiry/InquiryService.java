@@ -185,4 +185,7 @@ public class InquiryService {
     public List<InquiryDTO> getInquiryList(){
     		return inquiryDAO.getInquiryList();
     }
+    public int updateAnswer(InquiryAnswerDTO dto) {
+    		return inquiryAnswerDAO.updateAnswer(dto);
+    }
 }

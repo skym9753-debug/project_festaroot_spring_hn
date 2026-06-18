@@ -18,5 +18,8 @@ public class InquiryAnswerDAO {
 	public InquiryAnswerDTO getAnswerByInquiryId(Long inquiryId) {
 		return mybatis.selectOne("InquiryAnswer.getAnswerByInquiryId",inquiryId);
 	}
+	public int updateAnswer(InquiryAnswerDTO dto) {
+		return mybatis.update("InquiryAnswer.updateAnswer",dto);
+	}
 
 }

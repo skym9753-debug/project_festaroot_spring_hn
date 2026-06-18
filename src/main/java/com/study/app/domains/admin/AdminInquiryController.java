@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +55,12 @@ public class AdminInquiryController {
 		List<InquiryDTO> list = inquiryService.getInquiryList();
 		return ResponseEntity.ok(list);
 	}
+    
+    @GetMapping("/detail/{inquiryId}")
+	public ResponseEntity<InquiryDTO> inquiryDetail(@PathVariable Long inquiryId){
+		InquiryDTO dto = inquiryService.inquiryDetail(inquiryId);
+		return ResponseEntity.ok(dto);
+	}
 
     /**
      * [관리자] 문의 답변 등록/수정
@@ -91,4 +98,17 @@ public class AdminInquiryController {
             return ResponseEntity.status(500).body(response);
         }
     }
+    @PutMapping("/answer/update/{inquiryId}")
+    public ResponseEntity<Map<String, Object>> updateAnswer(@PathVariable Long inquiryId,@RequestBody InquiryAnswerDTO dto){
+    		dto.setInquiry_id(inquiryId);
+    		Map<String, Object> response = new HashMap<>();
+    		int result = inquiryService.updateAnswer(dto);
+    		if(result>0) {
+    			response.put("success", true);
+            response.put("message", "답변이 등록되었습니다.");
+    		}
+    		return ResponseEntity.ok(response);
+    }
+    
+    
 }
