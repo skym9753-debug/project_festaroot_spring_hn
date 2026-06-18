@@ -30,6 +30,7 @@
   		<result property="like_count" column="like_count" />
   		<result property="review_count" column="review_count" />
   		<result property="rating_avg" column="rating_avg" />
+  		<result property="is_visible" column="is_visible" />
   		<collection property="themes" ofType="com.study.app.domains.theme.ThemeMasterDTO">
   			<result property="theme_code" column="theme_code" />
   			<result property="theme_name" column="theme_name" />
@@ -44,6 +45,7 @@
 	    FROM festival_info f
 	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
+	    WHERE NVL(f.is_visible, 'Y') = 'Y'
   	</select>
   	
   	<select id="selectByContentId" resultMap="festivalWithThemesMap">
@@ -55,6 +57,7 @@
 	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code 
 	    WHERE f.content_id = #{content_id}
+	    AND NVL(f.is_visible, 'Y') = 'Y'
   	</select>
   	
 	
@@ -69,6 +72,18 @@
 	LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
 	WHERE f.content_id = #{content_id}
+	AND NVL(f.is_visible, 'Y') = 'Y'
+	</select>
+
+	<select id="getAllFestivalAdmin" resultMap="festivalWithThemesMap">
+		SELECT 
+	        f.*,           
+	        tm.theme_code, 
+	        tm.theme_name  
+	    FROM festival_info f
+	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
+	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
+	    ORDER BY f.created_time DESC
 	</select>
 
   	
@@ -384,7 +399,7 @@
     </select>
 
 
-    <update id="updateFestivalDetail">
+	<update id="updateFestivalDetail">
 	    UPDATE festival_info
 	    SET
 	        overview = #{overview,jdbcType=CLOB},
@@ -393,6 +408,12 @@
 	        spon_place = #{spon_place,jdbcType=VARCHAR},
 	        use_time_festival = #{use_time_festival,jdbcType=VARCHAR}
 	    WHERE content_id = #{content_id}
+	</update>
+
+	<update id="updateVisibility">
+		UPDATE festival_info
+		SET is_visible = #{is_visible}
+		WHERE content_id = #{content_id}
 	</update>
 
   

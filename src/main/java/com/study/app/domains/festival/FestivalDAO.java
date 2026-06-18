@@ -151,5 +151,16 @@ public class FestivalDAO {
 		return mybatis.selectList("Festival.selectPopularFestivals");
 	}
 	
+	public List<FestivalDTO> getAllFestivalAdmin(){
+		return mybatis.selectList("Festival.getAllFestivalAdmin");
+	}
+	
+	public int updateVisibility(Long contentId, String isVisible) {
+		java.util.Map<String, Object> params = new java.util.HashMap<>();
+		params.put("content_id", contentId);
+		params.put("is_visible", isVisible);
+		return mybatis.update("Festival.updateVisibility", params);
+	}
+	
 
 }
