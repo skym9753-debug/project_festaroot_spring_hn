@@ -365,16 +365,10 @@ public class FestivalService {
 
 				String response = restTemplate.getForObject(uri, String.class); // API 호출
 
-				// API 내용 확인 > JSON
-				// System.out.println(">>> [공공 API 응답] : " + response); // 길어서 주석처리함.
-
 				// 잭슨 라이브러리로 item 까지 들어가기
 				ObjectMapper mapper = new ObjectMapper();
 				JsonNode root = mapper.readTree(response); // 파싱
 				JsonNode itemNode = root.path("response").path("body").path("items").path("item");
-
-				// itemNode의 타입 확인하기 > ARRAY
-				// System.out.println(">>>> [itemNode 타입]: " + itemNode.getNodeType());
 
 				if (i == 1) { // 처음 이 for문을 돌 때, 전체 데이터 수와 페이지 수 계산
 					// root에서 totalCount int로 총 데이터 수 뽑기
@@ -414,9 +408,6 @@ public class FestivalService {
 						dto.setEvent_start_date(item.path("eventstartdate").asText()); // 행사 시작일
 						dto.setEvent_end_date(item.path("eventenddate").asText()); // 행사 종료일
 
-						// overview, sponplace, usetimefestival, sponsor1tel, hompage 는 상세를 눌렀을때 담기도록
-						// 메서드 만들어야함.
-
 						dto.setCreated_time(item.path("createdtime").asText()); // 축제 등록일
 						dto.setModified_time(item.path("modifiedtime").asText()); // 축제 수정일
 
@@ -429,73 +420,44 @@ public class FestivalService {
 						// DB에 저장된 수정일
 						String dbModifiedTime = dbFestival == null ? null : dbFestival.getModified_time();
 
-						// DB의 수정일과 API의 수정일이 다르면,
-						// 관광공사 쪽 데이터가 수정된 것으로 판단
-						boolean isUpdated = dbFestival == null || isBlank(dbModifiedTime)
-								|| !apiModifiedTime.equals(dbModifiedTime);
+						// 1. 신규 등록이거나 수정일자(modifiedtime)가 변경되었는지 확인
+						boolean isNew = (dbFestival == null);
+						boolean isUpdated = !isNew && !apiModifiedTime.equals(dbModifiedTime);
 
-						// detailCommon2 호출 여부 판단
-						boolean needCommon = dbFestival == null || isUpdated || isBlank(dbFestival.getOverview())
-								|| isBlank(dbFestival.getHomepage()) || isBlank(dbFestival.getSponsor1_tel());
+						// 2. 신규이거나 실제로 수정된 경우에만 상세 API들을 호출하고 저장/수정을 진행
+						if (isNew || isUpdated) {
 
-						// detailIntro2 호출 여부 판단
-						boolean needIntro = dbFestival == null || isUpdated || isBlank(dbFestival.getSpon_place())
-								|| isBlank(dbFestival.getUse_time_festival());
-
-						// 공통 상세정보가 없거나,
-						// 관광공사 데이터가 수정된 경우 다시 조회
-						if (needCommon) {
+							// 공통 상세 정보(개요, 홈페이지 등) 및 소개 상세 정보(장소, 요금 등) 조회
 							fillDetailCommon(dto, contentId, mapper);
-						} else {
-							dto.setOverview(dbFestival.getOverview());
-							dto.setHomepage(dbFestival.getHomepage());
-							dto.setSponsor1_tel(dbFestival.getSponsor1_tel());
-						}
-
-						// 축제 소개 상세정보가 없거나,
-						// 관광공사 데이터가 수정된 경우 다시 조회
-						if (needIntro) {
 							fillDetailIntro(dto, contentId, mapper);
+
+							// API 서버 연속 호출로 인한 429 차단을 막기 위해 0.15초씩 살짝 쉼
+							Thread.sleep(150);
+
+							try {
+								System.out.println("저장 시도 contentId = " + dto.getContent_id());
+								System.out.println("title = " + dto.getTitle());
+								System.out.println("homepage length = "
+										+ (dto.getHomepage() == null ? 0 : dto.getHomepage().length()));
+								System.out.println("overview length = "
+										+ (dto.getOverview() == null ? 0 : dto.getOverview().length()));
+
+								if (isNew) {
+									fdao.insertFestival(dto);
+									System.out.println("[신규 등록 완료] contentId = " + dto.getContent_id());
+								} else {
+									fdao.updateFestival(dto);
+									System.out.println("[기존 수정 완료] contentId = " + dto.getContent_id());
+								}
+							} catch (Exception e) {
+								System.out.println("저장 실패 contentId = " + dto.getContent_id());
+								System.out.println("title = " + dto.getTitle());
+								throw e;
+							}
+
 						} else {
-							dto.setSpon_place(dbFestival.getSpon_place());
-							dto.setUse_time_festival(dbFestival.getUse_time_festival());
-						}
-
-						// festivalDAO 호출 : 값을 가져온 범위 내에서 이미 값이 있으면 update, 없으면 insert
-						// fdao.upsertFestival(dto); // api 값 담은 dto 전달
-
-						try {
-							System.out.println("저장 시도 contentId = " + dto.getContent_id());
-							System.out.println("title = " + dto.getTitle());
-							System.out.println("homepage length = "
-									+ (dto.getHomepage() == null ? 0 : dto.getHomepage().length()));
-							System.out.println("overview length = "
-									+ (dto.getOverview() == null ? 0 : dto.getOverview().length()));
-
-
-						    // 기존에 있던 fdao.updateFestivalDetail(dto); 은 
-						    // 새로 만든 updateFestival 쿼리가 모든 컬럼을 한 번에 갱신하므로 더 이상 호출할 필요가 없어서 제거함.
-
-							if (dbFestival == null) {
-						        // 신규 데이터인 경우 처리
-						        fdao.insertFestival(dto);
-						        System.out.println("[신규 등록 완료] contentId = " + dto.getContent_id());
-						        
-						    } else if (isUpdated || needCommon || needIntro) {
-						        // 이미 있는 데이터지만, API 수정일이 바뀌었거나 누락된 상세 정보가 채워진 경우에만 업데이트
-						        fdao.updateFestival(dto);
-						        System.out.println("[기존 수정 완료] contentId = " + dto.getContent_id());
-						        
-						    } else {
-						        // 변동 사항이 전혀 없는 경우 DB 작업을 하지 않고 스킵
-						        System.out.println("[변동 없음 - 스킵] contentId = " + dto.getContent_id());
-						    }
-
-						} catch (Exception e) {
-							System.out.println("저장 실패 contentId = " + dto.getContent_id());
-							System.out.println("title = " + dto.getTitle());
-							System.out.println("homepage = " + dto.getHomepage());
-							throw e;
+							// 3. DB에 이미 있고 수정일도 같다면 공공 API 요청을 아예 하지 않고 패스 (트래픽 절약 핵심)
+							System.out.println("[변동 없음 - API 호출 스킵] contentId = " + dto.getContent_id());
 						}
 
 					}
