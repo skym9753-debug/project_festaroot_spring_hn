@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="Faq">
+	<select id="getFaqList" resultType="com.study.app.domains.admin.dto.FaqDTO">
+		select * from faq order by display_order
+	</select>
+	
+	<select id="getFaqById" resultType="com.study.app.domains.admin.dto.FaqDTO">
+		SELECT * FROM faq WHERE faq_id = #{faq_id}
+	</select>
+	
+	<insert id="addFaq">
+		INSERT INTO faq (
+			faq_id,
+			category,
+			question,
+			answer,
+			display_order,
+			created_at
+		) VALUES (
+			FAQ_SEQ.NEXTVAL,
+			#{category},
+			#{question},
+			#{answer},
+			(SELECT NVL(MAX(display_order), 0) + 1 FROM faq),
+			SYSDATE
+		)
+	</insert>
+	
+	<delete id="deleteFaq">
+		delete from faq where faq_id = #{faq_id}
+	</delete>
+	
+	<update id="updateFaq">
+		update faq set 
+			category = #{category}, 
+			question = #{question},
+			answer = #{answer},
+			display_order = #{display_order}
+		where faq_id = #{faq_id}
+	</update>
+
+	<update id="updateOrdersOnDelete">
+		UPDATE faq SET display_order = display_order - 1 
+		WHERE display_order > #{display_order}
+	</update>
+
+	<update id="shiftOrdersForUpdate">
+		UPDATE faq 
+		<set>
+			<if test="oldOrder > newOrder">
+				display_order = display_order + 1
+				WHERE display_order >= #{newOrder} AND display_order &lt; #{oldOrder}
+			</if>
+			<if test="newOrder > oldOrder">
+				display_order = display_order - 1
+				WHERE display_order &lt;= #{newOrder} AND display_order > #{oldOrder}
+			</if>
+		</set>
+	</update>
+</mapper>  
