@@ -82,7 +82,7 @@
     </select>
 	
 	<select id="getMyCommentCount" resultType="int">
-		select count(*) from POST_COMMENT where member_id = #{member_id}
+		select count(*) from POST_COMMENT where member_id = #{member_id} and is_visible = 'Y'
 	</select>
 
 </mapper>
