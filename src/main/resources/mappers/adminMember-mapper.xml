@@ -131,8 +131,7 @@
         UPDATE MEMBER
         SET 
             STATUS = 'SUSPENDED',
-            SUSPENSION_END_DATE = SYSDATE + #{days},
-            PROCESSING_RESULT = #{days} || '일 정지 처분'
+            SUSPENSION_END_DATE = SYSDATE + #{days}
         WHERE MEMBER_ID = #{id}
     </update>
 
@@ -140,8 +139,7 @@
         UPDATE MEMBER
         SET 
             STATUS = 'BLACKLISTED',
-            SUSPENSION_END_DATE = TO_DATE('9999-12-31', 'YYYY-MM-DD'),
-            PROCESSING_RESULT = '영구 정지 처분'
+            SUSPENSION_END_DATE = TO_DATE('9999-12-31', 'YYYY-MM-DD')
         WHERE MEMBER_ID = #{id}
     </update>
 
@@ -149,13 +147,11 @@
         UPDATE MEMBER
         SET 
             STATUS = 'ACTIVE',
-            SUSPENSION_END_DATE = NULL,
-            PROCESSING_RESULT = '제재 해제 복원'
+            SUSPENSION_END_DATE = NULL
         WHERE MEMBER_ID = #{id}
     </update>
     
-	<!--특정 회원의 승인된 신고 내역 리스트 호출-->
-    <select id="selectAcceptReportsByMemberId" 
+	<select id="selectAcceptReportsByMemberId" 
             parameterType="string" 
             resultType="com.study.app.domains.admin.dto.AdminMemberDTO$ReportHistoryResponse">
         SELECT 
