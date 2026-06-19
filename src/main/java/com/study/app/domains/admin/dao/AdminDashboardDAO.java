@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.study.app.domains.admin.dto.AdminSummaryDTO;
@@ -25,7 +26,8 @@ public class AdminDashboardDAO {
     // mapper XML의 namespace
     private static final String NAMESPACE = "AdminDashboard";
 
-    // 최근 7일 통계 기준일 파라미터 생성
+
+    // 기준 날짜 파라미터 생성
     private Map<String, Object> getBaseDateParam(String baseDate) {
         Map<String, Object> param = new HashMap<>();
         param.put("baseDate", baseDate);
@@ -33,8 +35,11 @@ public class AdminDashboardDAO {
     }
 
     // 상단 핵심 통계
-    public AdminSummaryDTO selectSummary() {
-        return mybatis.selectOne(NAMESPACE + ".selectSummary");
+    public AdminSummaryDTO selectSummary(String baseDate) {
+        return mybatis.selectOne(
+                NAMESPACE + ".selectSummary",
+                getBaseDateParam(baseDate)
+        );
     }
 
     // 최근 7일 운영 통계
@@ -46,28 +51,43 @@ public class AdminDashboardDAO {
     }
 
     // 축제 상태 통계
-    public List<FestivalStatusStatDTO> selectFestivalStatusStats() {
-        return mybatis.selectList(NAMESPACE + ".selectFestivalStatusStats");
+    public List<FestivalStatusStatDTO> selectFestivalStatusStats(String baseDate) {
+        return mybatis.selectList(
+                NAMESPACE + ".selectFestivalStatusStats",
+                getBaseDateParam(baseDate)
+        );
     }
 
     // 지역별 축제 데이터 TOP 5
-    public List<RegionStatDTO> selectRegionStats() {
-        return mybatis.selectList(NAMESPACE + ".selectRegionStats");
+    public List<RegionStatDTO> selectRegionStats(String baseDate) {
+        return mybatis.selectList(
+                NAMESPACE + ".selectRegionStats",
+                getBaseDateParam(baseDate)
+        );
     }
 
     // 인기 축제 TOP 5
-    public List<PopularFestivalDTO> selectPopularFestivals() {
-        return mybatis.selectList(NAMESPACE + ".selectPopularFestivals");
+    public List<PopularFestivalDTO> selectPopularFestivals(String baseDate) {
+        return mybatis.selectList(
+                NAMESPACE + ".selectPopularFestivals",
+                getBaseDateParam(baseDate)
+        );
     }
 
     // 최근 신고 접수
-    public List<RecentReportDTO> selectRecentReports() {
-        return mybatis.selectList(NAMESPACE + ".selectRecentReports");
+    public List<RecentReportDTO> selectRecentReports(String baseDate) {
+        return mybatis.selectList(
+                NAMESPACE + ".selectRecentReports",
+                getBaseDateParam(baseDate)
+        );
     }
 
     // 최근 운영 이슈
-    public List<RecentIssueDTO> selectRecentIssues() {
-        return mybatis.selectList(NAMESPACE + ".selectRecentIssues");
+    public List<RecentIssueDTO> selectRecentIssues(String baseDate) {
+        return mybatis.selectList(
+                NAMESPACE + ".selectRecentIssues",
+                getBaseDateParam(baseDate)
+        );
     }
 }
 	

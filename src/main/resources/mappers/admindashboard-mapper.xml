@@ -5,7 +5,6 @@
 
 <mapper namespace="AdminDashboard">
 
-
     <!-- 최근 신고 목록 컬럼 매핑 -->
     <resultMap id="recentReportMap"
                type="com.study.app.domains.admin.dto.RecentReportDTO">
@@ -28,17 +27,30 @@
     </resultMap>
 
 
-    <!-- 상단 핵심 통계: 현재 DB 기준 -->
+    <!-- 상단 핵심 통계 -->
     <select id="selectSummary"
             resultType="com.study.app.domains.admin.dto.AdminSummaryDTO">
         SELECT
+            /* 회원 */
             (SELECT COUNT(*)
              FROM member) AS memberCount,
 
             (SELECT COUNT(*)
              FROM member
-             WHERE TRUNC(created_at) = TRUNC(SYSDATE)) AS todayNewMembers,
+             WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD')) AS todayNewMembers,
 
+            (
+                (SELECT COUNT(*)
+                 FROM member
+                 WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))
+                -
+                (SELECT COUNT(*)
+                 FROM member
+                 WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD') - 1)
+            ) AS memberChange,
+
+
+            /* 축제 */
             (SELECT COUNT(*)
              FROM festival_info) AS festivalCount,
 
@@ -46,17 +58,47 @@
              FROM festival_info
              WHERE NVL(is_visible, 'Y') = 'Y') AS visibleFestivalCount,
 
+            (
+                (SELECT COUNT(*)
+                 FROM festival_info
+                 WHERE SUBSTR(created_time, 1, 8)
+                       = TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD'))
+                -
+                (SELECT COUNT(*)
+                 FROM festival_info
+                 WHERE SUBSTR(created_time, 1, 8)
+                       = TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD') - 1, 'YYYYMMDD'))
+            ) AS festivalChange,
+
+
+            /* 게시글 */
             (SELECT COUNT(*)
              FROM community_post
              WHERE NVL(is_visible, 'Y') = 'Y'
-             AND category != 'NOTICE') AS postCount,
+               AND category != 'NOTICE') AS postCount,
 
             (SELECT COUNT(*)
              FROM community_post
              WHERE NVL(is_visible, 'Y') = 'Y'
-             AND category != 'NOTICE'
-             AND TRUNC(created_at) = TRUNC(SYSDATE)) AS todayPostCount,
+               AND category != 'NOTICE'
+               AND TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD')) AS todayPostCount,
 
+            (
+                (SELECT COUNT(*)
+                 FROM community_post
+                 WHERE NVL(is_visible, 'Y') = 'Y'
+                   AND category != 'NOTICE'
+                   AND TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))
+                -
+                (SELECT COUNT(*)
+                 FROM community_post
+                 WHERE NVL(is_visible, 'Y') = 'Y'
+                   AND category != 'NOTICE'
+                   AND TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD') - 1)
+            ) AS postChange,
+
+
+            /* 신고 */
             (SELECT COUNT(*)
              FROM post_report) AS reportCount,
 
@@ -64,14 +106,38 @@
              FROM post_report
              WHERE NVL(status, '접수') IN ('접수', '검토중')) AS waitingReportCount,
 
+            (
+                (SELECT COUNT(*)
+                 FROM post_report
+                 WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))
+                -
+                (SELECT COUNT(*)
+                 FROM post_report
+                 WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD') - 1)
+            ) AS reportChange,
+
+
+            /* 문의 */
             (SELECT COUNT(*)
              FROM user_inquiry
              WHERE NVL(status, 'PENDING') = 'PENDING') AS waitingInquiryCount,
 
             (SELECT COUNT(*)
              FROM user_inquiry
-             WHERE TRUNC(created_at) = TRUNC(SYSDATE)) AS todayInquiryCount,
+             WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD')) AS todayInquiryCount,
 
+            (
+                (SELECT COUNT(*)
+                 FROM user_inquiry
+                 WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))
+                -
+                (SELECT COUNT(*)
+                 FROM user_inquiry
+                 WHERE TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD') - 1)
+            ) AS inquiryChange,
+
+
+            /* 공지 */
             (SELECT COUNT(*)
              FROM community_post
              WHERE category = 'NOTICE') AS noticeCount,
@@ -79,13 +145,25 @@
             (SELECT COUNT(*)
              FROM community_post
              WHERE category = 'NOTICE'
-             AND NVL(is_visible, 'Y') = 'Y') AS visibleNoticeCount
+               AND NVL(is_visible, 'Y') = 'Y') AS visibleNoticeCount,
+
+            (
+                (SELECT COUNT(*)
+                 FROM community_post
+                 WHERE category = 'NOTICE'
+                   AND TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD'))
+                -
+                (SELECT COUNT(*)
+                 FROM community_post
+                 WHERE category = 'NOTICE'
+                   AND TRUNC(created_at) = TO_DATE(#{baseDate}, 'YYYY-MM-DD') - 1)
+            ) AS noticeChange
 
         FROM dual
     </select>
 
 
-    <!-- 최근 7일 운영 통계: 선택한 기준일 기준 -->
+    <!-- 최근 7일 운영 통계 -->
     <select id="selectWeeklyStats"
             resultType="com.study.app.domains.admin.dto.WeeklyStatDTO">
         SELECT
@@ -103,7 +181,7 @@
                    COUNT(*) AS member_count
             FROM member
             WHERE created_at &gt;= TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 6
-            AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
+              AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
             GROUP BY TRUNC(created_at)
         ) m
         ON d.base_date = m.created_date
@@ -112,9 +190,9 @@
                    COUNT(*) AS post_count
             FROM community_post
             WHERE created_at &gt;= TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 6
-            AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
-            AND NVL(is_visible, 'Y') = 'Y'
-            AND category != 'NOTICE'
+              AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
+              AND NVL(is_visible, 'Y') = 'Y'
+              AND category != 'NOTICE'
             GROUP BY TRUNC(created_at)
         ) p
         ON d.base_date = p.created_date
@@ -123,7 +201,7 @@
                    COUNT(*) AS report_count
             FROM post_report
             WHERE created_at &gt;= TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) - 6
-            AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
+              AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
             GROUP BY TRUNC(created_at)
         ) r
         ON d.base_date = r.created_date
@@ -131,7 +209,7 @@
     </select>
 
 
-    <!-- 축제 상태 통계: 현재 날짜 기준 -->
+    <!-- 축제 상태 통계 -->
     <select id="selectFestivalStatusStats"
             resultType="com.study.app.domains.admin.dto.FestivalStatusStatDTO">
         SELECT
@@ -141,9 +219,12 @@
             SELECT
                 CASE
                     WHEN NVL(is_visible, 'Y') = 'N' THEN '숨김'
-                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN event_start_date AND event_end_date THEN '진행중'
-                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') &lt; event_start_date THEN '예정'
-                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') &gt; event_end_date THEN '종료'
+                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+                         BETWEEN event_start_date AND event_end_date THEN '진행중'
+                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+                         &lt; event_start_date THEN '예정'
+                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+                         &gt; event_end_date THEN '종료'
                     ELSE '기타'
                 END AS status
             FROM festival_info
@@ -160,7 +241,7 @@
     </select>
 
 
-    <!-- 지역별 축제 데이터 TOP 5: 현재 DB 기준 -->
+    <!-- 지역별 축제 데이터 TOP 5 -->
     <select id="selectRegionStats"
             resultType="com.study.app.domains.admin.dto.RegionStatDTO">
         SELECT *
@@ -170,7 +251,7 @@
                 COUNT(*) AS count
             FROM festival_info
             WHERE NVL(is_visible, 'Y') = 'Y'
-            AND addr1 IS NOT NULL
+              AND addr1 IS NOT NULL
             GROUP BY SUBSTR(addr1, 1, 2)
             ORDER BY COUNT(*) DESC
         )
@@ -178,7 +259,7 @@
     </select>
 
 
-    <!-- 인기 축제 TOP 5: 현재 DB 기준 -->
+    <!-- 인기 축제 TOP 5 -->
     <select id="selectPopularFestivals"
             resultType="com.study.app.domains.admin.dto.PopularFestivalDTO">
         SELECT
@@ -187,17 +268,22 @@
             region,
             views,
             likes,
-            status
+            status,
+            firstImage
         FROM (
             SELECT
                 title AS name,
                 addr1 AS region,
+                first_image AS firstImage,
                 NVL(view_count, 0) AS views,
                 NVL(like_count, 0) AS likes,
                 CASE
-                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN event_start_date AND event_end_date THEN '진행중'
-                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') &lt; event_start_date THEN '예정'
-                    WHEN TO_CHAR(SYSDATE, 'YYYYMMDD') &gt; event_end_date THEN '종료'
+                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+                         BETWEEN event_start_date AND event_end_date THEN '진행중'
+                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+                         &lt; event_start_date THEN '예정'
+                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+                         &gt; event_end_date THEN '종료'
                     ELSE '기타'
                 END AS status
             FROM festival_info
@@ -208,28 +294,63 @@
     </select>
 
 
-    <!-- 최근 신고 접수: 현재 DB 기준 -->
-    <select id="selectRecentReports"
-            resultMap="recentReportMap">
-        SELECT *
-        FROM (
-            SELECT
-                'RPT-' || LPAD(pr.report_id, 5, '0') AS id,
-                pr.reason AS report_type,
-                NVL(cp.title, '삭제되었거나 확인 불가한 게시글') AS target,
-                pr.member_id AS reporter,
-                TO_CHAR(pr.created_at, 'YYYY.MM.DD HH24:MI') AS report_date,
-                NVL(pr.status, '접수') AS status
-            FROM post_report pr
-            LEFT JOIN community_post cp
-            ON pr.post_id = cp.post_id
-            ORDER BY pr.created_at DESC
-        )
-        WHERE ROWNUM &lt;= 4
-    </select>
+	<!-- 최근 신고 접수: 관리자 화면 표시용 -->
+	<select id="selectRecentReports"
+	        resultMap="recentReportMap">
+	    SELECT *
+	    FROM (
+	        SELECT
+	            'RPT-' || LPAD(pr.report_id, 5, '0') AS id,
+	
+	            CASE LOWER(pr.reason)
+	                WHEN 'inappropriate' THEN '부적절한 내용'
+	                WHEN 'ad_spam' THEN '광고/도배'
+	                WHEN 'spam' THEN '광고/도배'
+	                WHEN 'abuse' THEN '욕설/비방'
+	                WHEN 'abusive' THEN '욕설/비방'
+	                WHEN 'privacy' THEN '개인정보 노출'
+	                WHEN 'false_info' THEN '허위 정보'
+	                WHEN 'etc' THEN '기타'
+	                ELSE pr.reason
+	            END AS report_type,
+	
+	            CASE
+	                WHEN cp.post_id IS NULL THEN '삭제되었거나 확인 불가한 게시글'
+	                ELSE cp.title
+	            END AS target,
+	
+	            CASE
+	                WHEN m.nickname IS NOT NULL THEN m.nickname
+	                WHEN LENGTH(pr.member_id) > 18 THEN SUBSTR(pr.member_id, 1, 10) || '...' || SUBSTR(pr.member_id, -4)
+	                ELSE pr.member_id
+	            END AS reporter,
+	
+	            TO_CHAR(pr.created_at, 'YYYY.MM.DD HH24:MI') AS report_date,
+	
+	            CASE
+	                WHEN pr.status IS NULL THEN '접수'
+	                WHEN pr.status = 'PENDING' THEN '접수'
+	                WHEN pr.status = 'WAITING' THEN '접수'
+	                WHEN pr.status = 'PROCESSING' THEN '검토중'
+	                WHEN pr.status = 'DONE' THEN '완료'
+	                WHEN pr.status = 'COMPLETED' THEN '완료'
+	                WHEN pr.status = 'REJECTED' THEN '반려'
+	                ELSE pr.status
+	            END AS status,
+	
+	            pr.created_at
+	        FROM post_report pr
+	        LEFT JOIN community_post cp
+	        ON pr.post_id = cp.post_id
+	        LEFT JOIN member m
+	        ON pr.member_id = m.member_id
+	        ORDER BY pr.created_at DESC
+	    )
+	    WHERE ROWNUM &lt;= 4
+	</select>
 
 
-    <!-- 최근 운영 이슈: 현재 DB 기준 -->
+    <!-- 최근 운영 이슈 -->
     <select id="selectRecentIssues"
             resultMap="recentIssueMap">
         SELECT *
@@ -249,6 +370,7 @@
                     created_at
                 FROM user_inquiry
                 WHERE NVL(status, 'PENDING') = 'PENDING'
+                  AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
 
                 UNION ALL
 
@@ -261,6 +383,7 @@
                     created_at
                 FROM post_report
                 WHERE NVL(status, '접수') IN ('접수', '검토중')
+                  AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
 
                 UNION ALL
 
@@ -276,9 +399,11 @@
                     created_at
                 FROM community_post
                 WHERE category = 'NOTICE'
+                  AND created_at &lt; TRUNC(TO_DATE(#{baseDate}, 'YYYY-MM-DD')) + 1
             )
             ORDER BY created_at DESC
         )
         WHERE ROWNUM &lt;= 4
     </select>
+
 </mapper>
