@@ -1,5 +1,7 @@
 package com.study.app.domains.admin;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +25,7 @@ public class AdminMemberController {
 	}
 
 	// 조건별 회원 목록 조회 (페이징 객체 반환하도록 수정)
-	@GetMapping("") 
+	@GetMapping("")
 	public ResponseEntity<AdminPageResponseDTO> getMembers(AdminMemberDTO.SearchParam params) {
 //		System.out.println("수신된 검색 필터 조건: " + params.toString());
 
@@ -56,6 +58,37 @@ public class AdminMemberController {
 		System.out.println("제재 해제 대상 회원 ID: " + id);
 		adminMemberService.restoreMember(id);
 		return ResponseEntity.ok("회원의 제재 상태가 정상적으로 해제되었습니다.");
+	}
+
+	// 특정 회원의 승인된 신고 이력 상세 조회 API
+	@GetMapping("/{id}/reports")
+	public ResponseEntity<List<AdminMemberDTO.ReportHistoryResponse>> getMemberReportHistory(
+			@PathVariable("id") String id) {
+		System.out.println("신고 내역 증거 조회 대상 회원 ID: " + id);
+
+		List<AdminMemberDTO.ReportHistoryResponse> historyList = adminMemberService.findAcceptReportsByMemberId(id);
+
+		return ResponseEntity.ok(historyList);
+	}
+
+	// 상단 요약 통계 조회 (검색 조건에 영향 받지 않음)
+	@GetMapping("/stats")
+	public ResponseEntity<AdminMemberDTO.MainStats> getMainStats() {
+		return ResponseEntity.ok(adminMemberService.getMainStats());
+	}
+
+	// 회원의 전체 상태 및 가입 정보 + 과거 모든 신고 목록 통합 조회 API
+	@GetMapping("/{id}/detail")
+	public ResponseEntity<AdminMemberDTO.MemberDetailResponse> getMemberDetail(@PathVariable("id") String id) {
+		System.out.println("상세 정보 및 신고 이력 통합 조회 대상 ID: " + id);
+		AdminMemberDTO.MemberDetailResponse detail = adminMemberService.getMemberDetail(id);
+		return ResponseEntity.ok(detail);
+	}
+
+	// 주의 대상 회원 목록 통합 조회 API (조건: 승인된 신고 3회 이상)
+	@GetMapping("/caution")
+	public ResponseEntity<List<AdminMemberDTO.Response>> getCautionMembers() {
+		return ResponseEntity.ok(adminMemberService.getCautionMembers());
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.study.app.domains.admin.dto;
 
+import java.util.List;
+
 public class AdminMemberDTO {
 
 	// 검색 필터 쿼리 파라미터를 담을 바인딩 객체
@@ -24,7 +26,8 @@ public class AdminMemberDTO {
 					+ ", startDate=" + startDate + ", endDate=" + endDate + ", page=" + page + ", size=" + size + "]";
 		}
 
-		public SearchParam() {}
+		public SearchParam() {
+		}
 
 		public SearchParam(String keyword, String role, String status, String sortBy, String startDate, String endDate,
 				int page, int size) {
@@ -286,4 +289,237 @@ public class AdminMemberDTO {
 		}
 	}
 
+	// --------------------------------------------------------
+
+	// 특정 회원의 승인된 '신고 이력' 상세 반환용 DTO
+	public static class ReportHistoryResponse {
+		private String reportType; // POST, COMMENT 등
+		private String reason; // AD_SPAM, ABUSE_SLANDER 등
+		private String adminMemo; // 게시글 관리자가 쓴 메모
+		private String createdAt; // 신고 승인 처리된 날짜
+
+		@Override
+		public String toString() {
+			return "ReportHistoryResponse [reportType=" + reportType + ", reason=" + reason + ", adminMemo=" + adminMemo
+					+ ", createdAt=" + createdAt + "]";
+		}
+
+		public ReportHistoryResponse() {
+		}
+
+		public ReportHistoryResponse(String reportType, String reason, String adminMemo, String createdAt) {
+			super();
+			this.reportType = reportType;
+			this.reason = reason;
+			this.adminMemo = adminMemo;
+			this.createdAt = createdAt;
+		}
+
+		public String getReportType() {
+			return reportType;
+		}
+
+		public void setReportType(String reportType) {
+			this.reportType = reportType;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+
+		public void setReason(String reason) {
+			this.reason = reason;
+		}
+
+		public String getAdminMemo() {
+			return adminMemo;
+		}
+
+		public void setAdminMemo(String adminMemo) {
+			this.adminMemo = adminMemo;
+		}
+
+		public String getCreatedAt() {
+			return createdAt;
+		}
+
+		public void setCreatedAt(String createdAt) {
+			this.createdAt = createdAt;
+		}
+	}
+
+	// -------------------------------------------------
+
+	// 고정되어있는 회원관리 정보
+	public static class MainStats {
+		private long total;
+		private long newToday;
+		private long suspended;
+		private long blacklisted;
+
+		public MainStats() {
+		}
+
+		public MainStats(long total, long newToday, long suspended, long blacklisted) {
+			this.total = total;
+			this.newToday = newToday;
+			this.suspended = suspended;
+			this.blacklisted = blacklisted;
+		}
+
+		public long getTotal() {
+			return total;
+		}
+
+		public void setTotal(long total) {
+			this.total = total;
+		}
+
+		public long getNewToday() {
+			return newToday;
+		}
+
+		public void setNewToday(long newToday) {
+			this.newToday = newToday;
+		}
+
+		public long getSuspended() {
+			return suspended;
+		}
+
+		public void setSuspended(long suspended) {
+			this.suspended = suspended;
+		}
+
+		public long getBlacklisted() {
+			return blacklisted;
+		}
+
+		public void setBlacklisted(long blacklisted) {
+			this.blacklisted = blacklisted;
+		}
+	}
+
+	// --------------------------------------------------------
+
+	// 회원 관리 신고 사유 상세보기
+
+	public static class MemberDetailResponse {
+		private Response memberInfo;
+		private List<ReportItem> reportHistory;
+
+		public MemberDetailResponse() {
+		}
+
+		public MemberDetailResponse(Response memberInfo, List<ReportItem> reportHistory) {
+			this.memberInfo = memberInfo;
+			this.reportHistory = reportHistory;
+		}
+
+		public Response getMemberInfo() {
+			return memberInfo;
+		}
+
+		public void setMemberInfo(Response memberInfo) {
+			this.memberInfo = memberInfo;
+		}
+
+		public List<ReportItem> getReportHistory() {
+			return reportHistory;
+		}
+
+		public void setReportHistory(List<ReportItem> reportHistory) {
+			this.reportHistory = reportHistory;
+		}
+	}
+
+	public static class ReportItem {
+		private Long historyId;
+		private Long reportId; // 원본 신고 번호
+		private String reporterId;
+		private String reportType;
+		private String reason;
+		private String resultStatus;
+		private String adminMemo;
+		private String createdAt;
+
+		public ReportItem() {
+		}
+
+		public ReportItem(Long historyId, Long reportId, String reporterId, String reportType, String reason,
+				String resultStatus, String adminMemo, String createdAt) {
+			this.historyId = historyId;
+			this.reportId = reportId;
+			this.reporterId = reporterId;
+			this.reportType = reportType;
+			this.reason = reason;
+			this.resultStatus = resultStatus;
+			this.adminMemo = adminMemo;
+			this.createdAt = createdAt;
+		}
+
+		public Long getHistoryId() {
+			return historyId;
+		}
+
+		public void setHistoryId(Long historyId) {
+			this.historyId = historyId;
+		}
+
+		public Long getReportId() {
+			return reportId;
+		}
+
+		public void setReportId(Long reportId) {
+			this.reportId = reportId;
+		}
+
+		public String getReporterId() {
+			return reporterId;
+		}
+
+		public void setReporterId(String reporterId) {
+			this.reporterId = reporterId;
+		}
+
+		public String getReportType() {
+			return reportType;
+		}
+
+		public void setReportType(String reportType) {
+			this.reportType = reportType;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+
+		public void setReason(String reason) {
+			this.reason = reason;
+		}
+
+		public String getResultStatus() {
+			return resultStatus;
+		}
+
+		public void setResultStatus(String resultStatus) {
+			this.resultStatus = resultStatus;
+		}
+
+		public String getAdminMemo() {
+			return adminMemo;
+		}
+
+		public void setAdminMemo(String adminMemo) {
+			this.adminMemo = adminMemo;
+		}
+
+		public String getCreatedAt() {
+			return createdAt;
+		}
+
+		public void setCreatedAt(String createdAt) {
+			this.createdAt = createdAt;
+		}
+	}
 }

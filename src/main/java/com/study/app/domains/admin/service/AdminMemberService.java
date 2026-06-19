@@ -2,6 +2,7 @@ package com.study.app.domains.admin.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,5 +52,30 @@ public class AdminMemberService {
 	// 회원 제재 해제 및 복원 처리
 	public void restoreMember(String id) {
 		adminMemberMapper.updateMemberRestore(id);
+	}
+
+	// 특정 회원의 신고 승인 내역 조회
+	public List<AdminMemberDTO.ReportHistoryResponse> findAcceptReportsByMemberId(String id) {
+		return adminMemberMapper.selectAcceptReportsByMemberId(id);
+	}
+
+	// 회원 관리 검색조건 영향X 고정 값
+	@Transactional(readOnly = true)
+	public AdminMemberDTO.MainStats getMainStats() {
+		return adminMemberMapper.selectMainStats();
+	}
+
+	// 회원 관리 신고 내용 상세보기
+	@Transactional(readOnly = true)
+	public AdminMemberDTO.MemberDetailResponse getMemberDetail(String id) {
+		AdminMemberDTO.Response memberInfo = adminMemberMapper.selectMemberInfoById(id);
+		List<AdminMemberDTO.ReportItem> reportHistory = adminMemberMapper.selectAllReportHistoryByMemberId(id);
+		return new AdminMemberDTO.MemberDetailResponse(memberInfo, reportHistory);
+	}
+
+	// 회원 관리 > 신고 횟수 조회
+	@Transactional(readOnly = true)
+	public List<AdminMemberDTO.Response> getCautionMembers() {
+		return adminMemberMapper.selectCautionMembers();
 	}
 }
