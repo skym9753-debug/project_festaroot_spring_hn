@@ -8,10 +8,12 @@ public class PopularFestivalDTO {
     private int views;
     private int likes;
     private String status;
+    private String firstImage;
     
     public PopularFestivalDTO() {}
 
-	public PopularFestivalDTO(int rank, String name, String region, int views, int likes, String status) {
+	public PopularFestivalDTO(int rank, String name, String region, int views, int likes, String status,
+			String firstImage) {
 		super();
 		this.rank = rank;
 		this.name = name;
@@ -19,6 +21,7 @@ public class PopularFestivalDTO {
 		this.views = views;
 		this.likes = likes;
 		this.status = status;
+		this.firstImage = firstImage;
 	}
 
 	public int getRank() {
@@ -68,6 +71,16 @@ public class PopularFestivalDTO {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
+	public String getFirstImage() {
+		return firstImage;
+	}
+
+	public void setFirstImage(String firstImage) {
+		this.firstImage = firstImage;
+	}
+
+	
     
 
 }

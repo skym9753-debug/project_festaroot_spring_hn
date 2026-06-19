@@ -179,6 +179,10 @@ public class MemberService {
 	@Transactional
 	public int signup(MemberDTO memberDTO) {
 
+		// 소셜 회원 여부
+		boolean isSocial = memberDTO.getSocial_provider() != null
+		        && !"LOCAL".equalsIgnoreCase(memberDTO.getSocial_provider());
+
 		// 1. 아이디 중복 체크
 		if (memberDAO.countByMemberId(memberDTO.getMember_id()) > 0) {
 			throw new RuntimeException("이미 사용 중인 아이디입니다.");
@@ -189,16 +193,32 @@ public class MemberService {
 			throw new RuntimeException("이미 사용 중인 닉네임입니다.");
 		}
 
+
 		// 3. 이메일 인증 여부 체크
-		if (!emailService.isEmailVerified(memberDTO.getEmail())) {
-			throw new RuntimeException("이메일 인증을 완료해주세요.");
+		// 일반 회원가입만 이메일 인증 필요
+		if (!isSocial && !emailService.isEmailVerified(memberDTO.getEmail())) {
+		    throw new RuntimeException("이메일 인증을 완료해주세요.");
 		}
 
 		// 4. 비밀번호 암호화
-		memberDTO.setPassword(
-				bCryptPasswordEncoder.encode(memberDTO.getPassword())
-				);
+		if (isSocial) {
+		    // 소셜 회원은 직접 로그인용 비밀번호가 없으므로 더미 비밀번호 저장
+		    String dummyPassword = UUID.randomUUID().toString();
 
+		    memberDTO.setPassword(
+		            bCryptPasswordEncoder.encode(dummyPassword)
+		    );
+		} else {
+		    // 일반 회원은 비밀번호 필수
+		    if (memberDTO.getPassword() == null || memberDTO.getPassword().trim().isEmpty()) {
+		        throw new IllegalArgumentException("비밀번호를 입력해주세요.");
+		    }
+
+		    memberDTO.setPassword(
+		            bCryptPasswordEncoder.encode(memberDTO.getPassword())
+		    );
+		}
+		
 		// 5. 기본값 세팅
 		if (memberDTO.getReside_area_code() == null) {
 			memberDTO.setReside_area_code("0");

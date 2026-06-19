@@ -18,90 +18,97 @@ public class AdminDashboardService {
 	@Autowired
 	private AdminDashboardDAO adminDashboardDAO;
 
-	// 관리자 대시보드 전체 데이터 조회
-	public AdminDashboardDTO getDashboard(String baseDate) {
-		String targetDate = normalizeBaseDate(baseDate);
+    // 관리자 대시보드 전체 데이터 조회
+    public AdminDashboardDTO getDashboard(String baseDate) {
 
-		AdminDashboardDTO dto = new AdminDashboardDTO();
+        // 기준 날짜 정리
+        String targetDate = normalizeBaseDate(baseDate);
 
-		// 상단 요약 통계는 현재 DB 기준
-		dto.setSummary(adminDashboardDAO.selectSummary());
+        AdminDashboardDTO dto = new AdminDashboardDTO();
 
-		// 최근 7일 통계만 선택한 기준일 사용
-		dto.setWeeklyStats(adminDashboardDAO.selectWeeklyStats(targetDate));
+        // 상단 요약 통계
+        dto.setSummary(adminDashboardDAO.selectSummary(targetDate));
 
-		// 축제 상태 통계는 현재 DB 기준
-		List<FestivalStatusStatDTO> festivalStatusStats =
-				adminDashboardDAO.selectFestivalStatusStats();
-		applyFestivalStatusPercent(festivalStatusStats);
-		dto.setFestivalStatusStats(festivalStatusStats);
+        // 최근 7일 통계
+        dto.setWeeklyStats(adminDashboardDAO.selectWeeklyStats(targetDate));
 
-		// 지역별 축제 통계는 현재 DB 기준
-		List<RegionStatDTO> regionStats =
-				adminDashboardDAO.selectRegionStats();
-		applyRegionPercent(regionStats);
-		dto.setRegionStats(regionStats);
+        // 축제 상태 통계
+        List<FestivalStatusStatDTO> festivalStatusStats =
+                adminDashboardDAO.selectFestivalStatusStats(targetDate);
+        applyFestivalStatusPercent(festivalStatusStats);
+        dto.setFestivalStatusStats(festivalStatusStats);
 
-		// 나머지 운영 데이터도 현재 DB 기준
-		dto.setPopularFestivals(adminDashboardDAO.selectPopularFestivals());
-		dto.setRecentReports(adminDashboardDAO.selectRecentReports());
-		dto.setRecentIssues(adminDashboardDAO.selectRecentIssues());
+        // 지역별 축제 통계
+        List<RegionStatDTO> regionStats =
+                adminDashboardDAO.selectRegionStats(targetDate);
+        applyRegionPercent(regionStats);
+        dto.setRegionStats(regionStats);
 
-		return dto;
-	}
+        // 인기 축제
+        dto.setPopularFestivals(adminDashboardDAO.selectPopularFestivals(targetDate));
 
-	// 기준일이 없거나 잘못된 형식이면 오늘 날짜 사용, 미래 날짜도 오늘 날짜로 처리
-	private String normalizeBaseDate(String baseDate) {
-		LocalDate today = LocalDate.now();
+        // 최근 신고
+        dto.setRecentReports(adminDashboardDAO.selectRecentReports(targetDate));
 
-		if (baseDate == null || baseDate.isBlank()) {
-			return today.toString();
-		}
+        // 최근 운영 이슈
+        dto.setRecentIssues(adminDashboardDAO.selectRecentIssues(targetDate));
 
-		try {
-			LocalDate parsedDate = LocalDate.parse(baseDate);
+        return dto;
+    }
 
-			if (parsedDate.isAfter(today)) {
-				return today.toString();
-			}
+    // 기준일이 없거나 잘못된 형식이면 오늘 날짜 사용
+    private String normalizeBaseDate(String baseDate) {
+        LocalDate today = LocalDate.now();
 
-			return parsedDate.toString();
-		} catch (DateTimeParseException e) {
-			return today.toString();
-		}
-	}
+        if (baseDate == null || baseDate.isBlank()) {
+            return today.toString();
+        }
 
-	// 축제 상태별 비율 계산
-	private void applyFestivalStatusPercent(List<FestivalStatusStatDTO> list) {
-		if (list == null || list.isEmpty()) return;
+        try {
+            LocalDate parsedDate = LocalDate.parse(baseDate);
 
-		int total = list.stream()
-				.mapToInt(FestivalStatusStatDTO::getCount)
-				.sum();
+            if (parsedDate.isAfter(today)) {
+                return today.toString();
+            }
 
-		if (total == 0) return;
+            return parsedDate.toString();
 
-		for (FestivalStatusStatDTO item : list) {
-			int percent = (int) Math.round((item.getCount() * 100.0) / total);
-			item.setPercent(percent);
-		}
-	}
+        } catch (DateTimeParseException e) {
+            return today.toString();
+        }
+    }
 
-	// 지역별 통계 비율 계산
-	private void applyRegionPercent(List<RegionStatDTO> list) {
-		if (list == null || list.isEmpty()) return;
+    // 축제 상태별 비율 계산
+    private void applyFestivalStatusPercent(List<FestivalStatusStatDTO> list) {
+        if (list == null || list.isEmpty()) return;
 
-		int max = list.stream()
-				.mapToInt(RegionStatDTO::getCount)
-				.max()
-				.orElse(0);
+        int total = list.stream()
+                .mapToInt(FestivalStatusStatDTO::getCount)
+                .sum();
 
-		if (max == 0) return;
+        if (total == 0) return;
 
-		for (RegionStatDTO item : list) {
-			int percent = (int) Math.round((item.getCount() * 100.0) / max);
-			item.setPercent(percent);
-		}
-	}
+        for (FestivalStatusStatDTO item : list) {
+            int percent = (int) Math.round((item.getCount() * 100.0) / total);
+            item.setPercent(percent);
+        }
+    }
+
+    // 지역별 통계 비율 계산
+    private void applyRegionPercent(List<RegionStatDTO> list) {
+        if (list == null || list.isEmpty()) return;
+
+        int max = list.stream()
+                .mapToInt(RegionStatDTO::getCount)
+                .max()
+                .orElse(0);
+
+        if (max == 0) return;
+
+        for (RegionStatDTO item : list) {
+            int percent = (int) Math.round((item.getCount() * 100.0) / max);
+            item.setPercent(percent);
+        }
+    }
 
 }
