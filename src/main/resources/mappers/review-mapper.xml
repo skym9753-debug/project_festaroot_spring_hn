@@ -163,4 +163,122 @@
         SET report_count = NVL(report_count, 0) + 1
         WHERE review_id = #{review_id}
     </update>
+
+    <select id="countAdminReviews" resultType="int">
+        SELECT COUNT(*)
+        FROM festival_review fr
+        LEFT JOIN member m ON fr.member_id = m.member_id
+        LEFT JOIN festival_info fi ON fr.content_id = fi.content_id
+        <where>
+            <!-- status filter -->
+            <if test="status == 'REPORTED'">
+                AND NVL(fr.report_count, 0) &gt;= 1
+                AND NVL(fr.is_deleted, 'N') = 'N'
+            </if>
+            <if test="status == 'BLOCKED'">
+                AND fr.is_deleted = 'Y'
+            </if>
+            
+            <!-- rating filter -->
+            <if test="rating != null and rating != 'ALL' and rating != ''">
+                AND fr.rating = #{rating}
+            </if>
+            
+            <!-- keyword filter -->
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    fr.content LIKE '%' || #{keyword} || '%'
+                    OR m.nickname LIKE '%' || #{keyword} || '%'
+                    OR TO_CHAR(fr.content_id) LIKE '%' || #{keyword} || '%'
+                    OR fi.title LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAdminReviews" resultType="com.study.app.domains.review.dto.FestivalReviewDTO">
+        SELECT * FROM (
+            SELECT ROWNUM AS rnum, res.* FROM (
+                SELECT
+                    fr.review_id,
+                    fr.content_id,
+                    fr.member_id,
+                    fr.rating,
+                    fr.content,
+                    fr.visit_date,
+                    NVL(fr.report_count, 0) AS report_count,
+                    fr.created_at,
+                    fr.updated_at,
+                    fr.is_deleted,
+                    m.nickname,
+                    fi.title AS festival_title
+                FROM festival_review fr
+                LEFT JOIN member m ON fr.member_id = m.member_id
+                LEFT JOIN festival_info fi ON fr.content_id = fi.content_id
+                <where>
+                    <!-- status filter -->
+                    <if test="status == 'REPORTED'">
+                        AND NVL(fr.report_count, 0) &gt;= 1
+                        AND NVL(fr.is_deleted, 'N') = 'N'
+                    </if>
+                    <if test="status == 'BLOCKED'">
+                        AND fr.is_deleted = 'Y'
+                    </if>
+                    
+                    <!-- rating filter -->
+                    <if test="rating != null and rating != 'ALL' and rating != ''">
+                        AND fr.rating = #{rating}
+                    </if>
+                    
+                    <!-- keyword filter -->
+                    <if test="keyword != null and keyword != ''">
+                        AND (
+                            fr.content LIKE '%' || #{keyword} || '%'
+                            OR m.nickname LIKE '%' || #{keyword} || '%'
+                            OR TO_CHAR(fr.content_id) LIKE '%' || #{keyword} || '%'
+                            OR fi.title LIKE '%' || #{keyword} || '%'
+                        )
+                    </if>
+                </where>
+                ORDER BY fr.created_at DESC
+            ) res
+            WHERE ROWNUM &lt;= #{endRow}
+        )
+        WHERE rnum &gt;= #{startRow}
+    </select>
+
+    <select id="selectReportsByReviewId" resultType="com.study.app.domains.review.dto.ReviewReportDTO">
+        SELECT
+            report_id,
+            review_id,
+            member_id,
+            reason,
+            created_at
+        FROM review_report
+        WHERE review_id = #{review_id}
+        ORDER BY created_at DESC
+    </select>
+
+    <update id="updateReviewStatus">
+        UPDATE festival_review
+        SET is_deleted = #{is_deleted},
+            updated_at = SYSDATE
+        WHERE review_id = #{review_id}
+    </update>
+
+    <update id="dismissReviewReportsCount">
+        UPDATE festival_review
+        SET report_count = 0
+        WHERE review_id = #{review_id}
+    </update>
+
+    <delete id="deleteReportsByReviewId">
+        DELETE FROM review_report
+        WHERE review_id = #{review_id}
+    </delete>
+
+    <delete id="deleteReviewPermanently">
+        DELETE FROM festival_review
+        WHERE review_id = #{review_id}
+    </delete>
 </mapper>

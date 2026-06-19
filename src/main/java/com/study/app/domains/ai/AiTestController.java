@@ -29,6 +29,7 @@ public class AiTestController {
                 "status", "success",
                 "message", "테마 매핑 프로세스가 완료되었습니다. 로그를 확인하세요."
             );
+            
         } catch (Exception e) {
             return Map.of(
                 "status", "error",

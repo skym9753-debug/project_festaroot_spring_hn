@@ -43,6 +43,7 @@ public class AdminFestivalController {
 			response.put("message", "공개 여부가 수정되었습니다.");
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 			response.put("success", false);
 			response.put("message", "수정 중 오류 발생: " + e.getMessage());
 			return ResponseEntity.status(500).body(response);
