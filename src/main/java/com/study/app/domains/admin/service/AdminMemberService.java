@@ -2,6 +2,7 @@ package com.study.app.domains.admin.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,4 +53,9 @@ public class AdminMemberService {
 	public void restoreMember(String id) {
 		adminMemberMapper.updateMemberRestore(id);
 	}
+	
+	// 특정 회원의 신고 승인 내역 조회
+	public List<AdminMemberDTO.ReportHistoryResponse> findAcceptReportsByMemberId(String id) {
+        return adminMemberMapper.selectAcceptReportsByMemberId(id);
+    }
 }

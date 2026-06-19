@@ -1,5 +1,7 @@
 package com.study.app.domains.admin;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +25,7 @@ public class AdminMemberController {
 	}
 
 	// 조건별 회원 목록 조회 (페이징 객체 반환하도록 수정)
-	@GetMapping("") 
+	@GetMapping("")
 	public ResponseEntity<AdminPageResponseDTO> getMembers(AdminMemberDTO.SearchParam params) {
 //		System.out.println("수신된 검색 필터 조건: " + params.toString());
 
@@ -57,5 +59,18 @@ public class AdminMemberController {
 		adminMemberService.restoreMember(id);
 		return ResponseEntity.ok("회원의 제재 상태가 정상적으로 해제되었습니다.");
 	}
+
+	// 특정 회원의 승인된 신고 이력 상세 조회 API
+	@GetMapping("/{id}/reports")
+	public ResponseEntity<List<AdminMemberDTO.ReportHistoryResponse>> getMemberReportHistory(
+			@PathVariable("id") String id) {
+		System.out.println("신고 내역 증거 조회 대상 회원 ID: " + id);
+
+		List<AdminMemberDTO.ReportHistoryResponse> historyList = adminMemberService.findAcceptReportsByMemberId(id);
+
+		return ResponseEntity.ok(historyList);
+	}
+	
+
 
 }

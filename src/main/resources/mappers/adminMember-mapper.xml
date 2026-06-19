@@ -153,5 +153,20 @@
             PROCESSING_RESULT = '제재 해제 복원'
         WHERE MEMBER_ID = #{id}
     </update>
+    
+	<!--특정 회원의 승인된 신고 내역 리스트 호출-->
+    <select id="selectAcceptReportsByMemberId" 
+            parameterType="string" 
+            resultType="com.study.app.domains.admin.dto.AdminMemberDTO$ReportHistoryResponse">
+        SELECT 
+            REPORT_TYPE as reportType,
+            REASON as reason,
+            ADMIN_MEMO as adminMemo,
+            TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI') as createdAt
+        FROM MEMBER_REPORT_HISTORY
+        WHERE TARGET_MEMBER_ID = #{id}
+          AND RESULT_STATUS = 'ACCEPTED'
+        ORDER BY CREATED_AT DESC
+    </select>
 
 </mapper>

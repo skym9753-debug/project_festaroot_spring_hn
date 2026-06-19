@@ -24,7 +24,8 @@ public class AdminMemberDTO {
 					+ ", startDate=" + startDate + ", endDate=" + endDate + ", page=" + page + ", size=" + size + "]";
 		}
 
-		public SearchParam() {}
+		public SearchParam() {
+		}
 
 		public SearchParam(String keyword, String role, String status, String sortBy, String startDate, String endDate,
 				int page, int size) {
@@ -283,6 +284,65 @@ public class AdminMemberDTO {
 
 		public void setSuspensionEndDate(String suspensionEndDate) {
 			this.suspensionEndDate = suspensionEndDate;
+		}
+	}
+
+	// --------------------------------------------------------
+
+	// 특정 회원의 승인된 '신고 이력' 상세 반환용 DTO
+	public static class ReportHistoryResponse {
+		private String reportType; // POST, COMMENT 등
+		private String reason; // AD_SPAM, ABUSE_SLANDER 등
+		private String adminMemo; // 게시글 관리자가 쓴 메모
+		private String createdAt; // 신고 승인 처리된 날짜
+
+		@Override
+		public String toString() {
+			return "ReportHistoryResponse [reportType=" + reportType + ", reason=" + reason + ", adminMemo=" + adminMemo
+					+ ", createdAt=" + createdAt + "]";
+		}
+
+		public ReportHistoryResponse() {
+		}
+
+		public ReportHistoryResponse(String reportType, String reason, String adminMemo, String createdAt) {
+			super();
+			this.reportType = reportType;
+			this.reason = reason;
+			this.adminMemo = adminMemo;
+			this.createdAt = createdAt;
+		}
+
+		public String getReportType() {
+			return reportType;
+		}
+
+		public void setReportType(String reportType) {
+			this.reportType = reportType;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+
+		public void setReason(String reason) {
+			this.reason = reason;
+		}
+
+		public String getAdminMemo() {
+			return adminMemo;
+		}
+
+		public void setAdminMemo(String adminMemo) {
+			this.adminMemo = adminMemo;
+		}
+
+		public String getCreatedAt() {
+			return createdAt;
+		}
+
+		public void setCreatedAt(String createdAt) {
+			this.createdAt = createdAt;
 		}
 	}
 

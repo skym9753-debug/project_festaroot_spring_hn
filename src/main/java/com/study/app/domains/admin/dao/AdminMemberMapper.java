@@ -19,4 +19,7 @@ public interface AdminMemberMapper {
     int updateMemberBlacklist(@Param("id") String id);
 
     int updateMemberRestore(@Param("id") String id);
+    
+    // 특정 회원의 승인된 신고 내역 리스트 호출
+    List<AdminMemberDTO.ReportHistoryResponse> selectAcceptReportsByMemberId(@Param("id") String id);
 }
