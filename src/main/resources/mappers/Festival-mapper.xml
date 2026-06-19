@@ -30,6 +30,7 @@
   		<result property="like_count" column="like_count" />
   		<result property="review_count" column="review_count" />
   		<result property="rating_avg" column="rating_avg" />
+  		<result property="is_visible" column="is_visible" />
   		<collection property="themes" ofType="com.study.app.domains.theme.ThemeMasterDTO">
   			<result property="theme_code" column="theme_code" />
   			<result property="theme_name" column="theme_name" />
@@ -44,6 +45,7 @@
 	    FROM festival_info f
 	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
+	    WHERE NVL(f.is_visible, 'Y') = 'Y'
   	</select>
   	
   	<select id="selectByContentId" resultMap="festivalWithThemesMap">
@@ -55,6 +57,7 @@
 	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code 
 	    WHERE f.content_id = #{content_id}
+	    AND NVL(f.is_visible, 'Y') = 'Y'
   	</select>
   	
 	
@@ -69,6 +72,18 @@
 	LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
 	WHERE f.content_id = #{content_id}
+	AND NVL(f.is_visible, 'Y') = 'Y'
+	</select>
+
+	<select id="getAllFestivalAdmin" resultMap="festivalWithThemesMap">
+		SELECT 
+	        f.*,           
+	        tm.theme_code, 
+	        tm.theme_name  
+	    FROM festival_info f
+	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
+	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
+	    ORDER BY f.created_time DESC
 	</select>
 
   	
@@ -384,7 +399,7 @@
     </select>
 
 
-    <update id="updateFestivalDetail">
+	<update id="updateFestivalDetail">
 	    UPDATE festival_info
 	    SET
 	        overview = #{overview,jdbcType=CLOB},
@@ -395,76 +410,50 @@
 	    WHERE content_id = #{content_id}
 	</update>
 
-  
-	<!-- 축제 정보 update 또는 insert <상세내용 추가> -->
-	<update id="upsertFestival" parameterType="com.study.app.domains.festival.dto.FestivalDTO">
-	    MERGE INTO festival_info f
-	    USING DUAL
-	    ON (f.content_id = #{content_id})
+	<update id="updateVisibility">
+		UPDATE festival_info
+		SET is_visible = #{is_visible}
+		WHERE content_id = #{content_id}
+	</update>
 	
-	    WHEN MATCHED THEN UPDATE SET
-	        f.title              = #{title,jdbcType=VARCHAR},
-	        f.addr1              = #{addr1,jdbcType=VARCHAR},
-	        f.addr2              = #{addr2,jdbcType=VARCHAR},
-	        f.region_code        = #{region_code,jdbcType=VARCHAR},
-	        f.sigungu_code       = #{sigungu_code,jdbcType=VARCHAR},
-	        f.first_image        = #{first_image,jdbcType=VARCHAR},
-	        f.first_image2       = #{first_image2,jdbcType=VARCHAR},
-	        f.map_x              = #{map_x,jdbcType=DOUBLE},
-	        f.map_y              = #{map_y,jdbcType=DOUBLE},
-	        f.map_level          = #{map_level,jdbcType=INTEGER},
-	        f.event_start_date   = #{event_start_date,jdbcType=VARCHAR},
-	        f.event_end_date     = #{event_end_date,jdbcType=VARCHAR},
-	        f.modified_time      = #{modified_time,jdbcType=VARCHAR},
-	        f.overview           = #{overview,jdbcType=CLOB},
-	        f.sponsor1_tel       = #{sponsor1_tel,jdbcType=VARCHAR},
-	        f.homepage           = #{homepage,jdbcType=CLOB},
-	        f.spon_place         = #{spon_place,jdbcType=VARCHAR},
-	        f.use_time_festival  = #{use_time_festival,jdbcType=VARCHAR}
-	
-	    WHEN NOT MATCHED THEN INSERT (
-	        content_id,
-	        title,
-	        addr1,
-	        addr2,
-	        region_code,
-	        sigungu_code,
-	        first_image,
-	        first_image2,
-	        map_x,
-	        map_y,
-	        map_level,
-	        event_start_date,
-	        event_end_date,
-	        created_time,
-	        modified_time,
-	        overview,
-	        sponsor1_tel,
-	        homepage,
-	        spon_place,
-	        use_time_festival
+	<!--upsert 쿼리가 clob처리를 못해서 insert랑 update로 분리함.-->
+	<insert id="insertFestival" parameterType="com.study.app.domains.festival.dto.FestivalDTO">
+	    INSERT INTO festival_info (
+	        content_id, title, addr1, addr2, region_code, sigungu_code,
+	        first_image, first_image2, map_x, map_y, map_level,
+	        event_start_date, event_end_date, created_time, modified_time,
+	        overview, sponsor1_tel, homepage, spon_place, use_time_festival
 	    ) VALUES (
-	        #{content_id,jdbcType=BIGINT},
-	        #{title,jdbcType=VARCHAR},
-	        #{addr1,jdbcType=VARCHAR},
-	        #{addr2,jdbcType=VARCHAR},
-	        #{region_code,jdbcType=VARCHAR},
-	        #{sigungu_code,jdbcType=VARCHAR},
-	        #{first_image,jdbcType=VARCHAR},
-	        #{first_image2,jdbcType=VARCHAR},
-	        #{map_x,jdbcType=DOUBLE},
-	        #{map_y,jdbcType=DOUBLE},
-	        #{map_level,jdbcType=INTEGER},
-	        #{event_start_date,jdbcType=VARCHAR},
-	        #{event_end_date,jdbcType=VARCHAR},
-	        #{created_time,jdbcType=VARCHAR},
-	        #{modified_time,jdbcType=VARCHAR},
-	        #{overview,jdbcType=CLOB},
-	        #{sponsor1_tel,jdbcType=VARCHAR},
-	        #{homepage,jdbcType=CLOB},
-	        #{spon_place,jdbcType=VARCHAR},
-	        #{use_time_festival,jdbcType=VARCHAR}
+	        #{content_id,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, #{addr1,jdbcType=VARCHAR}, #{addr2,jdbcType=VARCHAR},
+	        #{region_code,jdbcType=VARCHAR}, #{sigungu_code,jdbcType=VARCHAR}, #{first_image,jdbcType=VARCHAR}, #{first_image2,jdbcType=VARCHAR},
+	        #{map_x,jdbcType=DOUBLE}, #{map_y,jdbcType=DOUBLE}, #{map_level,jdbcType=INTEGER},
+	        #{event_start_date,jdbcType=VARCHAR}, #{event_end_date,jdbcType=VARCHAR}, #{created_time,jdbcType=VARCHAR}, #{modified_time,jdbcType=VARCHAR},
+	        #{overview,jdbcType=CLOB}, #{sponsor1_tel,jdbcType=VARCHAR}, #{homepage,jdbcType=CLOB}, #{spon_place,jdbcType=VARCHAR}, #{use_time_festival,jdbcType=VARCHAR}
 	    )
+	</insert>
+	
+	<update id="updateFestival" parameterType="com.study.app.domains.festival.dto.FestivalDTO">
+	    UPDATE festival_info
+	    SET
+	        title              = #{title,jdbcType=VARCHAR},
+	        addr1              = #{addr1,jdbcType=VARCHAR},
+	        addr2              = #{addr2,jdbcType=VARCHAR},
+	        region_code        = #{region_code,jdbcType=VARCHAR},
+	        sigungu_code       = #{sigungu_code,jdbcType=VARCHAR},
+	        first_image        = #{first_image,jdbcType=VARCHAR},
+	        first_image2       = #{first_image2,jdbcType=VARCHAR},
+	        map_x              = #{map_x,jdbcType=DOUBLE},
+	        map_y              = #{map_y,jdbcType=DOUBLE},
+	        map_level          = #{map_level,jdbcType=INTEGER},
+	        event_start_date   = #{event_start_date,jdbcType=VARCHAR},
+	        event_end_date     = #{event_end_date,jdbcType=VARCHAR},
+	        modified_time      = #{modified_time,jdbcType=VARCHAR},
+	        overview           = #{overview,jdbcType=CLOB},
+	        sponsor1_tel       = #{sponsor1_tel,jdbcType=VARCHAR},
+	        homepage           = #{homepage,jdbcType=CLOB},
+	        spon_place         = #{spon_place,jdbcType=VARCHAR},
+	        use_time_festival  = #{use_time_festival,jdbcType=VARCHAR}
+	    WHERE content_id = #{content_id}
 	</update>
 	
 

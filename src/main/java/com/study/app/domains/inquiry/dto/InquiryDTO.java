@@ -18,6 +18,8 @@ public class InquiryDTO {
 	private List<MultipartFile> files;
 	private List<InquiryAttachmentDTO> attachments;
 	private List<Long> deleteFileIds;
+	
+	private InquiryAnswerDTO answer;
 
 	public List<Long> getDeleteFileIds() {
 		return deleteFileIds;
@@ -41,6 +43,16 @@ public class InquiryDTO {
 
 	public void setFiles(List<MultipartFile> files) {
 		this.files = files;
+	}
+	
+	
+
+	public InquiryAnswerDTO getAnswer() {
+		return answer;
+	}
+
+	public void setAnswer(InquiryAnswerDTO answer) {
+		this.answer = answer;
 	}
 
 	public InquiryDTO() {}

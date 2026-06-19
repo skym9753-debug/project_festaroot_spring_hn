@@ -1,4 +1,4 @@
-﻿package com.study.app.domains.ai;
+package com.study.app.domains.ai;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

@@ -56,9 +56,14 @@ public class FestivalDAO {
 		return mybatis.selectOne("Festival.selectByContentId", contentId);
 	}
 
-	// 축제 정보 업데이트 또는 추가하는 메서드
-	public int upsertFestival(FestivalDTO dto) {
-		return mybatis.update("Festival.upsertFestival", dto);
+	// 축제 정보 신규 추가
+	public int insertFestival(FestivalDTO dto) {
+	    return mybatis.insert("Festival.insertFestival", dto);
+	}
+
+	// 축제 정보 기존 수정
+	public int updateFestival(FestivalDTO dto) {
+	    return mybatis.update("Festival.updateFestival", dto);
 	}
 
 	// CLOB 타입 업데이트 분리
@@ -149,6 +154,17 @@ public class FestivalDAO {
 	// 인기 축제 조회 (Fallback)
 	public List<Map<String, Object>> getPopularFestivals() {
 		return mybatis.selectList("Festival.selectPopularFestivals");
+	}
+	
+	public List<FestivalDTO> getAllFestivalAdmin(){
+		return mybatis.selectList("Festival.getAllFestivalAdmin");
+	}
+	
+	public int updateVisibility(Long contentId, String isVisible) {
+		java.util.Map<String, Object> params = new java.util.HashMap<>();
+		params.put("content_id", contentId);
+		params.put("is_visible", isVisible);
+		return mybatis.update("Festival.updateVisibility", params);
 	}
 	
 

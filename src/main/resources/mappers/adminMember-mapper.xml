@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.study.app.domains.admin.dao.AdminMemberMapper">
+
+    <resultMap id="memberResponseMap" type="com.study.app.domains.admin.dto.AdminMemberDTO$Response">
+        <id property="id" column="member_id" />
+        <result property="nickname" column="nickname" />
+        <result property="email" column="email" />
+        <result property="role" column="role" />
+        <result property="status" column="status" />
+        <result property="provider" column="provider" />
+        <result property="joinedAt" column="joined_at" />
+        <result property="lastLogin" column="last_login" />
+        <result property="reports" column="reports" />
+        <result property="reportReason" column="report_reason" />
+        <result property="lastReportDate" column="last_report_date" />
+        <result property="resultStatus" column="result_status" />
+        <result property="suspensionEndDate" column="suspension_end_date" />
+    </resultMap>
+    
+    <select id="selectFilteredMembersCount" resultType="long">
+        SELECT COUNT(*)
+        FROM MEMBER m
+        <where>
+        	m.ROLE != 'ADMIN'
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    m.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                    OR m.NICKNAME LIKE '%' || #{keyword} || '%'
+                    OR m.EMAIL LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+            <if test="role != null and role != ''">
+                AND m.ROLE = #{role}
+            </if>
+            <if test="status != null and status != ''">
+                AND m.STATUS = #{status}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND m.CREATED_AT &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND m.CREATED_AT &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1 - 1/86400
+            </if>
+        </where>
+    </select>
+    
+	<select id="selectFilteredMembers" resultMap="memberResponseMap">
+        WITH LatestReports AS (
+            SELECT 
+                TARGET_MEMBER_ID,
+                REASON,
+                RESULT_STATUS,
+                CREATED_AT,
+                ROW_NUMBER() OVER (PARTITION BY TARGET_MEMBER_ID ORDER BY CREATED_AT DESC) as rn
+            FROM MEMBER_REPORT_HISTORY
+        ),
+        ReportStats AS (
+            SELECT 
+                TARGET_MEMBER_ID,
+                COUNT(*) AS REPORT_COUNT,
+                MAX(CREATED_AT) AS LATEST_REPORT_DATE
+            FROM MEMBER_REPORT_HISTORY
+            GROUP BY TARGET_MEMBER_ID
+        ),
+        PagedMembers AS (
+            SELECT 
+                m.MEMBER_ID,
+                m.NICKNAME,
+                m.EMAIL,
+                m.ROLE,
+                m.STATUS,
+                m.SOCIAL_PROVIDER AS provider,
+                TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD HH24:MI') AS joined_at,
+                TO_CHAR(m.LAST_LOGIN, 'YYYY.MM.DD HH24:MI') AS last_login,
+                NVL(s.REPORT_COUNT, 0) AS reports,
+                r.REASON AS report_reason,
+                TO_CHAR(s.LATEST_REPORT_DATE, 'YYYY.MM.DD') AS last_report_date,
+                NVL(r.RESULT_STATUS, '없음') AS result_status,
+                TO_CHAR(m.SUSPENSION_END_DATE, 'YYYY.MM.DD') AS suspension_end_date,
+                ROW_NUMBER() OVER (
+                    <choose>
+                        <when test="sortBy == 'reports'">
+                            ORDER BY NVL(s.REPORT_COUNT, 0) DESC, m.CREATED_AT DESC
+                        </when>
+                        <when test="sortBy == 'lastLogin'">
+                            ORDER BY m.LAST_LOGIN DESC NULLS LAST, m.CREATED_AT DESC
+                        </when>
+                        <when test="sortBy == 'oldest'">
+                            ORDER BY m.CREATED_AT ASC
+                        </when>
+                        <otherwise>
+                            ORDER BY m.CREATED_AT DESC
+                        </otherwise>
+                    </choose>
+                ) AS rnum
+            FROM MEMBER m
+            LEFT JOIN ReportStats s ON m.MEMBER_ID = s.TARGET_MEMBER_ID
+            LEFT JOIN LatestReports r ON m.MEMBER_ID = r.TARGET_MEMBER_ID AND r.rn = 1                                           
+            
+            <where>
+            	m.ROLE != 'ADMIN'
+                <if test="keyword != null and keyword != ''">
+                    AND (
+                        m.MEMBER_ID LIKE '%' || #{keyword} || '%'
+                        OR m.NICKNAME LIKE '%' || #{keyword} || '%'
+                        OR m.EMAIL LIKE '%' || #{keyword} || '%'
+                    )
+                </if>
+                <if test="role != null and role != ''">
+                    AND m.ROLE = #{role}
+                </if>
+                <if test="status != null and status != ''">
+                    AND m.STATUS = #{status}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND m.CREATED_AT &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND m.CREATED_AT &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1 - 1/86400
+                </if>
+            </where>
+        )
+        SELECT * FROM PagedMembers
+        WHERE rnum &gt; #{offset} AND rnum &lt;= #{offset} + #{size}
+    </select>
+
+    <update id="updateMemberSuspension">
+        UPDATE MEMBER
+        SET 
+            STATUS = 'SUSPENDED',
+            SUSPENSION_END_DATE = SYSDATE + #{days},
+            PROCESSING_RESULT = #{days} || '일 정지 처분'
+        WHERE MEMBER_ID = #{id}
+    </update>
+
+    <update id="updateMemberBlacklist">
+        UPDATE MEMBER
+        SET 
+            STATUS = 'BLACKLISTED',
+            SUSPENSION_END_DATE = TO_DATE('9999-12-31', 'YYYY-MM-DD'),
+            PROCESSING_RESULT = '영구 정지 처분'
+        WHERE MEMBER_ID = #{id}
+    </update>
+
+    <update id="updateMemberRestore">
+        UPDATE MEMBER
+        SET 
+            STATUS = 'ACTIVE',
+            SUSPENSION_END_DATE = NULL,
+            PROCESSING_RESULT = '제재 해제 복원'
+        WHERE MEMBER_ID = #{id}
+    </update>
+
+</mapper>
