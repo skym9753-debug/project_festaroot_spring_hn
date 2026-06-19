@@ -1,6 +1,6 @@
 package com.study.app.domains.board.service;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,25 +93,26 @@ public class BoardService {
 
 	public void deletePost(Long id) {
 		
-	    // 0. 게시글 조회 (본문 이미지 삭제를 위해)
-	    CommunityPostDTO post = postDAO.selectById(id);
-	    if (post != null) {
-	        // 본문 내 이미지 삭제
-	        uploadService.deleteImagesFromContent(post.getContent());
-	    }
+//	    // 0. 게시글 조회 (본문 이미지 삭제를 위해)
+//	    CommunityPostDTO post = postDAO.selectById(id);
+//	    if (post != null) {
+//	        // 본문 내 이미지 삭제
+//	        uploadService.deleteImagesFromContent(post.getContent());
+//	    }
+//		
+//	    // 1. 게시글 첨부파일 조회
+//	    List<PostAttachmentDTO> attachments = fileDAO.selectPostAttachByPostId(id);
+//
+//	    // 2. GCP Storage 실제 파일 삭제
+//	    for (PostAttachmentDTO file : attachments) {
+//	        if (file.getFile_path() != null) {
+//	            uploadService.deleteFile(file.getFile_path());
+//	        }
+//	    }
+//
+//	    // 3. 첨부파일 DB 삭제
 		
-	    // 1. 게시글 첨부파일 조회
-	    List<PostAttachmentDTO> attachments = fileDAO.selectPostAttachByPostId(id);
 
-	    // 2. GCP Storage 실제 파일 삭제
-	    for (PostAttachmentDTO file : attachments) {
-	        if (file.getFile_path() != null) {
-	            uploadService.deleteFile(file.getFile_path());
-	        }
-	    }
-
-	    // 3. 첨부파일 DB 삭제
-	    fileDAO.deletePostAttachByPostId(id);
 	    
 		postDAO.deletePostById(id);
 		
