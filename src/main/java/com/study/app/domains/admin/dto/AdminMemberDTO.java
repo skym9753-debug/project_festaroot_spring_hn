@@ -346,4 +346,56 @@ public class AdminMemberDTO {
 		}
 	}
 
+	// -------------------------------------------------
+
+	// 고정되어있는 회원관리 정보
+	public static class MainStats {
+		private long total;
+		private long newToday;
+		private long suspended;
+		private long blacklisted;
+
+		public MainStats() {
+		}
+
+		public MainStats(long total, long newToday, long suspended, long blacklisted) {
+			this.total = total;
+			this.newToday = newToday;
+			this.suspended = suspended;
+			this.blacklisted = blacklisted;
+		}
+
+		public long getTotal() {
+			return total;
+		}
+
+		public void setTotal(long total) {
+			this.total = total;
+		}
+
+		public long getNewToday() {
+			return newToday;
+		}
+
+		public void setNewToday(long newToday) {
+			this.newToday = newToday;
+		}
+
+		public long getSuspended() {
+			return suspended;
+		}
+
+		public void setSuspended(long suspended) {
+			this.suspended = suspended;
+		}
+
+		public long getBlacklisted() {
+			return blacklisted;
+		}
+
+		public void setBlacklisted(long blacklisted) {
+			this.blacklisted = blacklisted;
+		}
+	}
+
 }

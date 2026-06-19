@@ -168,5 +168,14 @@
           AND RESULT_STATUS = 'ACCEPTED'
         ORDER BY CREATED_AT DESC
     </select>
+    
+    <select id="selectMainStats" resultType="com.study.app.domains.admin.dto.AdminMemberDTO$MainStats">
+	    SELECT 
+	        COUNT(CASE WHEN ROLE != 'ADMIN' THEN 1 END) as total,
+	        COUNT(CASE WHEN ROLE != 'ADMIN' AND TRUNC(CREATED_AT) = TRUNC(SYSDATE) THEN 1 END) as newToday,
+	        COUNT(CASE WHEN ROLE != 'ADMIN' AND STATUS = 'SUSPENDED' THEN 1 END) as suspended,
+	        COUNT(CASE WHEN ROLE != 'ADMIN' AND STATUS = 'BLACKLISTED' THEN 1 END) as blacklisted
+	    FROM MEMBER
+	</select>
 
 </mapper>

@@ -70,7 +70,11 @@ public class AdminMemberController {
 
 		return ResponseEntity.ok(historyList);
 	}
-	
 
+	// 상단 요약 통계 조회 (검색 조건에 영향 받지 않음)
+	@GetMapping("/stats")
+	public ResponseEntity<AdminMemberDTO.MainStats> getMainStats() {
+		return ResponseEntity.ok(adminMemberService.getMainStats());
+	}
 
 }

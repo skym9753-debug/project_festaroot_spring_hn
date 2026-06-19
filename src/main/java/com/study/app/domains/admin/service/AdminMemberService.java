@@ -53,9 +53,15 @@ public class AdminMemberService {
 	public void restoreMember(String id) {
 		adminMemberMapper.updateMemberRestore(id);
 	}
-	
+
 	// 특정 회원의 신고 승인 내역 조회
 	public List<AdminMemberDTO.ReportHistoryResponse> findAcceptReportsByMemberId(String id) {
-        return adminMemberMapper.selectAcceptReportsByMemberId(id);
-    }
+		return adminMemberMapper.selectAcceptReportsByMemberId(id);
+	}
+
+	// 회원 관리 검색조건 영향X 고정 값
+	@Transactional(readOnly = true)
+	public AdminMemberDTO.MainStats getMainStats() {
+		return adminMemberMapper.selectMainStats();
+	}
 }
