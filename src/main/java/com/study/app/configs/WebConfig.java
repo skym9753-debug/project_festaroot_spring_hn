@@ -35,7 +35,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/festivals/detail/**", // 축제 상세 조회
                         "/api/terms", // 회원가입 약관 동의
                         "/api/festivals/**", // 1번에서 저격한 주소 외의 모든 축제 API는 토큰 없이 패스
-                        "/api/gathering/**"  
+                        "/api/gathering/**",
+                        "/api/ai/run-theme-mapping"
                 );   
     }
 }

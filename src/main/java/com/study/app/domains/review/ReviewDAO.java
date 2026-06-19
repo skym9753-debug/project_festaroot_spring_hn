@@ -17,6 +17,14 @@ public class ReviewDAO {
 	@Autowired
     private SqlSessionTemplate mybatis;
 
+    public int countAdminReviews(java.util.Map<String, Object> params) {
+        return mybatis.selectOne("Review.countAdminReviews", params);
+    }
+
+    public List<com.study.app.domains.review.dto.FestivalReviewDTO> selectAdminReviews(java.util.Map<String, Object> params) {
+        return mybatis.selectList("Review.selectAdminReviews", params);
+    }
+
     public List<FestivalReviewDTO> selectReviews(Long content_id, String sortType) {
         HashMap<String, Object> params = new HashMap<>();
         params.put("content_id", content_id);
@@ -71,5 +79,28 @@ public class ReviewDAO {
 
     public int increaseReportCount(Long review_id) {
         return mybatis.update("Review.increaseReportCount", review_id);
+    }
+
+    public List<ReviewReportDTO> selectReportsByReviewId(Long review_id) {
+        return mybatis.selectList("Review.selectReportsByReviewId", review_id);
+    }
+
+    public int updateReviewStatus(Long reviewId, String isDeleted) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("review_id", reviewId);
+        params.put("is_deleted", isDeleted);
+        return mybatis.update("Review.updateReviewStatus", params);
+    }
+
+    public int dismissReviewReportsCount(Long reviewId) {
+        return mybatis.update("Review.dismissReviewReportsCount", reviewId);
+    }
+
+    public int deleteReportsByReviewId(Long reviewId) {
+        return mybatis.delete("Review.deleteReportsByReviewId", reviewId);
+    }
+
+    public int deleteReviewPermanently(Long reviewId) {
+        return mybatis.delete("Review.deleteReviewPermanently", reviewId);
     }
 }

@@ -24,7 +24,9 @@ public class FestivalReviewDTO {
 
     // 추가 조회용
     private String nickname;
+    private String festival_title;
     private List<FestivalReviewImageDTO> images;
+    private List<ReviewReportDTO> reports;
 
     public FestivalReviewDTO() {}
 
@@ -141,6 +143,20 @@ public class FestivalReviewDTO {
 	public void setImages(List<FestivalReviewImageDTO> images) {
 		this.images = images;
 	}
-    
 
+	public String getFestival_title() {
+		return festival_title;
+	}
+
+	public void setFestival_title(String festival_title) {
+		this.festival_title = festival_title;
+	}
+
+	public List<ReviewReportDTO> getReports() {
+		return reports;
+	}
+
+	public void setReports(List<ReviewReportDTO> reports) {
+		this.reports = reports;
+	}
 }
