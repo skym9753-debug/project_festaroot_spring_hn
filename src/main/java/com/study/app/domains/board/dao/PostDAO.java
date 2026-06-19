@@ -1,5 +1,6 @@
 package com.study.app.domains.board.dao;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,8 +43,11 @@ public class PostDAO {
 	public int increaseViewCount(Long post_id) {
 	    return mybatis.update("Board.increaseViewCount", post_id);
 	}
-	public void deletePostById(Long id) {
-		mybatis.delete("Board.deletePostById", id);
+	public int deletePostById(Long id) {
+		System.out.println(id);
+		int result = mybatis.update("Board.hidePostById", id); // COMMUTITY_POST 테이블 IS_VISIBLE 변수 추가, 삭제해도 DB 유지
+		System.out.println(result);
+		return result;
 	}
 	
 	public int increaseReportCount(Long post_id) {
