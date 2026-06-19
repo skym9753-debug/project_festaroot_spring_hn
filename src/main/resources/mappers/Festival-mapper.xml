@@ -139,6 +139,7 @@
             FROM festival_info
             WHERE addr1 LIKE '%' || #{region} || '%'
             AND overview IS NOT NULL
+            AND NVL(is_visible, 'Y') = 'Y'
             ORDER BY modified_time DESC
         )
         WHERE ROWNUM &lt;= 20
@@ -149,6 +150,7 @@
         SELECT content_id, title, addr1, first_image, event_start_date, event_end_date, overview
         FROM festival_info
         WHERE content_id = #{content_id}
+          AND NVL(is_visible, 'Y') = 'Y'
     </select>
 
     <!-- 관심 테마 기반 축제 조회 (추천 후보용) -->
@@ -165,6 +167,7 @@
                 </foreach>
             )
             AND f.overview IS NOT NULL
+            AND NVL(f.is_visible, 'Y') = 'Y'
             ORDER BY f.modified_time DESC
         )
         WHERE ROWNUM &lt;= 20
@@ -176,6 +179,7 @@
             SELECT f.content_id, f.title, f.overview, f.first_image
             FROM festival_info f
             WHERE f.overview IS NOT NULL
+            AND NVL(f.is_visible, 'Y') = 'Y'
             ORDER BY f.modified_time DESC
         )
         WHERE ROWNUM &lt;= 10

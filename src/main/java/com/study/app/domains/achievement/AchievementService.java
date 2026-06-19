@@ -25,6 +25,9 @@ public class AchievementService {
     private AchievementDAO achievementDAO;
 
     @Autowired
+    private com.study.app.domains.member.MemberDAO memberDAO;
+
+    @Autowired
     private com.study.app.domains.notification.NotificationService notificationService;
 
     /**
@@ -83,6 +86,15 @@ public class AchievementService {
      */
     @Transactional
     public List<AchievementResultDTO> addActivityExp(String memberId, ActivityType type) {
+        // 관리자(admin) 권한은 경험치 및 업적 보상 지급 제외
+        if (memberId != null) {
+            com.study.app.domains.member.dto.MemberDTO member = memberDAO.selectMemberById(memberId);
+            if (member != null && "admin".equalsIgnoreCase(member.getRole())) {
+                log.info("관리자 권한으로 경험치 및 업적 보상 제외 처리 - 유저: {}", memberId);
+                return new ArrayList<>();
+            }
+        }
+
         log.info("활동 경험치 지급 - 유저: {}, 활동: {}, 점수: {}", memberId, type, type.getExp());
         
         List<AchievementResultDTO> results = new ArrayList<>();

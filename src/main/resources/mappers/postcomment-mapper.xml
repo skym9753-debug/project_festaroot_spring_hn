@@ -44,7 +44,7 @@
 	    FROM POST_COMMENT pc
 	    LEFT JOIN MEMBER m
 	        ON pc.member_id = m.member_id
-	    WHERE pc.post_id = #{post_id}
+	    WHERE pc.post_id = #{post_id} and pc.is_visible = 'Y'
 	    ORDER BY
 	        NVL(pc.parent_comment_id, pc.comment_id),
 	        pc.created_at
@@ -61,17 +61,20 @@
     </update>
     
     <!-- 대댓글 삭제 -->
-    <delete id="deleteChildComments">
-    DELETE FROM POST_COMMENT
+    <update id="hideChildComments">
+    	UPDATE POST_COMMENT
+        	SET IS_VISIBLE = 'N',
+        		UPDATED_AT = SYSDATE
     WHERE parent_comment_id = #{comment_id}
-	</delete>
+	</update>
 
     <!-- 댓글 삭제 -->
-    <delete id="deleteComment">
-        DELETE FROM POST_COMMENT
+    <update id="hideComment">
+        UPDATE POST_COMMENT
+        	SET IS_VISIBLE = 'N',
+        		UPDATED_AT = SYSDATE
         WHERE comment_id = #{comment_id}
-          AND member_id = #{member_id}
-    </delete>
+    </update>
 
     <!-- 특정 댓글 조회 -->
     <select id="selectCommentById" resultType="com.study.app.domains.board.dto.PostCommentDTO">
@@ -79,7 +82,7 @@
     </select>
 	
 	<select id="getMyCommentCount" resultType="int">
-		select count(*) from POST_COMMENT where member_id = #{member_id}
+		select count(*) from POST_COMMENT where member_id = #{member_id} and is_visible = 'Y'
 	</select>
 
 </mapper>

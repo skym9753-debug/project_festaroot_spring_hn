@@ -106,6 +106,7 @@
             where cp.category = ?
         -->
         <where>
+        	cp.is_visible='Y'
 
             <!--
                 카테고리 필터 조건
@@ -113,6 +114,7 @@
                 category가 all이면 전체게시판이므로 조건을 걸지 않습니다.
                 category가 free/review/tip/notice이면 해당 카테고리만 조회합니다.
             -->
+           
             <if test="category != null and category != 'all'">
                 and cp.category = #{category}
             </if>
@@ -255,7 +257,8 @@
                 카테고리, 검색 조건을 동적으로 붙이는 영역
             -->
             <where>
-
+				cp.is_visible='Y'
+				
                 <!--
                     카테고리별 조회 조건
 
@@ -338,7 +341,7 @@
         from community_post cp
         left join member m
         on cp.member_id = m.member_id
-        where cp.post_id = #{id}
+        where cp.post_id = #{id} and cp.is_visible='Y'
     </select>
 
 
@@ -374,10 +377,12 @@
         먼저 자식 데이터를 삭제하거나
         DB에 ON DELETE CASCADE 설정이 필요할 수 있습니다.
     -->
-    <delete id="deletePostById">
-        delete from community_post
-        where post_id = #{id}
-    </delete>
+	<update id="hidePostById">
+		UPDATE COMMUNITY_POST
+		SET IS_VISIBLE = 'N'
+		WHERE POST_ID = #{id}
+		  AND IS_VISIBLE = 'Y'
+	</update>
 
 
     <!--
@@ -415,10 +420,10 @@
     
     
     <select id="getMyPostCount" resultType="int">
-    		select count(*) from community_post where member_id = #{memberId}
+    		select count(*) from community_post where member_id = #{memberId} and is_visible = 'Y'
     </select>
 	
 	<select id="getMypostList" resultType="com.study.app.domains.board.dto.CommunityPostDTO">
-		select * from community_post where member_id = #{memberId} order by post_id desc
+		select * from community_post where member_id = #{memberId} and is_visible = 'Y' order by post_id desc
 	</select>
 </mapper>
