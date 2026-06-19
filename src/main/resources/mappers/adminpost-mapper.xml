@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AdminPost">
+
+    <!-- 공통 게시글 검색 조건 -->
+    <sql id="postSearchCondition">
+        <where>
+            <if test="category != null
+                      and category != ''
+                      and category != 'all'">
+                AND LOWER(p.CATEGORY) = LOWER(#{category})
+            </if>
+
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="searchType == 'author'">
+                        AND LOWER(p.MEMBER_ID)
+                            LIKE '%' || LOWER(#{keyword}) || '%'
+                    </when>
+
+                    <when test="searchType == 'id'">
+                        AND (
+                            TO_CHAR(p.POST_ID)
+                                LIKE '%' || #{keyword} || '%'
+
+                            OR UPPER(
+                                'POST-' ||
+                                LPAD(TO_CHAR(p.POST_ID), 3, '0')
+                            )
+                                LIKE '%' || UPPER(#{keyword}) || '%'
+                        )
+                    </when>
+
+                    <otherwise>
+                        AND LOWER(p.TITLE)
+                            LIKE '%' || LOWER(#{keyword}) || '%'
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <!-- 상단 요약 카드 -->
+    <select id="selectSummary" resultType="hashmap">
+        SELECT
+            (
+                SELECT COUNT(*)
+                FROM COMMUNITY_POST
+            ) AS "total",
+
+            (
+                SELECT COUNT(*)
+                FROM COMMUNITY_POST
+                WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE)
+            ) AS "today",
+
+            (
+                SELECT COUNT(DISTINCT POST_ID)
+                FROM POST_REPORT
+            ) AS "reportedPostCount",
+
+            (
+                SELECT COUNT(*)
+                FROM POST_REPORT
+                WHERE STATUS = 'WAITING'
+            ) AS "pendingReportCount"
+
+        FROM DUAL
+    </select>
+
+    <!-- 전체 게시글 개수 -->
+    <select id="countPosts"
+            parameterType="map"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM COMMUNITY_POST p
+
+        <include refid="postSearchCondition"/>
+    </select>
+
+    <!-- 전체 게시글 목록 -->
+    <select id="selectPosts"
+            parameterType="map"
+            resultType="com.study.app.domains.admin.dto.AdminPostDTO">
+
+        SELECT *
+        FROM (
+            SELECT
+                p.POST_ID AS "postId",
+
+                'POST-' ||
+                LPAD(TO_CHAR(p.POST_ID), 3, '0')
+                    AS "postCode",
+
+                p.TITLE AS "title",
+                LOWER(p.CATEGORY) AS "category",
+                p.MEMBER_ID AS "author",
+
+                TO_CHAR(
+                    p.CREATED_AT,
+                    'YYYY.MM.DD HH24:MI'
+                ) AS "createdAt",
+
+                NVL(p.VIEW_COUNT, 0) AS "views",
+                NVL(c.COMMENT_COUNT, 0) AS "comments",
+
+                NVL(a.IMAGE_COUNT, 0) AS "imageCount",
+                NVL(a.FILE_COUNT, 0) AS "fileCount",
+
+                NVL(r.REPORT_COUNT, 0) AS "reportCount",
+                NVL(r.PENDING_REPORT_COUNT, 0)
+                    AS "pendingReportCount",
+
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        p.CREATED_AT DESC,
+                        p.POST_ID DESC
+                ) AS RN
+
+            FROM COMMUNITY_POST p
+
+            LEFT JOIN (
+                SELECT
+                    POST_ID,
+                    COUNT(*) AS COMMENT_COUNT
+                FROM POST_COMMENT
+                GROUP BY POST_ID
+            ) c
+                ON c.POST_ID = p.POST_ID
+
+            LEFT JOIN (
+                SELECT
+                    POST_ID,
+
+                    SUM(
+                        CASE
+                            WHEN UPPER(FILE_TYPE) = 'IMAGE'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) AS IMAGE_COUNT,
+
+                    SUM(
+                        CASE
+                            WHEN UPPER(FILE_TYPE) = 'ATTACH'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) AS FILE_COUNT
+
+                FROM POST_ATTACHMENT
+                GROUP BY POST_ID
+            ) a
+                ON a.POST_ID = p.POST_ID
+
+            LEFT JOIN (
+                SELECT
+                    POST_ID,
+                    COUNT(*) AS REPORT_COUNT,
+
+                    SUM(
+                        CASE
+                            WHEN STATUS = 'WAITING'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) AS PENDING_REPORT_COUNT
+
+                FROM POST_REPORT
+                GROUP BY POST_ID
+            ) r
+                ON r.POST_ID = p.POST_ID
+
+            <include refid="postSearchCondition"/>
+        )
+
+        WHERE RN BETWEEN #{startRow} AND #{endRow}
+    </select>
+
+    <!-- 처리 대기 신고 개수 -->
+    <select id="countWaitingReports"
+            resultType="int">
+
+        SELECT COUNT(*)
+        FROM POST_REPORT
+        WHERE STATUS = 'WAITING'
+    </select>
+
+    <!-- 처리 대기 신고 목록 -->
+    <select id="selectWaitingReports"
+            parameterType="map"
+            resultType="com.study.app.domains.board.dto.PostReportDTO">
+
+        SELECT *
+        FROM (
+            SELECT
+                r.REPORT_ID AS report_id,
+                r.POST_ID AS post_id,
+                r.MEMBER_ID AS member_id,
+                r.REASON AS reason,
+
+                r.CREATED_AT AS created_at,
+
+                TO_CHAR(
+                    r.CREATED_AT,
+                    'YYYY.MM.DD HH24:MI'
+                ) AS created_at_text,
+
+                r.STATUS AS status,
+
+                p.TITLE AS post_title,
+                LOWER(p.CATEGORY) AS post_category,
+
+                NVL(rc.POST_REPORT_COUNT, 0)
+                    AS post_report_count,
+
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        r.CREATED_AT DESC,
+                        r.REPORT_ID DESC
+                ) AS RN
+
+            FROM POST_REPORT r
+
+            JOIN COMMUNITY_POST p
+                ON p.POST_ID = r.POST_ID
+
+            LEFT JOIN (
+                SELECT
+                    POST_ID,
+                    COUNT(*) AS POST_REPORT_COUNT
+                FROM POST_REPORT
+                GROUP BY POST_ID
+            ) rc
+                ON rc.POST_ID = r.POST_ID
+
+            WHERE r.STATUS = 'WAITING'
+        )
+
+        WHERE RN BETWEEN #{startRow} AND #{endRow}
+    </select>
+
+    <!-- 게시글 상세 -->
+    <select id="selectPostDetail"
+            parameterType="long"
+            resultType="com.study.app.domains.admin.dto.AdminPostDTO">
+
+        SELECT
+            p.POST_ID AS "postId",
+
+            'POST-' ||
+            LPAD(TO_CHAR(p.POST_ID), 3, '0')
+                AS "postCode",
+
+            p.TITLE AS "title",
+            LOWER(p.CATEGORY) AS "category",
+            p.MEMBER_ID AS "author",
+            p.CONTENT AS "content",
+
+            TO_CHAR(
+                p.CREATED_AT,
+                'YYYY.MM.DD HH24:MI'
+            ) AS "createdAt",
+
+            NVL(p.VIEW_COUNT, 0) AS "views",
+            NVL(c.COMMENT_COUNT, 0) AS "comments",
+
+            NVL(a.IMAGE_COUNT, 0) AS "imageCount",
+            NVL(a.FILE_COUNT, 0) AS "fileCount",
+
+            NVL(r.REPORT_COUNT, 0) AS "reportCount",
+            NVL(r.PENDING_REPORT_COUNT, 0)
+                AS "pendingReportCount"
+
+        FROM COMMUNITY_POST p
+
+        LEFT JOIN (
+            SELECT
+                POST_ID,
+                COUNT(*) AS COMMENT_COUNT
+            FROM POST_COMMENT
+            GROUP BY POST_ID
+        ) c
+            ON c.POST_ID = p.POST_ID
+
+        LEFT JOIN (
+            SELECT
+                POST_ID,
+
+                SUM(
+                    CASE
+                        WHEN UPPER(FILE_TYPE) = 'IMAGE'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS IMAGE_COUNT,
+
+                SUM(
+                    CASE
+                        WHEN UPPER(FILE_TYPE) = 'ATTACH'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS FILE_COUNT
+
+            FROM POST_ATTACHMENT
+            GROUP BY POST_ID
+        ) a
+            ON a.POST_ID = p.POST_ID
+
+        LEFT JOIN (
+            SELECT
+                POST_ID,
+                COUNT(*) AS REPORT_COUNT,
+
+                SUM(
+                    CASE
+                        WHEN STATUS = 'WAITING'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS PENDING_REPORT_COUNT
+
+            FROM POST_REPORT
+            GROUP BY POST_ID
+        ) r
+            ON r.POST_ID = p.POST_ID
+
+        WHERE p.POST_ID = #{postId}
+    </select>
+
+    <!-- 게시글별 신고 내역 -->
+    <select id="selectReportsByPostId"
+            parameterType="long"
+            resultType="com.study.app.domains.board.dto.PostReportDTO">
+
+        SELECT
+            r.REPORT_ID AS report_id,
+            r.POST_ID AS post_id,
+            r.MEMBER_ID AS member_id,
+            r.REASON AS reason,
+
+            r.CREATED_AT AS created_at,
+
+            TO_CHAR(
+                r.CREATED_AT,
+                'YYYY.MM.DD HH24:MI'
+            ) AS created_at_text,
+
+            NVL(r.STATUS, 'WAITING') AS status,
+
+            h.ADMIN_MEMO AS admin_memo,
+
+            TO_CHAR(
+                h.CREATED_AT,
+                'YYYY.MM.DD HH24:MI'
+            ) AS processed_at
+
+        FROM POST_REPORT r
+
+        LEFT JOIN (
+            SELECT
+                HISTORY_ID,
+                REPORT_ID,
+                TARGET_ID,
+                ADMIN_MEMO,
+                CREATED_AT
+
+            FROM (
+                SELECT
+                    mrh.*,
+
+                    ROW_NUMBER() OVER (
+                        PARTITION BY
+                            mrh.REPORT_TYPE,
+                            mrh.REPORT_ID,
+                            mrh.TARGET_ID
+
+                        ORDER BY
+                            mrh.CREATED_AT DESC,
+                            mrh.HISTORY_ID DESC
+                    ) AS RN
+
+                FROM MEMBER_REPORT_HISTORY mrh
+
+                WHERE mrh.REPORT_TYPE = 'POST'
+            )
+
+            WHERE RN = 1
+        ) h
+            ON h.REPORT_ID = r.REPORT_ID
+           AND h.TARGET_ID = r.POST_ID
+
+        WHERE r.POST_ID = #{postId}
+
+        ORDER BY
+            CASE
+                WHEN r.STATUS = 'WAITING' THEN 0
+                ELSE 1
+            END,
+            r.CREATED_AT DESC,
+            r.REPORT_ID DESC
+    </select>
+
+    <!-- 첨부 자료 -->
+    <select id="selectAttachmentsByPostId"
+            parameterType="long"
+            resultType="com.study.app.domains.board.dto.PostAttachmentDTO">
+
+        SELECT
+            ATTACH_ID AS attach_id,
+            POST_ID AS post_id,
+            FILE_NAME AS file_name,
+            FILE_PATH AS file_path,
+            FILE_SIZE AS file_size,
+            FILE_TYPE AS file_type
+
+        FROM POST_ATTACHMENT
+
+        WHERE POST_ID = #{postId}
+
+        ORDER BY ATTACH_ID
+    </select>
+
+    <!--
+        HISTORY_ID를 MAX + 1로 생성하기 위한 잠금.
+        별도 sequence가 없기 때문에 사용.
+    -->
+    <update id="lockHistoryTable">
+        LOCK TABLE MEMBER_REPORT_HISTORY
+        IN EXCLUSIVE MODE
+    </update>
+
+    <!-- 선택한 신고 1건 상태 변경 -->
+    <update id="updateReportStatus"
+            parameterType="map">
+
+        UPDATE POST_REPORT
+
+        SET STATUS = #{resultStatus}
+
+        WHERE POST_ID = #{postId}
+          AND REPORT_ID = #{reportId}
+          AND STATUS = 'WAITING'
+    </update>
+
+    <!-- 신고 처리 이력 -->
+    <insert id="insertReportHistory"
+            parameterType="map">
+
+        INSERT INTO MEMBER_REPORT_HISTORY (
+            HISTORY_ID,
+            TARGET_MEMBER_ID,
+            REPORTER_MEMBER_ID,
+            REPORT_TYPE,
+            REPORT_ID,
+            TARGET_ID,
+            REASON,
+            RESULT_STATUS,
+            ADMIN_MEMO,
+            CREATED_AT
+        )
+
+        SELECT
+            (
+                SELECT NVL(MAX(HISTORY_ID), 0) + 1
+                FROM MEMBER_REPORT_HISTORY
+            ),
+
+            p.MEMBER_ID,
+            r.MEMBER_ID,
+            'POST',
+            r.REPORT_ID,
+            r.POST_ID,
+            r.REASON,
+            #{resultStatus},
+            #{adminMemo},
+            SYSDATE
+
+        FROM POST_REPORT r
+
+        JOIN COMMUNITY_POST p
+            ON p.POST_ID = r.POST_ID
+
+        WHERE r.POST_ID = #{postId}
+          AND r.REPORT_ID = #{reportId}
+          AND r.STATUS = #{resultStatus}
+    </insert>
+
+    <!-- 첨부파일 실제 삭제용 경로 -->
+    <select id="selectAttachmentPathsByPostId"
+            parameterType="long"
+            resultType="string">
+
+        SELECT FILE_PATH
+
+        FROM POST_ATTACHMENT
+
+        WHERE POST_ID = #{postId}
+    </select>
+
+    <!-- 댓글 신고 삭제 -->
+    <delete id="deleteCommentReportsByPostId"
+            parameterType="long">
+
+        DELETE FROM COMMENT_REPORT
+
+        WHERE COMMENT_ID IN (
+            SELECT COMMENT_ID
+            FROM POST_COMMENT
+            WHERE POST_ID = #{postId}
+        )
+    </delete>
+
+    <!-- 댓글 좋아요 삭제 -->
+    <delete id="deleteCommentLikesByPostId"
+            parameterType="long">
+
+        DELETE FROM COMMENT_LIKE
+
+        WHERE COMMENT_ID IN (
+            SELECT COMMENT_ID
+            FROM POST_COMMENT
+            WHERE POST_ID = #{postId}
+        )
+    </delete>
+
+    <!-- 댓글 삭제 -->
+    <delete id="deleteCommentsByPostId"
+            parameterType="long">
+
+        DELETE FROM POST_COMMENT
+        WHERE POST_ID = #{postId}
+    </delete>
+
+    <!-- 게시글 좋아요 삭제 -->
+    <delete id="deletePostLikesByPostId"
+            parameterType="long">
+
+        DELETE FROM POST_LIKE
+        WHERE POST_ID = #{postId}
+    </delete>
+
+    <!-- 첨부 정보 삭제 -->
+    <delete id="deleteAttachmentsByPostId"
+            parameterType="long">
+
+        DELETE FROM POST_ATTACHMENT
+        WHERE POST_ID = #{postId}
+    </delete>
+
+    <!-- 게시글 신고 원본 삭제 -->
+    <delete id="deletePostReportsByPostId"
+            parameterType="long">
+
+        DELETE FROM POST_REPORT
+        WHERE POST_ID = #{postId}
+    </delete>
+
+    <!-- 게시글 삭제 -->
+    <delete id="deletePostById"
+            parameterType="long">
+
+        DELETE FROM COMMUNITY_POST
+        WHERE POST_ID = #{postId}
+    </delete>
+
+</mapper>
