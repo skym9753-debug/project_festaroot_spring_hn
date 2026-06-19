@@ -72,4 +72,10 @@ public class AdminMemberService {
 		List<AdminMemberDTO.ReportItem> reportHistory = adminMemberMapper.selectAllReportHistoryByMemberId(id);
 		return new AdminMemberDTO.MemberDetailResponse(memberInfo, reportHistory);
 	}
+
+	// 회원 관리 > 신고 횟수 조회
+	@Transactional(readOnly = true)
+	public List<AdminMemberDTO.Response> getCautionMembers() {
+		return adminMemberMapper.selectCautionMembers();
+	}
 }

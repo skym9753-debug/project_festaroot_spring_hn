@@ -30,4 +30,7 @@ public interface AdminMemberMapper {
 	AdminMemberDTO.Response selectMemberInfoById(@Param("id") String id);
 
 	List<AdminMemberDTO.ReportItem> selectAllReportHistoryByMemberId(@Param("id") String id);
+
+	// 누적 승인(ACCEPTED) 신고 건수가 3회 이상인 글로벌 주의 대상 회원 목록 조회
+	List<AdminMemberDTO.Response> selectCautionMembers();
 }

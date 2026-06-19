@@ -85,4 +85,10 @@ public class AdminMemberController {
 		return ResponseEntity.ok(detail);
 	}
 
+	// 주의 대상 회원 목록 통합 조회 API (조건: 승인된 신고 3회 이상)
+	@GetMapping("/caution")
+	public ResponseEntity<List<AdminMemberDTO.Response>> getCautionMembers() {
+		return ResponseEntity.ok(adminMemberService.getCautionMembers());
+	}
+
 }

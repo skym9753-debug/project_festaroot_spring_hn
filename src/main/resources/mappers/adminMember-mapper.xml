@@ -54,14 +54,16 @@
                 REASON,
                 RESULT_STATUS,
                 CREATED_AT,
-                ROW_NUMBER() OVER (PARTITION BY TARGET_MEMBER_ID ORDER BY CREATED_AT DESC) as rn
+                /* 승인(ACCEPTED)된 신고 사유를 최우선 순위로 정렬하여 바인딩 */
+                ROW_NUMBER() OVER (PARTITION BY TARGET_MEMBER_ID ORDER BY CASE WHEN RESULT_STATUS = 'ACCEPTED' THEN 1 ELSE 2 END, CREATED_AT DESC) as rn
             FROM MEMBER_REPORT_HISTORY
         ),
         ReportStats AS (
             SELECT 
                 TARGET_MEMBER_ID,
-                COUNT(*) AS REPORT_COUNT,
-                MAX(CREATED_AT) AS LATEST_REPORT_DATE
+                /* [수정] 게시글 관리자가 '승인(ACCEPTED)' 처리한 유효 신고 건수만 합산 */
+                COUNT(CASE WHEN RESULT_STATUS = 'ACCEPTED' THEN 1 END) AS REPORT_COUNT,
+                MAX(CASE WHEN RESULT_STATUS = 'ACCEPTED' THEN CREATED_AT END) AS LATEST_REPORT_DATE
             FROM MEMBER_REPORT_HISTORY
             GROUP BY TARGET_MEMBER_ID
         ),
@@ -186,7 +188,8 @@
 	        TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD HH24:MI') AS joined_at,
 	        TO_CHAR(m.LAST_LOGIN, 'YYYY.MM.DD HH24:MI') AS last_login,
 	        TO_CHAR(m.SUSPENSION_END_DATE, 'YYYY.MM.DD') AS suspension_end_date,
-	        (SELECT COUNT(*) FROM MEMBER_REPORT_HISTORY WHERE TARGET_MEMBER_ID = m.MEMBER_ID) AS reports
+	        /* 모달 팝업 내부 프로필 카드의 건수도 승인된 카운트만 일치하도록 수정 */
+	        (SELECT COUNT(*) FROM MEMBER_REPORT_HISTORY WHERE TARGET_MEMBER_ID = m.MEMBER_ID AND RESULT_STATUS = 'ACCEPTED') AS reports
 	    FROM MEMBER m
 	    WHERE m.MEMBER_ID = #{id}
 	</select>
@@ -194,7 +197,8 @@
 	<select id="selectAllReportHistoryByMemberId" resultType="com.study.app.domains.admin.dto.AdminMemberDTO$ReportItem">
 	    SELECT 
 	        HISTORY_ID as historyId,
-	        REPORT_ID as reportId, REPORTER_MEMBER_ID as reporterId,
+	        REPORT_ID as reportId, 
+	        REPORTER_MEMBER_ID as reporterId,
 	        REPORT_TYPE as reportType,
 	        REASON as reason,
 	        RESULT_STATUS as resultStatus,
@@ -203,6 +207,48 @@
 	    FROM MEMBER_REPORT_HISTORY
 	    WHERE TARGET_MEMBER_ID = #{id}
 	    ORDER BY CREATED_AT DESC
+	</select>
+	
+	<select id="selectCautionMembers" resultMap="memberResponseMap">
+	    WITH AcceptedLatest AS (
+	        SELECT 
+	            TARGET_MEMBER_ID,
+	            REASON,
+	            CREATED_AT,
+	            ROW_NUMBER() OVER (PARTITION BY TARGET_MEMBER_ID ORDER BY CREATED_AT DESC) as rn
+	        FROM MEMBER_REPORT_HISTORY
+	        WHERE RESULT_STATUS = 'ACCEPTED'
+	    ),
+	    AcceptedStats AS (
+	        SELECT 
+	            TARGET_MEMBER_ID,
+	            COUNT(*) AS ACCEPTED_COUNT,
+	            MAX(CREATED_AT) AS LATEST_ACCEPTED_DATE
+	        FROM MEMBER_REPORT_HISTORY
+	        WHERE RESULT_STATUS = 'ACCEPTED'
+	        GROUP BY TARGET_MEMBER_ID
+	    )
+	    SELECT 
+	        m.MEMBER_ID,
+	        m.NICKNAME,
+	        m.EMAIL,
+	        m.ROLE,
+	        m.STATUS,
+	        m.SOCIAL_PROVIDER AS provider,
+	        m.CURRENT_LV,
+	        TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD HH24:MI') AS joined_at,
+	        TO_CHAR(m.LAST_LOGIN, 'YYYY.MM.DD HH24:MI') AS last_login,
+	        s.ACCEPTED_COUNT AS reports,
+	        r.REASON AS report_reason,
+	        TO_CHAR(s.LATEST_ACCEPTED_DATE, 'YYYY.MM.DD') AS last_report_date,
+	        '승인 완료' AS result_status,
+	        TO_CHAR(m.SUSPENSION_END_DATE, 'YYYY.MM.DD') AS suspension_end_date
+	    FROM MEMBER m
+	    JOIN AcceptedStats s ON m.MEMBER_ID = s.TARGET_MEMBER_ID
+	    LEFT JOIN AcceptedLatest r ON m.MEMBER_ID = r.TARGET_MEMBER_ID AND r.rn = 1
+	    WHERE m.ROLE != 'ADMIN'
+	      AND s.ACCEPTED_COUNT &gt;= 3
+	    ORDER BY s.ACCEPTED_COUNT DESC, s.LATEST_ACCEPTED_DATE DESC
 	</select>
 
 </mapper>
