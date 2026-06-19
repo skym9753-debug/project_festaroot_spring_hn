@@ -35,11 +35,11 @@ public class PostCommentDAO {
         map.put("member_id", member_id);
         
 
-        return mybatis.delete("PostComment.deleteComment", map);
+        return mybatis.delete("PostComment.hideComment", map);
     }
     
     public int deleteChildComments(Long comment_id) {
-    	return mybatis.delete("PostComment.deleteChildComments", comment_id);
+    	return mybatis.delete("PostComment.hideChildComments", comment_id);
     }
 
     public PostCommentDTO selectCommentById(Long comment_id) {

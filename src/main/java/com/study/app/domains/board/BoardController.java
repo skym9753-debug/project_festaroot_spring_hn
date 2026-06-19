@@ -121,12 +121,16 @@ public class BoardController {
 			@RequestPart("post") CommunityPostDTO dto,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files){
 		dto.setPost_id(id);
+		System.out.println(id);
 		boardService.updatePost(dto, files);
 		return ResponseEntity.ok().build();
 	}
 
 	@DeleteMapping("/post/{id}")
-	public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+	public ResponseEntity<Void> deletePost(
+			@PathVariable Long id) {
+		System.out.println("게시글 삭제");
+		
 		boardService.deletePost(id);
 		return ResponseEntity.ok().build();
 	}

@@ -18,124 +18,124 @@ public class AdminPostDAO {
 	private SqlSessionTemplate mybatis;
 	
     // mapper XML의 namespace
-    private static final String NAMESPACE = "AdminPost.";
+    private static final String NAMESPACE = "AdminPost";
     
     public Map<String, Object> selectSummary() {
-        return mybatis.selectOne(NAMESPACE + "selectSummary");
+        return mybatis.selectOne(NAMESPACE + ".selectSummary");
     }
 
     public List<AdminPostDTO> selectPosts(Map<String, Object> params) {
-        return mybatis.selectList(NAMESPACE + "selectPosts", params);
+        return mybatis.selectList(NAMESPACE + ".selectPosts", params);
     }
 
     public int countPosts(Map<String, Object> params) {
-        return mybatis.selectOne(NAMESPACE + "countPosts", params);
+        return mybatis.selectOne(NAMESPACE + ".countPosts", params);
     }
 
     public List<PostReportDTO> selectWaitingReports(
             Map<String, Object> params
     ) {
         return mybatis.selectList(
-                NAMESPACE + "selectWaitingReports",
+                NAMESPACE + ".selectWaitingReports",
                 params
         );
     }
 
     public int countWaitingReports() {
-        return mybatis.selectOne(NAMESPACE + "countWaitingReports");
+        return mybatis.selectOne(NAMESPACE + ".countWaitingReports");
     }
 
     public AdminPostDTO selectPostDetail(Long postId) {
         return mybatis.selectOne(
-                NAMESPACE + "selectPostDetail",
+                NAMESPACE + ".selectPostDetail",
                 postId
         );
     }
 
     public List<PostReportDTO> selectReportsByPostId(Long postId) {
         return mybatis.selectList(
-                NAMESPACE + "selectReportsByPostId",
+                NAMESPACE + ".selectReportsByPostId",
                 postId
         );
     }
 
     public List<PostAttachmentDTO> selectAttachmentsByPostId(Long postId) {
         return mybatis.selectList(
-                NAMESPACE + "selectAttachmentsByPostId",
+                NAMESPACE + ".selectAttachmentsByPostId",
                 postId
         );
     }
 
     public void lockHistoryTable() {
-        mybatis.update(NAMESPACE + "lockHistoryTable");
+        mybatis.update(NAMESPACE + ".lockHistoryTable");
     }
 
     public int updateReportStatus(Map<String, Object> params) {
         return mybatis.update(
-                NAMESPACE + "updateReportStatus",
+                NAMESPACE + ".updateReportStatus",
                 params
         );
     }
 
     public int insertReportHistory(Map<String, Object> params) {
         return mybatis.insert(
-                NAMESPACE + "insertReportHistory",
+                NAMESPACE + ".insertReportHistory",
                 params
         );
     }
 
     public List<String> selectAttachmentPathsByPostId(Long postId) {
         return mybatis.selectList(
-                NAMESPACE + "selectAttachmentPathsByPostId",
+                NAMESPACE + ".selectAttachmentPathsByPostId",
                 postId
         );
     }
 
     public int deleteCommentReportsByPostId(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deleteCommentReportsByPostId",
+                NAMESPACE + ".deleteCommentReportsByPostId",
                 postId
         );
     }
 
     public int deleteCommentLikesByPostId(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deleteCommentLikesByPostId",
+                NAMESPACE + ".deleteCommentLikesByPostId",
                 postId
         );
     }
 
     public int deleteCommentsByPostId(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deleteCommentsByPostId",
+                NAMESPACE + ".deleteCommentsByPostId",
                 postId
         );
     }
 
     public int deletePostLikesByPostId(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deletePostLikesByPostId",
+                NAMESPACE + ".deletePostLikesByPostId",
                 postId
         );
     }
 
     public int deleteAttachmentsByPostId(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deleteAttachmentsByPostId",
+                NAMESPACE + ".deleteAttachmentsByPostId",
                 postId
         );
     }
 
     public int deletePostReportsByPostId(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deletePostReportsByPostId",
+                NAMESPACE + ".deletePostReportsByPostId",
                 postId
         );
     }
 
     public int deletePostById(Long postId) {
         return mybatis.delete(
-                NAMESPACE + "deletePostById",
+                NAMESPACE + ".deletePostById",
                 postId
         );
     }
