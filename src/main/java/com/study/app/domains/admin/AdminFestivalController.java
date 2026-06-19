@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.study.app.domains.admin.service.AdminFestivalService;
 import com.study.app.domains.festival.dto.FestivalDTO;
 
+import org.springframework.web.bind.annotation.PostMapping;
+
 @RestController
 @RequestMapping("/admin/festivals")
 public class AdminFestivalController {
@@ -48,5 +50,23 @@ public class AdminFestivalController {
 			response.put("message", "수정 중 오류 발생: " + e.getMessage());
 			return ResponseEntity.status(500).body(response);
 		}
+	}
+
+	@PostMapping("/sync/start")
+	public ResponseEntity<Map<String, Object>> startSyncPipeline() {
+		Map<String, Object> response = new HashMap<>();
+		boolean started = adminFestivalService.startSyncPipeline();
+		response.put("success", started);
+		if (started) {
+			response.put("message", "동기화가 시작되었습니다.");
+		} else {
+			response.put("message", "이미 동기화가 진행 중입니다.");
+		}
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/sync/status")
+	public ResponseEntity<Map<String, Object>> getSyncStatus() {
+		return ResponseEntity.ok(adminFestivalService.getSyncStatus());
 	}
 }

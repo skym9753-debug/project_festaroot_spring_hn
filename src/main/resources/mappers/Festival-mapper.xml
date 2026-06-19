@@ -31,6 +31,8 @@
   		<result property="review_count" column="review_count" />
   		<result property="rating_avg" column="rating_avg" />
   		<result property="is_visible" column="is_visible" />
+  		<result property="save_count" column="save_count" />
+  		<result property="avg_rating" column="avg_rating" />
   		<collection property="themes" ofType="com.study.app.domains.theme.ThemeMasterDTO">
   			<result property="theme_code" column="theme_code" />
   			<result property="theme_name" column="theme_name" />
@@ -77,7 +79,9 @@
 
 	<select id="getAllFestivalAdmin" resultMap="festivalWithThemesMap">
 		SELECT 
-	        f.*,           
+	        f.*,
+	        (SELECT COUNT(*) FROM ai_planner_step WHERE source_content_id = f.content_id) AS save_count,
+	        (SELECT NVL(ROUND(AVG(rating), 2), 0) FROM festival_review WHERE content_id = f.content_id AND NVL(is_deleted, 'N') = 'N') AS avg_rating,
 	        tm.theme_code, 
 	        tm.theme_name  
 	    FROM festival_info f
