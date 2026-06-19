@@ -77,4 +77,12 @@ public class AdminMemberController {
 		return ResponseEntity.ok(adminMemberService.getMainStats());
 	}
 
+	// 회원의 전체 상태 및 가입 정보 + 과거 모든 신고 목록 통합 조회 API
+	@GetMapping("/{id}/detail")
+	public ResponseEntity<AdminMemberDTO.MemberDetailResponse> getMemberDetail(@PathVariable("id") String id) {
+		System.out.println("상세 정보 및 신고 이력 통합 조회 대상 ID: " + id);
+		AdminMemberDTO.MemberDetailResponse detail = adminMemberService.getMemberDetail(id);
+		return ResponseEntity.ok(detail);
+	}
+
 }

@@ -1,5 +1,7 @@
 package com.study.app.domains.admin.dto;
 
+import java.util.List;
+
 public class AdminMemberDTO {
 
 	// 검색 필터 쿼리 파라미터를 담을 바인딩 객체
@@ -398,4 +400,126 @@ public class AdminMemberDTO {
 		}
 	}
 
+	// --------------------------------------------------------
+
+	// 회원 관리 신고 사유 상세보기
+
+	public static class MemberDetailResponse {
+		private Response memberInfo;
+		private List<ReportItem> reportHistory;
+
+		public MemberDetailResponse() {
+		}
+
+		public MemberDetailResponse(Response memberInfo, List<ReportItem> reportHistory) {
+			this.memberInfo = memberInfo;
+			this.reportHistory = reportHistory;
+		}
+
+		public Response getMemberInfo() {
+			return memberInfo;
+		}
+
+		public void setMemberInfo(Response memberInfo) {
+			this.memberInfo = memberInfo;
+		}
+
+		public List<ReportItem> getReportHistory() {
+			return reportHistory;
+		}
+
+		public void setReportHistory(List<ReportItem> reportHistory) {
+			this.reportHistory = reportHistory;
+		}
+	}
+
+	public static class ReportItem {
+		private Long historyId;
+		private Long reportId; // 원본 신고 번호
+		private String reporterId;
+		private String reportType;
+		private String reason;
+		private String resultStatus;
+		private String adminMemo;
+		private String createdAt;
+
+		public ReportItem() {
+		}
+
+		public ReportItem(Long historyId, Long reportId, String reporterId, String reportType, String reason,
+				String resultStatus, String adminMemo, String createdAt) {
+			this.historyId = historyId;
+			this.reportId = reportId;
+			this.reporterId = reporterId;
+			this.reportType = reportType;
+			this.reason = reason;
+			this.resultStatus = resultStatus;
+			this.adminMemo = adminMemo;
+			this.createdAt = createdAt;
+		}
+
+		public Long getHistoryId() {
+			return historyId;
+		}
+
+		public void setHistoryId(Long historyId) {
+			this.historyId = historyId;
+		}
+
+		public Long getReportId() {
+			return reportId;
+		}
+
+		public void setReportId(Long reportId) {
+			this.reportId = reportId;
+		}
+
+		public String getReporterId() {
+			return reporterId;
+		}
+
+		public void setReporterId(String reporterId) {
+			this.reporterId = reporterId;
+		}
+
+		public String getReportType() {
+			return reportType;
+		}
+
+		public void setReportType(String reportType) {
+			this.reportType = reportType;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+
+		public void setReason(String reason) {
+			this.reason = reason;
+		}
+
+		public String getResultStatus() {
+			return resultStatus;
+		}
+
+		public void setResultStatus(String resultStatus) {
+			this.resultStatus = resultStatus;
+		}
+
+		public String getAdminMemo() {
+			return adminMemo;
+		}
+
+		public void setAdminMemo(String adminMemo) {
+			this.adminMemo = adminMemo;
+		}
+
+		public String getCreatedAt() {
+			return createdAt;
+		}
+
+		public void setCreatedAt(String createdAt) {
+			this.createdAt = createdAt;
+		}
+	}
 }

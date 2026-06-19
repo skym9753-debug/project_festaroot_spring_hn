@@ -173,5 +173,36 @@
 	        COUNT(CASE WHEN ROLE != 'ADMIN' AND STATUS = 'BLACKLISTED' THEN 1 END) as blacklisted
 	    FROM MEMBER
 	</select>
+	
+	<select id="selectMemberInfoById" resultMap="memberResponseMap">
+	    SELECT 
+	        m.MEMBER_ID,
+	        m.NICKNAME,
+	        m.EMAIL,
+	        m.ROLE,
+	        m.STATUS,
+	        m.SOCIAL_PROVIDER AS provider,
+	        m.CURRENT_LV,
+	        TO_CHAR(m.CREATED_AT, 'YYYY.MM.DD HH24:MI') AS joined_at,
+	        TO_CHAR(m.LAST_LOGIN, 'YYYY.MM.DD HH24:MI') AS last_login,
+	        TO_CHAR(m.SUSPENSION_END_DATE, 'YYYY.MM.DD') AS suspension_end_date,
+	        (SELECT COUNT(*) FROM MEMBER_REPORT_HISTORY WHERE TARGET_MEMBER_ID = m.MEMBER_ID) AS reports
+	    FROM MEMBER m
+	    WHERE m.MEMBER_ID = #{id}
+	</select>
+	
+	<select id="selectAllReportHistoryByMemberId" resultType="com.study.app.domains.admin.dto.AdminMemberDTO$ReportItem">
+	    SELECT 
+	        HISTORY_ID as historyId,
+	        REPORT_ID as reportId, REPORTER_MEMBER_ID as reporterId,
+	        REPORT_TYPE as reportType,
+	        REASON as reason,
+	        RESULT_STATUS as resultStatus,
+	        ADMIN_MEMO as adminMemo,
+	        TO_CHAR(CREATED_AT, 'YYYY-MM-DD HH24:MI') as createdAt
+	    FROM MEMBER_REPORT_HISTORY
+	    WHERE TARGET_MEMBER_ID = #{id}
+	    ORDER BY CREATED_AT DESC
+	</select>
 
 </mapper>

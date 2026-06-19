@@ -25,4 +25,9 @@ public interface AdminMemberMapper {
 
 	// 전체 요약 통계 데이터 조회 (검색 필터링 영향 없음)
 	AdminMemberDTO.MainStats selectMainStats();
+
+	// 특정 회원의 상세 정보 및 전체 신고 내역 호출 인터페이스 정의
+	AdminMemberDTO.Response selectMemberInfoById(@Param("id") String id);
+
+	List<AdminMemberDTO.ReportItem> selectAllReportHistoryByMemberId(@Param("id") String id);
 }

@@ -64,4 +64,12 @@ public class AdminMemberService {
 	public AdminMemberDTO.MainStats getMainStats() {
 		return adminMemberMapper.selectMainStats();
 	}
+
+	// 회원 관리 신고 내용 상세보기
+	@Transactional(readOnly = true)
+	public AdminMemberDTO.MemberDetailResponse getMemberDetail(String id) {
+		AdminMemberDTO.Response memberInfo = adminMemberMapper.selectMemberInfoById(id);
+		List<AdminMemberDTO.ReportItem> reportHistory = adminMemberMapper.selectAllReportHistoryByMemberId(id);
+		return new AdminMemberDTO.MemberDetailResponse(memberInfo, reportHistory);
+	}
 }
