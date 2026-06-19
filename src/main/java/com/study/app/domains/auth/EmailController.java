@@ -25,6 +25,7 @@ public class EmailController {
         String email = req.get("email");
 
         emailService.sendVerificationCode(email);
+        System.out.println(req);
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);

@@ -18,9 +18,8 @@ public class AdminContoroller {
 
     @GetMapping("/dashboard")
     public AdminDashboardDTO getDashboard(
-            @RequestParam(required = false) String baseDate
+            @RequestParam(value = "baseDate", required = false) String baseDate
     ) {
         return adminDashboardService.getDashboard(baseDate);
     }
-
 }

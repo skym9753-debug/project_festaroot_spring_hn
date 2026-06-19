@@ -60,6 +60,8 @@ public class FestivalDTO {
     
     // 평균 평점 (예: 4.50)
     private Double rating_avg;
+    private Long save_count;
+    private Double avg_rating;
     
     // 공개 여부 (Y/N)
     private String is_visible;
@@ -318,6 +320,22 @@ public class FestivalDTO {
 
 	public void setThemes(List<ThemeMasterDTO> themes) {
 		this.themes = themes;
+	}
+
+	public Long getSave_count() {
+		return save_count;
+	}
+
+	public void setSave_count(Long save_count) {
+		this.save_count = save_count;
+	}
+
+	public Double getAvg_rating() {
+		return avg_rating;
+	}
+
+	public void setAvg_rating(Double avg_rating) {
+		this.avg_rating = avg_rating;
 	}
 
 
