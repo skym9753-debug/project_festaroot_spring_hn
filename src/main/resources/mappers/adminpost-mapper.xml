@@ -78,6 +78,7 @@
 
         SELECT COUNT(*)
         FROM COMMUNITY_POST p
+        WHERE IS_VISIBLE = 'Y'
 
         <include refid="postSearchCondition"/>
     </select>
