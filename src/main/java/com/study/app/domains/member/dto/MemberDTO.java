@@ -28,6 +28,7 @@ public class MemberDTO {
 	private String social_id;
 	private String status;
 	private String role;
+	private LocalDateTime suspension_end_date; // 정지 기한 필드 생성
 	
 	
 	// 관심분야, 관심지역 받는 변수
@@ -39,7 +40,7 @@ public class MemberDTO {
 	public MemberDTO(String member_id, String password, String name, String nickname, String phone, String email,
 			LocalDate birthdate, String gender, String addr_sido, String addr_sigungu, String reside_area_code,
 			String reside_sigungu_code, String profile_image_url, String social_provider, Long exp_point, Long title_id,
-			LocalDateTime created_at, String social_id, String status, String role, List<String> regions,
+			LocalDateTime created_at, String social_id, String status, String role, LocalDateTime suspension_end_date, List<String> regions,
 			List<String> themes) {
 		super();
 		this.member_id = member_id;
@@ -62,6 +63,7 @@ public class MemberDTO {
 		this.social_id = social_id;
 		this.status = status;
 		this.role = role;
+		this.suspension_end_date = suspension_end_date;
 		this.regions = regions;
 		this.themes = themes;
 	}
@@ -226,6 +228,14 @@ public class MemberDTO {
 		this.role = role;
 	}
 
+	public LocalDateTime getSuspension_end_date() {
+		return suspension_end_date;
+	}
+
+	public void setSuspension_end_date(LocalDateTime suspension_end_date) {
+		this.suspension_end_date = suspension_end_date;
+	}
+	
 	public List<String> getRegions() {
 		return regions;
 	}

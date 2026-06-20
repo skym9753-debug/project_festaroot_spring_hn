@@ -26,24 +26,28 @@ public class AuthController {
 	
 	@PostMapping("/login")
 	public ResponseEntity<Map<String, Object>> login(@RequestBody LoginDTO loginDTO) {
-	    String token = authService.login(loginDTO);
-	    String role = jwtUtil.getRole(token);
-
 	    Map<String, Object> result = new HashMap<>();
 	    
-	    if (token != null) {
-	        result.put("success", true);
-	        result.put("message", loginDTO.getMember_id() + "님, 환영합니다!");
-	        result.put("token", token);
-	        result.put("role", role);
-
-	        return ResponseEntity.ok(result);
-
-	    } else {
+	    try {
+	        String token = authService.login(loginDTO);
+	        
+	        if (token != null) {
+	            String role = jwtUtil.getRole(token);
+	            result.put("success", true);
+	            result.put("message", loginDTO.getMember_id() + "님, 환영합니다!");
+	            result.put("token", token);
+	            result.put("role", role);
+	            return ResponseEntity.ok(result);
+	        } else {
+	            result.put("success", false);
+	            result.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+	        }
+	        
+	    } catch (RuntimeException e) {
 	        result.put("success", false);
-	        result.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
-
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+	        result.put("message", e.getMessage());
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result);
 	    }
 	}
 }

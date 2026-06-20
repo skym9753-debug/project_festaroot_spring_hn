@@ -39,7 +39,8 @@ public class AdminMemberController {
 	@PutMapping("/{id}/suspend")
 	public ResponseEntity<String> suspendMember(@PathVariable("id") String id,
 			@RequestBody AdminMemberDTO.SuspendRequest request) {
-		System.out.println("정지 대상 회원 ID: " + id + ", 정지 일수: " + request.getSuspensionDays());
+		// System.out.println("정지 대상 회원 ID: " + id + ", 정지 일수: " +
+		// request.getSuspensionDays());
 		adminMemberService.suspendMember(id, request.getSuspensionDays());
 		return ResponseEntity.ok("회원 정지 처리가 성공적으로 반영되었습니다.");
 	}
@@ -47,7 +48,7 @@ public class AdminMemberController {
 	// 회원 블랙리스트 영구 정지
 	@PutMapping("/{id}/blacklist")
 	public ResponseEntity<String> blacklistMember(@PathVariable("id") String id) {
-		System.out.println("블랙리스트 등록 대상 회원 ID: " + id);
+		// System.out.println("블랙리스트 등록 대상 회원 ID: " + id);
 		adminMemberService.blacklistMember(id);
 		return ResponseEntity.ok("해당 회원이 블랙리스트에 등록되었습니다.");
 	}
@@ -55,7 +56,7 @@ public class AdminMemberController {
 	// 회원 제재 해제 복원
 	@PutMapping("/{id}/restore")
 	public ResponseEntity<String> restoreMember(@PathVariable("id") String id) {
-		System.out.println("제재 해제 대상 회원 ID: " + id);
+		// System.out.println("제재 해제 대상 회원 ID: " + id);
 		adminMemberService.restoreMember(id);
 		return ResponseEntity.ok("회원의 제재 상태가 정상적으로 해제되었습니다.");
 	}
@@ -64,7 +65,7 @@ public class AdminMemberController {
 	@GetMapping("/{id}/reports")
 	public ResponseEntity<List<AdminMemberDTO.ReportHistoryResponse>> getMemberReportHistory(
 			@PathVariable("id") String id) {
-		System.out.println("신고 내역 증거 조회 대상 회원 ID: " + id);
+		// System.out.println("신고 내역 증거 조회 대상 회원 ID: " + id);
 
 		List<AdminMemberDTO.ReportHistoryResponse> historyList = adminMemberService.findAcceptReportsByMemberId(id);
 
@@ -80,7 +81,7 @@ public class AdminMemberController {
 	// 회원의 전체 상태 및 가입 정보 + 과거 모든 신고 목록 통합 조회 API
 	@GetMapping("/{id}/detail")
 	public ResponseEntity<AdminMemberDTO.MemberDetailResponse> getMemberDetail(@PathVariable("id") String id) {
-		System.out.println("상세 정보 및 신고 이력 통합 조회 대상 ID: " + id);
+		// System.out.println("상세 정보 및 신고 이력 통합 조회 대상 ID: " + id);
 		AdminMemberDTO.MemberDetailResponse detail = adminMemberService.getMemberDetail(id);
 		return ResponseEntity.ok(detail);
 	}

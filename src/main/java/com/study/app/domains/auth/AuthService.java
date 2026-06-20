@@ -1,5 +1,7 @@
 package com.study.app.domains.auth;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +80,16 @@ public class AuthService {
             if ("DELETED".equals(storedMember.getStatus())) {
                 throw new RuntimeException("탈퇴 처리된 계정입니다. 고객센터에 문의하세요.");
             }
+            if ("BLACKLISTED".equals(storedMember.getStatus())) {
+                throw new RuntimeException("블랙리스트로 등록된 계정입니다. 서비스 이용이 영구적으로 제한됩니다.");
+            }
+            if ("SUSPENDED".equals(storedMember.getStatus())) {
+                // 정지 기한이 현재 시간보다 미래인 경우에만 차단 (기한이 지났으면 로그인 허용)
+                if (storedMember.getSuspension_end_date() != null && storedMember.getSuspension_end_date().isAfter(LocalDateTime.now())) {
+                    String formattedDate = storedMember.getSuspension_end_date().format(DateTimeFormatter.ofPattern("YYYY-MM-dd"));
+                    throw new RuntimeException("활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+                }
+            }
 
         	// Use BCryptPasswordEncoder.matches() to compare passwords
         	if (bCryptPasswordEncoder.matches(loginDTO.getPassword(), storedMember.getPassword())) {
@@ -125,6 +137,7 @@ public class AuthService {
 
         // 기존 회원
         if (member != null) {
+        	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
             String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
@@ -235,6 +248,7 @@ public class AuthService {
             );
 
         if(member != null) {
+        	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
 
             String token =
                 jwtUtil.createToken(
@@ -376,6 +390,7 @@ public class AuthService {
             );
 
         if (member != null) {
+        	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
             String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
@@ -447,6 +462,29 @@ public class AuthService {
             );
 
         return response.getBody();
+    }
+    
+    // 소셜 로그인 공통 제재 검증용 프라이빗 헬퍼 메서드
+    private boolean isRestricted(MemberDTO member, Map<String, Object> result) {
+        if ("DELETED".equals(member.getStatus())) {
+            result.put("success", false);
+            result.put("message", "탈퇴 처리된 계정입니다. 고객센터에 문의하세요.");
+            return true;
+        }
+        if ("BLACKLISTED".equals(member.getStatus())) {
+            result.put("success", false);
+            result.put("message", "블랙리스트로 등록된 계정입니다. 서비스 이용이 영구적으로 제한됩니다.");
+            return true;
+        }
+        if ("SUSPENDED".equals(member.getStatus())) {
+            if (member.getSuspension_end_date() != null && member.getSuspension_end_date().isAfter(LocalDateTime.now())) {
+                String formattedDate = member.getSuspension_end_date().format(DateTimeFormatter.ofPattern("YYYY-MM-dd"));
+                result.put("success", false);
+                result.put("message", "활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+                return true;
+            }
+        }
+        return false;
     }
 
 }
