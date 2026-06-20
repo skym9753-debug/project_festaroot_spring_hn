@@ -22,8 +22,18 @@
 	      AND SOCIAL_PROVIDER = #{socialProvider}
     </select>
     
+    <update id="updateClearSuspension" parameterType="string">
+        UPDATE MEMBER
+        SET STATUS = 'ACTIVE',
+            SUSPENSION_END_DATE = NULL
+        WHERE MEMBER_ID = #{member_id}
+    </update>
     
-    
+    <update id="updateLastLogin" parameterType="string">
+        UPDATE MEMBER
+        SET LAST_LOGIN = SYSDATE
+        WHERE MEMBER_ID = #{member_id}
+    </update>
 
 
 </mapper>

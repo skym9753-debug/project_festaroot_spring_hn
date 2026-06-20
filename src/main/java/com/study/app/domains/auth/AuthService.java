@@ -84,10 +84,17 @@ public class AuthService {
                 throw new RuntimeException("블랙리스트로 등록된 계정입니다. 서비스 이용이 영구적으로 제한됩니다.");
             }
             if ("SUSPENDED".equals(storedMember.getStatus())) {
-                // 정지 기한이 현재 시간보다 미래인 경우에만 차단 (기한이 지났으면 로그인 허용)
-                if (storedMember.getSuspension_end_date() != null && storedMember.getSuspension_end_date().isAfter(LocalDateTime.now())) {
-                    String formattedDate = storedMember.getSuspension_end_date().format(DateTimeFormatter.ofPattern("YYYY-MM-dd"));
-                    throw new RuntimeException("활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+            	if (storedMember.getSuspension_end_date() != null) {
+                    // 정지 기한이 아직 남은 경우 차단
+                    if (storedMember.getSuspension_end_date().isAfter(LocalDateTime.now())) {
+                        String formattedDate = storedMember.getSuspension_end_date().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        throw new RuntimeException("활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+                    } else {
+                        // 정지 기한이 만료된 경우 DB 상태 초기화
+                        authDAO.updateClearSuspension(storedMember.getMember_id());
+                        storedMember.setStatus("ACTIVE");
+                        storedMember.setSuspension_end_date(null);
+                    }
                 }
             }
 
@@ -100,6 +107,8 @@ public class AuthService {
                 if (role == null || role.trim().isEmpty()) {
                     role = "user";
                 }
+                
+                authDAO.updateLastLogin(storedMember.getMember_id());  // 최근 접속일 업데이트 실행
         		return jwtUtil.createToken(storedMember.getMember_id(), storedMember.getRole());
         	}
         }
@@ -138,6 +147,8 @@ public class AuthService {
         // 기존 회원
         if (member != null) {
         	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
+            authDAO.updateLastLogin(member.getMember_id()); // 최근 접속일 업데이트 실행
+        	
             String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
@@ -249,6 +260,7 @@ public class AuthService {
 
         if(member != null) {
         	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
+            authDAO.updateLastLogin(member.getMember_id()); // 최근 접속일 업데이트 실행
 
             String token =
                 jwtUtil.createToken(
@@ -391,6 +403,7 @@ public class AuthService {
 
         if (member != null) {
         	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
+            authDAO.updateLastLogin(member.getMember_id()); // 최근 접속일 업데이트 실행
             String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
@@ -477,11 +490,18 @@ public class AuthService {
             return true;
         }
         if ("SUSPENDED".equals(member.getStatus())) {
-            if (member.getSuspension_end_date() != null && member.getSuspension_end_date().isAfter(LocalDateTime.now())) {
-                String formattedDate = member.getSuspension_end_date().format(DateTimeFormatter.ofPattern("YYYY-MM-dd"));
-                result.put("success", false);
-                result.put("message", "활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
-                return true;
+        	if (member.getSuspension_end_date() != null) {
+                if (member.getSuspension_end_date().isAfter(LocalDateTime.now())) {
+                    String formattedDate = member.getSuspension_end_date().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    result.put("success", false);
+                    result.put("message", "활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+                    return true;
+                } else {
+                    // 소셜 유저도 기한 만료 시 실시간 복구 실행
+                    authDAO.updateClearSuspension(member.getMember_id());
+                    member.setStatus("ACTIVE");
+                    member.setSuspension_end_date(null);
+                }
             }
         }
         return false;

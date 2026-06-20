@@ -31,4 +31,14 @@ public class AuthDAO {
 
         return mybatis.selectOne("Auth.selectMemberBySocialIdAndProvider", params);
     }
+    
+    // 정지 해제 업데이트 실행 메서드
+    public int updateClearSuspension(String member_id) {
+        return mybatis.update("Auth.updateClearSuspension", member_id);
+    }
+    
+    // 최근 접속일 업데이트 실행 메서드
+    public int updateLastLogin(String member_id) {
+        return mybatis.update("Auth.updateLastLogin", member_id);
+    }
 }
