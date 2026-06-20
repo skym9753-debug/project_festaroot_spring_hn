@@ -199,6 +199,7 @@
                 cp.report_count,
                 cp.created_at,
                 m.nickname,
+                m.profile_image_url,
 
                 <!--
                     row_number()는 조회된 결과에 1번부터 순번을 붙입니다.

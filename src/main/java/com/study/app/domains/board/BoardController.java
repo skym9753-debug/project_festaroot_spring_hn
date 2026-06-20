@@ -327,9 +327,9 @@ public class BoardController {
 		Map<String, Object> params = new HashMap<>();
 		params.put("category", "all");
 		params.put("sortBy", "popular");
-		params.put("excludeNotice", "Y"); // 💡 공지사항(notice) 카테고리를 제외하기 위한 플래그 추가
-		params.put("startNum", 1);       
-		params.put("endNum", 5);         
+		params.put("excludeNotice", "Y"); // 공지사항(notice) 카테고리를 제외하기 위한 플래그 추가
+		params.put("startNum", 1L); // 1L (Long 타입 통일)
+	    params.put("endNum", 5L);   // 5L (Long 타입 통일)      
 
 		List<CommunityPostDTO> popularList = boardService.getPosts(params);
 		return ResponseEntity.ok(popularList);
