@@ -226,6 +226,10 @@
                         latest는 따로 when을 만들지 않고 otherwise로 처리했습니다.
                     -->
                     <choose>
+                        <when test="sortBy == 'popular'">
+                            (NVL(cp.like_count, 0) * 10) + NVL(cp.view_count, 0) desc
+                        </when>
+                    
                         <when test="sortBy == 'views'">
                             cp.view_count desc
                         </when>
@@ -265,16 +269,20 @@
                     전체게시판(all)이면 조건 없음.
                     자유게시판(free), 후기(review), 꿀팁(tip), 공지(notice)이면 해당 값만 조회.
                 -->
+                <if test='excludeNotice == "Y"'>
+					and cp.category != 'NOTICE'
+				</if>
+                
                 <if test="category != null and category != 'all'">
                     and cp.category = #{category}
                 </if>
 
-                <!--
+			<!--
                     검색어가 있을 때만 검색 조건 추가
                 -->
                 <if test="keyword != null and keyword != ''">
 
-                    <!--
+				<!--
                         검색 타입별 검색 컬럼 분기
                     -->
                     <choose>
@@ -295,7 +303,7 @@
             </where>
         )
 
-        <!--
+		<!--
             페이지네이션 조건
 
             Controller에서 계산한 startNum, endNum을 사용합니다.
