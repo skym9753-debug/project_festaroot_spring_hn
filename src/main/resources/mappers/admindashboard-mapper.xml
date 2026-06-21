@@ -259,40 +259,47 @@
     </select>
 
 
-    <!-- 인기 축제 TOP 5 -->
-    <select id="selectPopularFestivals"
-            resultType="com.study.app.domains.admin.dto.PopularFestivalDTO">
-        SELECT
-            ROWNUM AS rank,
-            name,
-            region,
-            views,
-            likes,
-            status,
-            firstImage
-        FROM (
-            SELECT
-                title AS name,
-                addr1 AS region,
-                first_image AS firstImage,
-                NVL(view_count, 0) AS views,
-                NVL(like_count, 0) AS likes,
-                CASE
-                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
-                         BETWEEN event_start_date AND event_end_date THEN '진행중'
-                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
-                         &lt; event_start_date THEN '예정'
-                    WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
-                         &gt; event_end_date THEN '종료'
-                    ELSE '기타'
-                END AS status
-            FROM festival_info
-            WHERE NVL(is_visible, 'Y') = 'Y'
-            ORDER BY NVL(view_count, 0) DESC
-        )
-        WHERE ROWNUM &lt;= 5
-    </select>
-
+	<!-- 인기 축제 TOP 5 -->
+	<select id="selectPopularFestivals"
+	        resultType="com.study.app.domains.admin.dto.PopularFestivalDTO">
+	    SELECT
+	        ROWNUM AS rank,
+	        name,
+	        region,
+	        views,
+	        likes,
+	        status,
+	        firstImage
+	    FROM (
+	        SELECT
+	            title AS name,
+	            addr1 AS region,
+	            first_image AS firstImage,
+	            NVL(view_count, 0) AS views,
+	            NVL(like_count, 0) AS likes,
+	            CASE
+	                WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+	                     BETWEEN event_start_date AND event_end_date THEN '진행중'
+	                WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+	                     &lt; event_start_date THEN '예정'
+	                WHEN TO_CHAR(TO_DATE(#{baseDate}, 'YYYY-MM-DD'), 'YYYYMMDD')
+	                     &gt; event_end_date THEN '종료'
+	                ELSE '기타'
+	            END AS status
+	        FROM festival_info
+	        WHERE NVL(is_visible, 'Y') = 'Y'
+	        ORDER BY
+	            -- 조회수 + 찜하기 수 합산 기준
+	            NVL(view_count, 0) + NVL(like_count, 0) DESC,
+	
+	            -- 합산 점수가 같으면 조회수 높은 순
+	            NVL(view_count, 0) DESC,
+	
+	            -- 조회수도 같으면 찜하기 높은 순
+	            NVL(like_count, 0) DESC
+	    )
+	    WHERE ROWNUM &lt;= 5
+	</select>
 
 	<!-- 최근 신고 접수: 관리자 화면 표시용 -->
 	<select id="selectRecentReports"
