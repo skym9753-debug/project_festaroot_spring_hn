@@ -82,4 +82,8 @@ public interface GatheringMapper {
 
 	// 마지막으로 읽은 메세지 추적
 	int updateLastReadAt(@Param("room_id") Long roomId, @Param("member_id") String memberId);
+	
+	// 인기 모임 목록
+	List<PopularGatheringDTO> getPopularGatherings();
+
 }

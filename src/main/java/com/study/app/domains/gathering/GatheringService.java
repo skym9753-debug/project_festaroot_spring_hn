@@ -280,5 +280,10 @@ public class GatheringService {
 
 		return deletedRows != 0;
 	}
+	
+	// 인기 모임 목록
+	public List<PopularGatheringDTO> getPopularGatherings(){
+		return gatheringMapper.getPopularGatherings();
+	}
 
 }

@@ -247,4 +247,11 @@ public class GatheringController {
 		Map<String, Object> result = gatheringService.getJoinedGatherings(memberId, page, size, filter, keyword);
 		return ResponseEntity.ok(result);
 	}
+	
+	// 인기 모임 리스트 반환 엔드포인트
+    @GetMapping("/popular-gatherings")
+    public ResponseEntity<List<PopularGatheringDTO>> getPopularGatherings() {
+        List<PopularGatheringDTO> list = gatheringService.getPopularGatherings();
+        return ResponseEntity.ok(list);
+    }
 }
