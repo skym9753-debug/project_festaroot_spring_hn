@@ -33,7 +33,7 @@
         SELECT
             /* 회원 */
             (SELECT COUNT(*)
-             FROM member) AS memberCount,
+             FROM member WHERE ROLE = 'USER') AS memberCount,
 
             (SELECT COUNT(*)
              FROM member

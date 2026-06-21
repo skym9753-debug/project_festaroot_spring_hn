@@ -54,7 +54,8 @@ public class AdminPostController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "all") String category,
             @RequestParam(defaultValue = "title") String searchType,
-            @RequestParam(defaultValue = "") String keyword
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "all") String visibleStatus
     ) {
         return ResponseEntity.ok(
                 adminPostService.getPosts(
@@ -62,10 +63,12 @@ public class AdminPostController {
                         size,
                         category,
                         searchType,
-                        keyword
+                        keyword,
+                        visibleStatus
                 )
         );
     }
+   
 
     // 게시글 상세
     @GetMapping("/{postId}")

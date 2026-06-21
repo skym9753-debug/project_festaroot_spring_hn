@@ -5,43 +5,49 @@
 
 <mapper namespace="AdminPost">
 
-    <!-- 공통 게시글 검색 조건 -->
-    <sql id="postSearchCondition">
-        <where>
-            <if test="category != null
-                      and category != ''
-                      and category != 'all'">
-                AND LOWER(p.CATEGORY) = LOWER(#{category})
-            </if>
-
-            <if test="keyword != null and keyword != ''">
-                <choose>
-                    <when test="searchType == 'author'">
-                        AND LOWER(p.MEMBER_ID)
-                            LIKE '%' || LOWER(#{keyword}) || '%'
-                    </when>
-
-                    <when test="searchType == 'id'">
-                        AND (
-                            TO_CHAR(p.POST_ID)
-                                LIKE '%' || #{keyword} || '%'
-
-                            OR UPPER(
-                                'POST-' ||
-                                LPAD(TO_CHAR(p.POST_ID), 3, '0')
-                            )
-                                LIKE '%' || UPPER(#{keyword}) || '%'
-                        )
-                    </when>
-
-                    <otherwise>
-                        AND LOWER(p.TITLE)
-                            LIKE '%' || LOWER(#{keyword}) || '%'
-                    </otherwise>
-                </choose>
-            </if>
-        </where>
-    </sql>
+	<!-- 공통 게시글 검색 조건 -->
+	<sql id="postSearchCondition">
+	    <where>
+	        <if test="category != null
+	                  and category != ''
+	                  and category != 'all'">
+	            AND LOWER(p.CATEGORY) = LOWER(#{category})
+	        </if>
+	
+	        <if test="visibleStatus != null
+	                  and visibleStatus != ''
+	                  and visibleStatus != 'all'">
+	            AND UPPER(p.IS_VISIBLE) = UPPER(#{visibleStatus})
+	        </if>
+	
+	        <if test="keyword != null and keyword != ''">
+	            <choose>
+	                <when test="searchType == 'author'">
+	                    AND LOWER(p.MEMBER_ID)
+	                        LIKE '%' || LOWER(#{keyword}) || '%'
+	                </when>
+	
+	                <when test="searchType == 'id'">
+	                    AND (
+	                        TO_CHAR(p.POST_ID)
+	                            LIKE '%' || #{keyword} || '%'
+	
+	                        OR UPPER(
+	                            'POST-' ||
+	                            LPAD(TO_CHAR(p.POST_ID), 3, '0')
+	                        )
+	                            LIKE '%' || UPPER(#{keyword}) || '%'
+	                    )
+	                </when>
+	
+	                <otherwise>
+	                    AND LOWER(p.TITLE)
+	                        LIKE '%' || LOWER(#{keyword}) || '%'
+	                </otherwise>
+	            </choose>
+	        </if>
+	    </where>
+	</sql>
 
     <!-- 상단 요약 카드 -->
     <select id="selectSummary" resultType="hashmap">
@@ -71,17 +77,16 @@
         FROM DUAL
     </select>
 
-    <!-- 전체 게시글 개수 -->
-    <select id="countPosts"
-            parameterType="map"
-            resultType="int">
-
-        SELECT COUNT(*)
-        FROM COMMUNITY_POST p
-        WHERE IS_VISIBLE = 'Y'
-
-        <include refid="postSearchCondition"/>
-    </select>
+	<!-- 전체 게시글 개수 -->
+	<select id="countPosts"
+	        parameterType="map"
+	        resultType="int">
+	
+	    SELECT COUNT(*)
+	    FROM COMMUNITY_POST p
+	
+	    <include refid="postSearchCondition"/>
+	</select>
 
     <!-- 전체 게시글 목록 -->
     <select id="selectPosts"
@@ -100,6 +105,7 @@
                 p.TITLE AS "title",
                 LOWER(p.CATEGORY) AS "category",
                 p.MEMBER_ID AS "author",
+                p.IS_VISIBLE AS "is_visible",
 
                 TO_CHAR(
                     p.CREATED_AT,
@@ -223,7 +229,9 @@
                     ORDER BY
                         r.CREATED_AT DESC,
                         r.REPORT_ID DESC
-                ) AS RN
+                ) AS RN,
+                
+                p.MEMBER_ID AS author
 
             FROM POST_REPORT r
 

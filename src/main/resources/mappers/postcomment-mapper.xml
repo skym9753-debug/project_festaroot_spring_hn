@@ -21,8 +21,8 @@
             #{member_id},
             #{content},
             #{parent_comment_id},
-            SYSDATE,
-            SYSDATE
+            CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE),
+            CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE)
         )
     </insert>
 
@@ -55,7 +55,7 @@
         UPDATE POST_COMMENT
         SET
             content = #{content},
-            updated_at = SYSDATE
+            updated_at = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE)
         WHERE comment_id = #{comment_id}
           AND member_id = #{member_id}
     </update>
@@ -64,7 +64,7 @@
     <update id="hideChildComments">
     	UPDATE POST_COMMENT
         	SET IS_VISIBLE = 'N',
-        		UPDATED_AT = SYSDATE
+        		UPDATED_AT = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE)
     WHERE parent_comment_id = #{comment_id}
 	</update>
 
@@ -72,7 +72,7 @@
     <update id="hideComment">
         UPDATE POST_COMMENT
         	SET IS_VISIBLE = 'N',
-        		UPDATED_AT = SYSDATE
+        		UPDATED_AT = CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE)
         WHERE comment_id = #{comment_id}
     </update>
 

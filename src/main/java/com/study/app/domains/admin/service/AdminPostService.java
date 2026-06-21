@@ -35,13 +35,28 @@ public class AdminPostService {
     public Map<String, Object> getSummary() {
         return adminPostDAO.selectSummary();
     }
+    
+    private String normalizeVisibleStatus(String visibleStatus) {
+        if (visibleStatus == null || visibleStatus.trim().isEmpty()) {
+            return "all";
+        }
+
+        visibleStatus = visibleStatus.trim().toUpperCase();
+
+        if ("Y".equals(visibleStatus) || "N".equals(visibleStatus)) {
+            return visibleStatus;
+        }
+
+        return "all";
+    }
 
     public Map<String, Object> getPosts(
             int page,
             int size,
             String category,
             String searchType,
-            String keyword
+            String keyword,
+            String visibleStatus
     ) {
         page = normalizePage(page);
         size = normalizeSize(size);
@@ -49,6 +64,7 @@ public class AdminPostService {
         category = normalizeCategory(category);
         searchType = normalizeSearchType(searchType);
         keyword = keyword == null ? "" : keyword.trim();
+        visibleStatus = normalizeVisibleStatus(visibleStatus);
 
         int startRow = (page - 1) * size + 1;
         int endRow = page * size;
@@ -59,9 +75,12 @@ public class AdminPostService {
         params.put("category", category);
         params.put("searchType", searchType);
         params.put("keyword", keyword);
+        params.put("visibleStatus", visibleStatus);
 
         List<AdminPostDTO> list = adminPostDAO.selectPosts(params);
         int totalCount = adminPostDAO.countPosts(params);
+        
+        System.out.println(visibleStatus);
 
         return createPageResponse(
                 list,
@@ -70,6 +89,8 @@ public class AdminPostService {
                 totalCount
         );
     }
+    
+
 
     public Map<String, Object> getWaitingReports(
             int page,
@@ -270,6 +291,10 @@ public class AdminPostService {
                 "postReportCount",
                 report.getPost_report_count()
         );
+        
+        row.put("author", report.getAuthor());
+        
+     
 
         return row;
     }
@@ -300,6 +325,7 @@ public class AdminPostService {
         row.put("status", report.getStatus());
         row.put("adminMemo", report.getAdmin_memo());
         row.put("processedAt", report.getProcessed_at());
+       
 
         return row;
     }

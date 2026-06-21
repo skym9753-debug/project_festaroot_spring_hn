@@ -5,12 +5,20 @@
 
 <mapper namespace="AdminComment">
 
+    <!-- 댓글 목록 공통 검색 조건 -->
     <sql id="commentSearchCondition">
         <where>
             <if test="category != null
                       and category != ''
                       and category != 'all'">
                 AND LOWER(p.CATEGORY) = LOWER(#{category})
+            </if>
+
+            <!-- 공개/비공개 상태 필터 -->
+            <if test="visibleStatus != null
+                      and visibleStatus != ''
+                      and visibleStatus != 'all'">
+                AND UPPER(c.IS_VISIBLE) = UPPER(#{visibleStatus})
             </if>
 
             <if test="commentType == 'COMMENT'">
@@ -132,6 +140,9 @@
                 c.MEMBER_ID AS member_id,
                 c.CONTENT AS content,
                 c.PARENT_COMMENT_ID AS parent_comment_id,
+
+                <!-- 댓글 공개 여부 -->
+                c.IS_VISIBLE AS is_visible,
 
                 c.CREATED_AT AS created_at,
                 c.UPDATED_AT AS updated_at,
@@ -274,6 +285,9 @@
             c.MEMBER_ID AS member_id,
             c.CONTENT AS content,
             c.PARENT_COMMENT_ID AS parent_comment_id,
+
+            <!-- 댓글 공개 여부 -->
+            c.IS_VISIBLE AS is_visible,
 
             c.CREATED_AT AS created_at,
             c.UPDATED_AT AS updated_at,
@@ -467,7 +481,7 @@
           AND r.STATUS = #{resultStatus}
     </insert>
 
-    <!-- 선택 댓글 + 모든 하위 대댓글 ID -->
+    <!-- 선택 댓글 + 하위 대댓글 ID 조회 -->
     <select id="selectCommentTreeIds"
             parameterType="map"
             resultType="long">
@@ -490,11 +504,53 @@
             PRIOR COMMENT_ID = PARENT_COMMENT_ID
     </select>
 
-    <!-- 신고 삭제 -->
-    <delete id="deleteCommentReportsByIds"
+    <!--
+        신고 데이터 삭제 방지용
+
+        삭제 버튼은 댓글만 비공개 처리하므로
+        COMMENT_REPORT 데이터는 삭제하지 않습니다.
+        기존 Service 호출이 남아 있어도 데이터가 지워지지 않도록 처리합니다.
+    -->
+    <update id="deleteCommentReportsByIds"
             parameterType="map">
 
-        DELETE FROM COMMENT_REPORT
+        UPDATE COMMENT_REPORT
+
+        SET STATUS = STATUS
+
+        WHERE 1 = 0
+    </update>
+
+    <!--
+        좋아요 데이터 삭제 방지용
+
+        삭제 버튼은 댓글만 비공개 처리하므로
+        COMMENT_LIKE 데이터는 삭제하지 않습니다.
+        기존 Service 호출이 남아 있어도 데이터가 지워지지 않도록 처리합니다.
+    -->
+    <update id="deleteCommentLikesByIds"
+            parameterType="map">
+
+        UPDATE COMMENT_LIKE
+
+        SET COMMENT_ID = COMMENT_ID
+
+        WHERE 1 = 0
+    </update>
+
+    <!--
+        댓글 삭제 버튼용 비공개 처리
+
+        실제 DELETE 하지 않고
+        댓글과 하위 대댓글의 IS_VISIBLE 값을 N으로 변경합니다.
+    -->
+    <update id="deleteCommentsByIds"
+            parameterType="map">
+
+        UPDATE POST_COMMENT
+
+        SET IS_VISIBLE = 'N',
+            UPDATED_AT = SYSDATE
 
         WHERE COMMENT_ID IN
         <foreach
@@ -505,40 +561,7 @@
             close=")">
             #{commentId}
         </foreach>
-    </delete>
-
-    <!-- 좋아요 삭제 -->
-    <delete id="deleteCommentLikesByIds"
-            parameterType="map">
-
-        DELETE FROM COMMENT_LIKE
-
-        WHERE COMMENT_ID IN
-        <foreach
-            collection="commentIds"
-            item="commentId"
-            open="("
-            separator=","
-            close=")">
-            #{commentId}
-        </foreach>
-    </delete>
-
-    <!-- 댓글과 대댓글 삭제 -->
-    <delete id="deleteCommentsByIds"
-            parameterType="map">
-
-        DELETE FROM POST_COMMENT
-
-        WHERE COMMENT_ID IN
-        <foreach
-            collection="commentIds"
-            item="commentId"
-            open="("
-            separator=","
-            close=")">
-            #{commentId}
-        </foreach>
-    </delete>
+          AND NVL(IS_VISIBLE, 'Y') = 'Y'
+    </update>
 
 </mapper>

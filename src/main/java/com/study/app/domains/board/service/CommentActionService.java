@@ -28,6 +28,20 @@ public class CommentActionService {
 
 	 @Autowired
 	    private com.study.app.domains.activity.UserActivityLogService userActivityLogService;
+	 
+	 private String normalizeVisibleStatus(String visibleStatus) {
+		    if (visibleStatus == null || visibleStatus.trim().isEmpty()) {
+		        return "all";
+		    }
+
+		    String normalized = visibleStatus.trim().toUpperCase();
+
+		    if ("Y".equals(normalized) || "N".equals(normalized)) {
+		        return normalized;
+		    }
+
+		    return "all";
+		}
 
 	    // 댓글 / 대댓글 좋아요 토글
 	    public Map<String, Object> toggleCommentLike(
