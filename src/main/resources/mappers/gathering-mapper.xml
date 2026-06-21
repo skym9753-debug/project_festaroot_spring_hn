@@ -34,7 +34,7 @@
 	
 	<update id="updateLastReadAt">
 	    UPDATE chat_room_user
-	    SET last_read_at = SYSTIMESTAMP
+	    SET last_read_at = #{lastReadAt}
 	    WHERE room_id = #{room_id} AND member_id = #{member_id}
 	</update>
 
