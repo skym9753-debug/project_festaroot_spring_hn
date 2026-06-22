@@ -203,6 +203,7 @@
                     
                     SELECT * FROM festival_info
                     <where>
+                        AND NVL(is_visible, 'Y') = 'Y'
                         <if test="keyword != null and keyword != ''">
                             <choose>
                                 <when test="searchScope == 'all'">
@@ -274,6 +275,7 @@
         resultType="int"> 
         SELECT COUNT(*) FROM festival_info 
         <where>
+            AND NVL(is_visible, 'Y') = 'Y'
             <if test="keyword != null and keyword != ''">
                 <choose>
                     <when test="searchScope == 'all'">
@@ -325,6 +327,7 @@
         FROM FESTIVAL_INFO f
         JOIN FESTIVAL_LIKE l ON f.CONTENT_ID = l.CONTENT_ID
         WHERE l.MEMBER_ID = #{memberId}
+          AND NVL(f.is_visible, 'Y') = 'Y'
     </select>
     
 	<!--홈 > 지역별 인기 축제 정렬-->
@@ -338,6 +341,7 @@
 	            FROM festival_info f
 	            JOIN region_master r ON f.region_code = r.region_code
 	            WHERE r.region_name = #{region}
+	              AND NVL(f.is_visible, 'Y') = 'Y'
 	        )
 	        WHERE rn = 1
 	        ORDER BY NVL(view_count, 0) DESC, NVL(like_count,0) DESC, event_start_date ASC
@@ -359,6 +363,7 @@
 			WHERE 
 				REPLACE(event_end_date, '-', '') >= TO_CHAR(SYSDATE, 'YYYYMMDD')
 				AND REPLACE(event_start_date, '-', '') &lt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
+				AND NVL(is_visible, 'Y') = 'Y'
 			ORDER BY REPLACE(event_end_date, '-', '') ASC
 		)
 		WHERE ROWNUM &lt;= 3
@@ -368,6 +373,7 @@
 	<select id="getRandomFestival" resultType="com.study.app.domains.festival.dto.FestivalDTO">
 	    SELECT * FROM (
 	        SELECT * FROM festival_info
+	        WHERE NVL(is_visible, 'Y') = 'Y'
 	        ORDER BY DBMS_RANDOM.VALUE
 	    ) WHERE ROWNUM = 1
 	</select>
