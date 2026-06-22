@@ -81,5 +81,9 @@ public class AdminFestivalService {
 	public void updateVisibility(Long contentId, String isVisible) {
 		festivalDAO.updateVisibility(contentId, isVisible);
 	}
+
+	public FestivalDTO getFestivalDetailForAdmin(Long contentId) {
+		return festivalDAO.selectDetailByContentIdAdmin(contentId);
+	}
 	
 }

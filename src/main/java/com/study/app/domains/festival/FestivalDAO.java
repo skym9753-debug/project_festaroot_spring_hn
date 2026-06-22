@@ -75,6 +75,10 @@ public class FestivalDAO {
 		return mybatis.selectOne("Festival.selectDetailByContentId", contentId);
 	}
 
+	public FestivalDTO selectDetailByContentIdAdmin(Long contentId) {
+		return mybatis.selectOne("Festival.selectDetailByContentIdAdmin", contentId);
+	}
+
 	// 테마가 없는 축제 목록 조회
 	public List<FestivalDTO> getFestivalsWithoutTheme() {
 		return mybatis.selectList("Festival.getFestivalsWithoutTheme");
