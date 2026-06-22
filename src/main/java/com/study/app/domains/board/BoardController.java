@@ -320,5 +320,19 @@ public class BoardController {
 		
 		return ResponseEntity.ok(list);
 	}
+	
+	// 메인화면 용 실시간 인기 게시글 Top 5 조회
+	@GetMapping("/posts/popular")
+	public ResponseEntity<List<CommunityPostDTO>> getPopularPosts() {
+		Map<String, Object> params = new HashMap<>();
+		params.put("category", "all");
+		params.put("sortBy", "popular");
+		params.put("excludeNotice", "Y"); // 공지사항(notice) 카테고리를 제외하기 위한 플래그 추가
+		params.put("startNum", 1L); // 1L (Long 타입 통일)
+	    params.put("endNum", 5L);   // 5L (Long 타입 통일)      
+
+		List<CommunityPostDTO> popularList = boardService.getPosts(params);
+		return ResponseEntity.ok(popularList);
+	}
 
 }

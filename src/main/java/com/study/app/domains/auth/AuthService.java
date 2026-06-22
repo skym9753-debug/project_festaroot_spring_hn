@@ -1,5 +1,7 @@
 package com.study.app.domains.auth;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +80,23 @@ public class AuthService {
             if ("DELETED".equals(storedMember.getStatus())) {
                 throw new RuntimeException("탈퇴 처리된 계정입니다. 고객센터에 문의하세요.");
             }
+            if ("BLACKLISTED".equals(storedMember.getStatus())) {
+                throw new RuntimeException("블랙리스트로 등록된 계정입니다. 서비스 이용이 영구적으로 제한됩니다.");
+            }
+            if ("SUSPENDED".equals(storedMember.getStatus())) {
+            	if (storedMember.getSuspension_end_date() != null) {
+                    // 정지 기한이 아직 남은 경우 차단
+                    if (storedMember.getSuspension_end_date().isAfter(LocalDateTime.now())) {
+                        String formattedDate = storedMember.getSuspension_end_date().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        throw new RuntimeException("활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+                    } else {
+                        // 정지 기한이 만료된 경우 DB 상태 초기화
+                        authDAO.updateClearSuspension(storedMember.getMember_id());
+                        storedMember.setStatus("ACTIVE");
+                        storedMember.setSuspension_end_date(null);
+                    }
+                }
+            }
 
         	// Use BCryptPasswordEncoder.matches() to compare passwords
         	if (bCryptPasswordEncoder.matches(loginDTO.getPassword(), storedMember.getPassword())) {
@@ -88,6 +107,8 @@ public class AuthService {
                 if (role == null || role.trim().isEmpty()) {
                     role = "user";
                 }
+                
+                authDAO.updateLastLogin(storedMember.getMember_id());  // 최근 접속일 업데이트 실행
         		return jwtUtil.createToken(storedMember.getMember_id(), storedMember.getRole());
         	}
         }
@@ -125,6 +146,9 @@ public class AuthService {
 
         // 기존 회원
         if (member != null) {
+        	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
+            authDAO.updateLastLogin(member.getMember_id()); // 최근 접속일 업데이트 실행
+        	
             String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
@@ -235,6 +259,8 @@ public class AuthService {
             );
 
         if(member != null) {
+        	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
+            authDAO.updateLastLogin(member.getMember_id()); // 최근 접속일 업데이트 실행
 
             String token =
                 jwtUtil.createToken(
@@ -376,6 +402,8 @@ public class AuthService {
             );
 
         if (member != null) {
+        	if (isRestricted(member, result)) return result; // 제재 대상일 경우 리턴
+            authDAO.updateLastLogin(member.getMember_id()); // 최근 접속일 업데이트 실행
             String token = jwtUtil.createToken(member.getMember_id(), member.getRole());
 
             result.put("success", true);
@@ -447,6 +475,36 @@ public class AuthService {
             );
 
         return response.getBody();
+    }
+    
+    // 소셜 로그인 공통 제재 검증용 프라이빗 헬퍼 메서드
+    private boolean isRestricted(MemberDTO member, Map<String, Object> result) {
+        if ("DELETED".equals(member.getStatus())) {
+            result.put("success", false);
+            result.put("message", "탈퇴 처리된 계정입니다. 고객센터에 문의하세요.");
+            return true;
+        }
+        if ("BLACKLISTED".equals(member.getStatus())) {
+            result.put("success", false);
+            result.put("message", "블랙리스트로 등록된 계정입니다. 서비스 이용이 영구적으로 제한됩니다.");
+            return true;
+        }
+        if ("SUSPENDED".equals(member.getStatus())) {
+        	if (member.getSuspension_end_date() != null) {
+                if (member.getSuspension_end_date().isAfter(LocalDateTime.now())) {
+                    String formattedDate = member.getSuspension_end_date().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    result.put("success", false);
+                    result.put("message", "활동 정지된 계정입니다. " + formattedDate + " 이후부터 로그인할 수 있습니다.");
+                    return true;
+                } else {
+                    // 소셜 유저도 기한 만료 시 실시간 복구 실행
+                    authDAO.updateClearSuspension(member.getMember_id());
+                    member.setStatus("ACTIVE");
+                    member.setSuspension_end_date(null);
+                }
+            }
+        }
+        return false;
     }
 
 }

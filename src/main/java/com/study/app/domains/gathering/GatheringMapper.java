@@ -81,5 +81,13 @@ public interface GatheringMapper {
 	LocalDateTime selectLastReadAt(@Param("room_id") Long roomId, @Param("member_id") String memberId);
 
 	// 마지막으로 읽은 메세지 추적
-	int updateLastReadAt(@Param("room_id") Long roomId, @Param("member_id") String memberId);
+	int updateLastReadAt(
+	    @Param("room_id") Long roomId, 
+	    @Param("member_id") String memberId, 
+	    @Param("lastReadAt") java.time.LocalDateTime lastReadAt
+	);
+	
+	// 인기 모임 목록
+	List<PopularGatheringDTO> getPopularGatherings();
+
 }
