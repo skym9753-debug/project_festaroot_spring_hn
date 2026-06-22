@@ -27,7 +27,13 @@ public class SecurityConfig {
 		                    "/api/member/find-id",
 		                    "/api/member/password/send-code",
 		                    "/api/member/password/verify-code",
-		                    "/api/member/password/reset")
+		                    "/api/member/password/reset",
+                    
+		                    // 소셜 로그인 콜백도 명시적으로 허용
+		                    "/oauth/**",
+		                    "/auth/**",
+		                    "/login/**",
+		                    "/oauth2/**")
                     .permitAll()
                     .anyRequest().permitAll()
                 );
