@@ -13,11 +13,15 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.study.app.domains.auth.dto.LoginDTO;
 import com.study.app.domains.member.dto.MemberDTO;
@@ -28,9 +32,11 @@ import com.study.app.domains.oauth.KakaoUserResponse;
 import com.study.app.domains.oauth.NaverTokenResponse;
 import com.study.app.domains.oauth.NaverUserResponse;
 import com.study.app.utils.JWTUtil;
-
+import org.springframework.web.client.HttpClientErrorException;
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
     private AuthDAO authDAO;
@@ -370,12 +376,12 @@ public class AuthService {
     }
     
     
-    public Map<String, Object> googleLogin(String code) {
+    public Map<String, Object> googleLogin(String code, String codeVerifier) {
 
         Map<String, Object> result = new HashMap<>();
 
         GoogleTokenResponse tokenResponse =
-            getGoogleAccessToken(code);
+            getGoogleAccessToken(code, codeVerifier);
 
         if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
             result.put("success", false);
@@ -430,7 +436,7 @@ public class AuthService {
         return result;
     }
     
-    private GoogleTokenResponse getGoogleAccessToken(String code) {
+    private GoogleTokenResponse getGoogleAccessToken(String code, String codeVerifier) {
 
         String tokenUrl = "https://oauth2.googleapis.com/token";
 
@@ -443,18 +449,35 @@ public class AuthService {
         params.add("client_secret", googleClientSecret);
         params.add("redirect_uri", googleRedirectUri);
         params.add("code", code);
+        if (StringUtils.hasText(codeVerifier)) {
+            params.add("code_verifier", codeVerifier);
+        }
 
         HttpEntity<MultiValueMap<String, String>> request =
             new HttpEntity<>(params, headers);
 
-        ResponseEntity<GoogleTokenResponse> response =
-            restTemplate.postForEntity(
-                tokenUrl,
-                request,
-                GoogleTokenResponse.class
-            );
+        try {
+            ResponseEntity<GoogleTokenResponse> response =
+                restTemplate.postForEntity(
+                    tokenUrl,
+                    request,
+                    GoogleTokenResponse.class
+                );
 
-        return response.getBody();
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            HttpStatusCode status = e.getStatusCode();
+            log.error(
+                "[Google OAuth] token exchange failed. status={}, clientIdSet={}, clientSecretSet={}, redirectUri={}, body={}",
+                status,
+                StringUtils.hasText(googleClientId),
+                StringUtils.hasText(googleClientSecret),
+                googleRedirectUri,
+                e.getResponseBodyAsString(),
+                e
+            );
+            return null;
+        }
     }
     
     private GoogleUserResponse getGoogleUserInfo(String accessToken) {
