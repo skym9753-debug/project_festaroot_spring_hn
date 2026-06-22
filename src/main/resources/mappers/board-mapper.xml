@@ -105,11 +105,17 @@
                 cp.created_at,
                 cp.updated_at,
                 m.nickname,
+                m.profile_image_url,
 
                 ROW_NUMBER() OVER (
                     ORDER BY
                     <choose>
+                        <when test="sortBy == 'popular'">
+                            (NVL(cp.like_count, 0) * 10) + NVL(cp.view_count, 0) desc
+                        </when>
+                    
                         <!-- 조회순: 조회수 높은 순, 같으면 최신순 -->
+
                         <when test="sortBy == 'views'">
                             NVL(cp.view_count, 0) DESC,
                             cp.created_at DESC NULLS LAST,
@@ -139,6 +145,9 @@
 
             <where>
                 cp.is_visible = 'Y'
+                <if test='excludeNotice == "Y"'>
+					and cp.category != 'NOTICE'
+				</if>
 
                 <!-- 카테고리 대소문자 무시 조회 -->
                 <if test="category != null and category != ''">
@@ -167,8 +176,10 @@
             </where>
         )
 
+
         <!-- 페이지네이션 -->
         WHERE find_num BETWEEN #{startNum} AND #{endNum}
+
 
         <!-- ROW_NUMBER 순서 유지 -->
         ORDER BY find_num
@@ -251,7 +262,52 @@
         WHERE member_id = #{memberId}
           AND is_visible = 'Y'
     </select>
-
+	
+	<select id="selectPostList" resultType="map">
+	    <bind name="startRow" value="(cpage - 1) * 10 + 1" />
+	    <bind name="endRow" value="cpage * 10" />
+	    SELECT * FROM (
+	        SELECT ROWNUM AS rnum, res.* FROM (
+	            SELECT 
+	                p.post_id AS "post_id",
+	                p.title AS "title",
+	                p.category AS "category",
+	                p.view_count AS "view_count",
+	                p.like_count AS "like_count",
+	                TO_CHAR(p.created_at, 'YYYY-MM-DD') AS "created_at",
+	                m.nickname AS "nickname",
+	                m.profile_image_url AS "profile_image_url"
+	            FROM community_post p LEFT JOIN member m ON p.member_id = m.member_id <where>
+	                p.is_visible = 'Y' <if test="category != 'all'">
+	                    AND p.category = #{category}
+	                </if>
+	                <if test="keyword != null and keyword != ''">
+	                    <choose>
+	                        <when test="searchType == 'title'">
+	                            AND p.title LIKE '%' || #{keyword} || '%'
+	                        </when>
+	                        <when test="searchType == 'content'">
+	                            AND p.content LIKE '%' || #{keyword} || '%'
+	                        </when>
+	                        <otherwise>
+	                            AND (p.title LIKE '%' || #{keyword} || '%' OR p.content LIKE '%' || #{keyword} || '%')
+	                        </otherwise>
+	                    </choose>
+	                </if>
+	            </where>
+	            <choose>
+	                <when test="sortBy == 'popular'">
+	                    ORDER BY p.like_count DESC, p.post_id DESC
+	                </when>
+	                <otherwise>
+	                    ORDER BY p.post_id DESC
+	                </otherwise>
+	            </choose>
+	        ) res
+	    )
+	    WHERE rnum BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
 
     <!-- 내가 작성한 공개 게시글 목록 -->
     <select id="getMypostList"

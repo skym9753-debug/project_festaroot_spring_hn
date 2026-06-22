@@ -34,7 +34,7 @@
 	
 	<update id="updateLastReadAt">
 	    UPDATE chat_room_user
-	    SET last_read_at = SYSTIMESTAMP
+	    SET last_read_at = #{lastReadAt}
 	    WHERE room_id = #{room_id} AND member_id = #{member_id}
 	</update>
 
@@ -327,5 +327,28 @@
 	        SEQ_CHAT_ROOM_BAN.NEXTVAL, #{room_id}, #{member_id}, SYSTIMESTAMP
 	    )
 	</insert>
+	
+	<select id="getPopularGatherings" resultType="com.study.app.domains.gathering.PopularGatheringDTO">
+	    SELECT * FROM (
+	        SELECT 
+	            cr.ROOM_ID as "roomId",
+	            cr.ROOM_TYPE as "roomType",
+	            cr.FESTIVAL_ID as "festivalId",
+	            cr.OWNER_ID as "ownerId",
+	            NVL(cr.ROOM_TITLE, fi.TITLE || ' 공식 모임') as "roomTitle",
+	            cr.ROOM_DESCRIPTION as "roomDescription",
+	            NVL(cr.FREE_LOCATION, fi.ADDR1) as "freeLocation",
+	            NVL(cr.FREE_DATE, TO_DATE(fi.EVENT_START_DATE, 'YYYYMMDD')) as "freeDate",
+	            TO_DATE(fi.EVENT_END_DATE, 'YYYYMMDD') as "endDate", <!-- 🔥 축제 종료일 컬럼 추가 -->
+	            cr.MAX_CAPACITY as "maxCapacity",
+	            NVL(cr.ROOM_IMAGE, fi.FIRST_IMAGE) as "roomImage",
+	            (SELECT COUNT(*) FROM CHAT_ROOM_USER cru WHERE cru.ROOM_ID = cr.ROOM_ID) AS "participants"
+	        FROM CHAT_ROOM cr
+	        LEFT JOIN FESTIVAL_INFO fi ON cr.FESTIVAL_ID = fi.CONTENT_ID
+	        WHERE cr.ROOM_TYPE IN ('FESTIVAL', 'GROUP')
+	        ORDER BY "participants" DESC, cr.CREATED_AT DESC
+	    )
+	    WHERE ROWNUM &lt;= 4
+	</select>
 
 </mapper>

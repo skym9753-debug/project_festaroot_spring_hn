@@ -40,7 +40,7 @@ public class ChatService {
 
 	// 읽은 메세지
 	public void updateLastReadAt(Long roomId, String memberId) {
-		gatheringMapper.updateLastReadAt(roomId, memberId);
+	    gatheringMapper.updateLastReadAt(roomId, memberId, java.time.LocalDateTime.now());
 	}
 
 	// 1:1 채팅방 존재 확인 및 생성

@@ -186,7 +186,7 @@
     </select>
 
 	<!--축제 찾기 검색 조건-->
-    <select id="selectByOptions"
+	<select id="selectByOptions"
             parameterType="com.study.app.domains.festival.dto.FestivalSearchDTO"
             resultMap="festivalWithThemesMap">
 
@@ -195,67 +195,70 @@
 
         SELECT 
             final_res.*,
+            (SELECT NVL(ROUND(AVG(rating), 1), 0) 
+             FROM festival_review 
+             WHERE content_id = final_res.content_id AND NVL(is_deleted, 'N') = 'N') AS avg_rating,
             tm.theme_code,
             tm.theme_name
         FROM (
             SELECT * FROM (
                 SELECT ROWNUM AS rnum, res.* FROM (
                     
-                    SELECT * FROM festival_info
+                    SELECT f.*
+                    FROM festival_info f
                     <where>
                         AND NVL(is_visible, 'Y') = 'Y'
                         <if test="keyword != null and keyword != ''">
                             <choose>
                                 <when test="searchScope == 'all'">
                                     AND (
-                                        title LIKE '%' || #{keyword} || '%' 
+                                        f.title LIKE '%' || #{keyword} || '%' 
                                         OR 
-                                        (overview IS NOT NULL AND overview LIKE '%' || #{keyword} || '%')
+                                        (f.overview IS NOT NULL AND f.overview LIKE '%' || #{keyword} || '%')
                                     )
                                 </when>
                                 <otherwise>
-                                    AND title LIKE '%' || #{keyword} || '%'
+                                    AND f.title LIKE '%' || #{keyword} || '%'
                                 </otherwise>
                             </choose>
                         </if>
                         <if test="region_code != null and region_code != ''">
-                            AND region_code = #{region_code}
+                            AND f.region_code = #{region_code}
                         </if>
                         <if test="sigungu_code != null and sigungu_code != ''">
-                            AND sigungu_code = #{sigungu_code}
+                            AND f.sigungu_code = #{sigungu_code}
                         </if>
                         <if test="event_start_date != null and event_start_date != ''">
-                            AND event_start_date &gt;= #{event_start_date}
+                            AND f.event_start_date &gt;= #{event_start_date}
                         </if>
                         <if test="event_end_date != null and event_end_date != ''">
-                            AND event_end_date &lt;= #{event_end_date}
+                            AND f.event_end_date &lt;= #{event_end_date}
                         </if>
                         <if test="ongoingOnly != null and ongoingOnly == true">
-                            AND REPLACE(event_end_date, '-', '') &gt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                            AND REPLACE(f.event_end_date, '-', '') &gt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
                         </if>
                     </where>
                     
                     <choose>
                         <when test="sort == 'views'">
-                            ORDER BY view_count DESC
+                            ORDER BY f.view_count DESC
                         </when>
                         <when test="sort == 'popular'">
-                            ORDER BY (NVL(like_count, 0) + (NVL(rating_avg, 0) * 10)) DESC, 
-                                     NVL(like_count, 0) DESC, 
-                                     created_time DESC
+                            ORDER BY (NVL(f.like_count, 0) + (NVL(f.rating_avg, 0) * 10)) DESC, 
+                                     NVL(f.like_count, 0) DESC, 
+                                     f.created_time DESC
                         </when>
                         <when test="sort == 'date'">
-                            ORDER BY event_start_date ASC
+                            ORDER BY f.event_start_date ASC
                         </when>
-                        <!-- 최근 시작일 기준 정렬 (내림차순) -->
                         <when test="sort == 'recentStart'">
-                            ORDER BY event_start_date ASC, created_time DESC
+                            ORDER BY f.event_start_date ASC, f.created_time DESC
                         </when>
                         <when test="sort == 'title'">
-                            ORDER BY title ASC
+                            ORDER BY f.title ASC
                         </when>
                         <otherwise>
-                            ORDER BY created_time DESC
+                            ORDER BY f.created_time DESC
                         </otherwise>
                     </choose>
                     
