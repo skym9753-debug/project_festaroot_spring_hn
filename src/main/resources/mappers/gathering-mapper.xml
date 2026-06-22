@@ -115,7 +115,7 @@
 				LEFT JOIN member m ON cr.owner_id = m.member_id
 				LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
 				WHERE cr.room_id = #{roomId}
-			</when>
+				  AND (cr.festival_id IS NULL OR fi.is_visible = 'Y') </when>
 			<otherwise>
 				SELECT
 				#{roomId} AS room_id,
@@ -134,7 +134,7 @@
 				0 AS current_count
 				FROM festival_info fi
 				WHERE fi.content_id = ABS(#{roomId})
-			</otherwise>
+				  AND fi.is_visible = 'Y' </otherwise>
 		</choose>
 	</select>
 
@@ -241,7 +241,7 @@
 				FROM festival_info fi
 				LEFT JOIN chat_room cr ON fi.content_id = cr.festival_id AND cr.room_type = 'FESTIVAL'
 				<where>
-					<if test="keyword != null and keyword != ''">
+					fi.is_visible = 'Y' <if test="keyword != null and keyword != ''">
 						AND (cr.room_title LIKE '%' || #{keyword} || '%' OR (cr.room_title IS NULL AND fi.title LIKE '%' || #{keyword} || '%'))
 					</if>
 				</where>
@@ -256,7 +256,7 @@
 		FROM festival_info fi
 		LEFT JOIN chat_room cr ON fi.content_id = cr.festival_id AND cr.room_type = 'FESTIVAL'
 		<where>
-			<if test="keyword != null and keyword != ''">
+			fi.is_visible = 'Y' <if test="keyword != null and keyword != ''">
 				AND (cr.room_title LIKE '%' || #{keyword} || '%' OR (cr.room_title IS NULL AND fi.title LIKE '%' || #{keyword} || '%'))
 			</if>
 		</where>
@@ -288,7 +288,7 @@
 				LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
 				LEFT JOIN member m ON cr.owner_id = m.member_id
 				WHERE cru.member_id = #{member_id}
-				<if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
+				  AND (cr.festival_id IS NULL OR fi.is_visible = 'Y') <if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
 				<if test="filter == '자유 모임'">AND cr.room_type = 'GROUP'</if>
 				<if test="filter == '개설한 모임'">AND cr.owner_id = #{member_id}</if>
 				<if test="keyword != null and keyword != ''">
@@ -306,7 +306,7 @@
 		JOIN chat_room_user cru ON cr.room_id = cru.room_id
 		LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
 		WHERE cru.member_id = #{member_id}
-		<if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
+		  AND (cr.festival_id IS NULL OR fi.is_visible = 'Y') <if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
 		<if test="filter == '자유 모임'">AND cr.room_type = 'GROUP'</if>
 		<if test="filter == '개설한 모임'">AND cr.owner_id = #{member_id}</if>
 		<if test="keyword != null and keyword != ''">
@@ -339,14 +339,14 @@
 	            cr.ROOM_DESCRIPTION as "roomDescription",
 	            NVL(cr.FREE_LOCATION, fi.ADDR1) as "freeLocation",
 	            NVL(cr.FREE_DATE, TO_DATE(fi.EVENT_START_DATE, 'YYYYMMDD')) as "freeDate",
-	            TO_DATE(fi.EVENT_END_DATE, 'YYYYMMDD') as "endDate", <!-- 🔥 축제 종료일 컬럼 추가 -->
+	            TO_DATE(fi.EVENT_END_DATE, 'YYYYMMDD') as "endDate",
 	            cr.MAX_CAPACITY as "maxCapacity",
 	            NVL(cr.ROOM_IMAGE, fi.FIRST_IMAGE) as "roomImage",
 	            (SELECT COUNT(*) FROM CHAT_ROOM_USER cru WHERE cru.ROOM_ID = cr.ROOM_ID) AS "participants"
 	        FROM CHAT_ROOM cr
 	        LEFT JOIN FESTIVAL_INFO fi ON cr.FESTIVAL_ID = fi.CONTENT_ID
 	        WHERE cr.ROOM_TYPE IN ('FESTIVAL', 'GROUP')
-	        ORDER BY "participants" DESC, cr.CREATED_AT DESC
+	          AND (cr.FESTIVAL_ID IS NULL OR fi.IS_VISIBLE = 'Y') ORDER BY "participants" DESC, cr.CREATED_AT DESC
 	    )
 	    WHERE ROWNUM &lt;= 4
 	</select>
