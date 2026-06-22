@@ -2,6 +2,8 @@ package com.study.app.domains.oauth;
 
 import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,10 +40,16 @@ public class OauthController {
 	
 	@GetMapping("/google/callback")
 	public ResponseEntity<Map<String, Object>> googleLogin(
-	        @RequestParam String code) {
+	        @RequestParam String code,
+	        @RequestParam(required = false, name = "code_verifier") String codeVerifier,
+	        HttpServletRequest request) {
+
+		if (codeVerifier == null || codeVerifier.isBlank()) {
+			codeVerifier = request.getParameter("codeVerifier");
+		}
 
 	    return ResponseEntity.ok(
-	        authService.googleLogin(code)
+	        authService.googleLogin(code, codeVerifier)
 	    );
 	}
 }
