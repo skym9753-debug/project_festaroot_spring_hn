@@ -30,6 +30,15 @@ public class AdminFestivalController {
 		List<FestivalDTO> list = adminFestivalService.getAllFestivals();
 		return ResponseEntity.ok(list);
 	}
+
+	@GetMapping("/{contentId}")
+	public ResponseEntity<FestivalDTO> getAdminFestivalDetail(@PathVariable Long contentId) {
+		FestivalDTO festival = adminFestivalService.getFestivalDetailForAdmin(contentId);
+		if (festival == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(festival);
+	}
 	
 	@PatchMapping("/{contentId}/visibility")
 	public ResponseEntity<Map<String, Object>> updateFestivalVisibility(
