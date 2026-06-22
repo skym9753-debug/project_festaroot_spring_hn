@@ -22,6 +22,8 @@ public class AdminPostDTO {
 
     private int reportCount;
     private int pendingReportCount;
+    
+    private String is_visible;
 
     // 상세조회에서만 채움
     private List<Map<String, Object>> reportItems;
@@ -31,7 +33,8 @@ public class AdminPostDTO {
 
 	public AdminPostDTO(Long postId, String postCode, String title, String category, String author, String content,
 			String createdAt, int views, int comments, int imageCount, int fileCount, int reportCount,
-			int pendingReportCount, List<Map<String, Object>> reportItems, List<Map<String, Object>> attachments) {
+			int pendingReportCount, String is_visible, List<Map<String, Object>> reportItems,
+			List<Map<String, Object>> attachments) {
 		super();
 		this.postId = postId;
 		this.postCode = postCode;
@@ -46,6 +49,7 @@ public class AdminPostDTO {
 		this.fileCount = fileCount;
 		this.reportCount = reportCount;
 		this.pendingReportCount = pendingReportCount;
+		this.is_visible = is_visible;
 		this.reportItems = reportItems;
 		this.attachments = attachments;
 	}
@@ -154,6 +158,14 @@ public class AdminPostDTO {
 		this.pendingReportCount = pendingReportCount;
 	}
 
+	public String getIs_visible() {
+		return is_visible;
+	}
+
+	public void setIs_visible(String is_visible) {
+		this.is_visible = is_visible;
+	}
+
 	public List<Map<String, Object>> getReportItems() {
 		return reportItems;
 	}
@@ -169,7 +181,8 @@ public class AdminPostDTO {
 	public void setAttachments(List<Map<String, Object>> attachments) {
 		this.attachments = attachments;
 	}
-    
-    
+
+
+	
 
 }

@@ -32,40 +32,17 @@ public class PostCommentDTO {
 
 	// WAITING 상태 신고 수
 	private Long pending_report_count;
+	
+	private String is_visible;
 
 
 	public PostCommentDTO() {}
 
 
 	public PostCommentDTO(Long comment_id, Long post_id, String member_id, String content, Long parent_comment_id,
-			LocalDateTime created_at, LocalDateTime updated_at, String nickname, List<PostCommentDTO> children,
-			Long like_count, Long report_count) {
-		super();
-		this.comment_id = comment_id;
-		this.post_id = post_id;
-		this.member_id = member_id;
-		this.content = content;
-		this.parent_comment_id = parent_comment_id;
-		this.created_at = created_at;
-		this.updated_at = updated_at;
-		this.nickname = nickname;
-		this.children = children;
-		this.like_count = like_count;
-		this.report_count = report_count;
-	}
-
-
-
-
-	public String getProfile_image_url() {
-		return profile_image_url;
-	}
-
-
-	public PostCommentDTO(Long comment_id, Long post_id, String member_id, String content, Long parent_comment_id,
 			LocalDateTime created_at, LocalDateTime updated_at, String nickname, String profile_image_url,
 			List<PostCommentDTO> children, Long like_count, Long report_count, String post_title, String post_category,
-			String created_at_text, String updated_at_text, Long pending_report_count) {
+			String created_at_text, String updated_at_text, Long pending_report_count, String is_visible) {
 		super();
 		this.comment_id = comment_id;
 		this.post_id = post_id;
@@ -84,6 +61,7 @@ public class PostCommentDTO {
 		this.created_at_text = created_at_text;
 		this.updated_at_text = updated_at_text;
 		this.pending_report_count = pending_report_count;
+		this.is_visible = is_visible;
 	}
 
 
@@ -167,6 +145,16 @@ public class PostCommentDTO {
 	}
 
 
+	public String getProfile_image_url() {
+		return profile_image_url;
+	}
+
+
+	public void setProfile_image_url(String profile_image_url) {
+		this.profile_image_url = profile_image_url;
+	}
+
+
 	public List<PostCommentDTO> getChildren() {
 		return children;
 	}
@@ -247,11 +235,16 @@ public class PostCommentDTO {
 	}
 
 
-	public void setProfile_image_url(String profile_image_url) {
-		this.profile_image_url = profile_image_url;
+	public String getIs_visible() {
+		return is_visible;
 	}
 
 
+	public void setIs_visible(String is_visible) {
+		this.is_visible = is_visible;
+	}
 
+
+	
 
 }

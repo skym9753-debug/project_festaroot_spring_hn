@@ -10,6 +10,7 @@ public class PostReportDTO {
     private String reason;
     private LocalDate created_at;
     
+    
     // POST_REPORT.STATUS
     private String status;
 
@@ -24,12 +25,14 @@ public class PostReportDTO {
     private String post_title;
     private String post_category;
     private Integer post_report_count;
+    
+    private String author;
 
     public PostReportDTO() {}
 
 	public PostReportDTO(Long report_id, Long post_id, String member_id, String reason, LocalDate created_at,
 			String status, String created_at_text, String admin_memo, String processed_at, String post_title,
-			String post_category, Integer post_report_count) {
+			String post_category, Integer post_report_count, String author) {
 		super();
 		this.report_id = report_id;
 		this.post_id = post_id;
@@ -43,6 +46,7 @@ public class PostReportDTO {
 		this.post_title = post_title;
 		this.post_category = post_category;
 		this.post_report_count = post_report_count;
+		this.author = author;
 	}
 
 	public Long getReport_id() {
@@ -140,6 +144,15 @@ public class PostReportDTO {
 	public void setPost_report_count(Integer post_report_count) {
 		this.post_report_count = post_report_count;
 	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(String author) {
+		this.author = author;
+	}
+
 
     
 

@@ -54,16 +54,19 @@ public class AdminCommentController {
             @RequestParam(defaultValue = "all") String category,
             @RequestParam(defaultValue = "all") String commentType,
             @RequestParam(defaultValue = "content") String searchType,
-            @RequestParam(defaultValue = "") String keyword
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "all") String visibleStatus
+            
     ) {
         return ResponseEntity.ok(
-                adminCommentService.getComments(
+                adminCommentService.getComments( 
                         page,
                         size,
                         category,
                         commentType,
                         searchType,
-                        keyword
+                        keyword,
+                        visibleStatus
                 )
         );
     }

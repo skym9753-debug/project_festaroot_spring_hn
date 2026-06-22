@@ -46,14 +46,29 @@ public class AdminCommentService {
 	public Map<String, Object> getSummary() {
 		return adminCommentDAO.selectSummary();
 	}
+	
+	private String normalizeVisibleStatus(String visibleStatus) {
+	    if (visibleStatus == null || visibleStatus.trim().isEmpty()) {
+	        return "all";
+	    }
 
-	public Map<String, Object> getComments(
+	    String normalized = visibleStatus.trim().toUpperCase();
+
+	    if ("Y".equals(normalized) || "N".equals(normalized)) {
+	        return normalized;
+	    }
+
+	    return "all";
+	}
+
+	public Map<String, Object> getComments( 
 			int page,
 			int size,
 			String category,
 			String commentType,
 			String searchType,
-			String keyword
+			String keyword,
+			String visibleStatus
 			) {
 		page = normalizePage(page);
 		size = normalizeSize(size);
@@ -61,6 +76,8 @@ public class AdminCommentService {
 		commentType = normalizeCommentType(commentType);
 		searchType = normalizeSearchType(searchType);
 		keyword = keyword == null ? "" : keyword.trim();
+		visibleStatus = normalizeVisibleStatus(visibleStatus);
+		
 
 		int startRow = (page - 1) * size + 1;
 		int endRow = page * size;
@@ -72,6 +89,7 @@ public class AdminCommentService {
 		params.put("commentType", commentType);
 		params.put("searchType", searchType);
 		params.put("keyword", keyword);
+		params.put("visibleStatus", visibleStatus);
 
 		List<PostCommentDTO> rawComments =
 				adminCommentDAO.selectComments(params);
@@ -330,6 +348,8 @@ public class AdminCommentService {
 				"pendingReportCount",
 				valueOrZero(comment.getPending_report_count())
 				);
+		row.put("is_visible", comment.getIs_visible());
+		
 
 		return row;
 	}
