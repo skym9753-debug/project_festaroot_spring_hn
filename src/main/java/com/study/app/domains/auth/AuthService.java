@@ -28,7 +28,9 @@ import com.study.app.domains.oauth.KakaoUserResponse;
 import com.study.app.domains.oauth.NaverTokenResponse;
 import com.study.app.domains.oauth.NaverUserResponse;
 import com.study.app.utils.JWTUtil;
-
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpClientErrorException;
 @Service
 public class AuthService {
 
