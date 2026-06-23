@@ -59,7 +59,6 @@
 	    LEFT JOIN festival_themes ft ON f.content_id = ft.content_id       
 	    LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code 
 	    WHERE f.content_id = #{content_id}
-	    AND NVL(f.is_visible, 'Y') = 'Y'
   	</select>
   	
 	
