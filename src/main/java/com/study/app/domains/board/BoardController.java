@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.app.domains.achievement.dto.AchievementResultDTO;
 import com.study.app.domains.board.dto.CommunityPostDTO;
 import com.study.app.domains.board.dto.PostAttachmentDTO;
@@ -53,11 +54,19 @@ public class BoardController {
 	@Autowired
 	private CommentActionService commentActionService;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	@PostMapping("/post")
 	public ResponseEntity<Map<String,Object>> addPost(
-			@RequestPart("post") CommunityPostDTO dto, 
+			@RequestPart(value = "post", required = false) String postJson,
+			@RequestPart(value = "dto", required = false) String dtoJson,
+			@RequestPart(value = "postData", required = false) String postDataJson,
+			@RequestParam Map<String, String> formFields,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files,
 			@RequestHeader("Authorization") String authHeader){
+
+		CommunityPostDTO dto = parsePostDto(postJson, dtoJson, postDataJson, formFields);
 
 		String token = authHeader.replace("Bearer ", "");
 		String member_id = jwt.getSubject(token);
@@ -106,7 +115,7 @@ public class BoardController {
 	@GetMapping("/post/{id}")
 	public ResponseEntity<Map<String, Object>> getPostDetail(@PathVariable Long id) {
 		CommunityPostDTO dto = boardService.getPostDetail(id);
-		List<PostAttachmentDTO> list = boardService.getPostAttachList(id);
+		List<PostAttachmentDTO> list = dto != null ? dto.getAttachments() : null;
 
 		Map<String, Object> resp = new HashMap<>();
 		resp.put("dto", dto);
@@ -118,12 +127,73 @@ public class BoardController {
 	@PutMapping("/post/{id}")
 	public ResponseEntity<Void> updatePost(
 			@PathVariable Long id,
-			@RequestPart("post") CommunityPostDTO dto,
+			@RequestPart(value = "post", required = false) String postJson,
+			@RequestPart(value = "dto", required = false) String dtoJson,
+			@RequestPart(value = "postData", required = false) String postDataJson,
+			@RequestParam Map<String, String> formFields,
 			@RequestPart(value = "files", required = false) List<MultipartFile> files){
+		CommunityPostDTO dto = parsePostDto(postJson, dtoJson, postDataJson, formFields);
 		dto.setPost_id(id);
 		System.out.println(id);
 		boardService.updatePost(dto, files);
 		return ResponseEntity.ok().build();
+	}
+
+	private CommunityPostDTO parsePostDto(
+			String postJson,
+			String dtoJson,
+			String postDataJson,
+			Map<String, String> formFields) {
+		String payload = firstNonBlank(postJson, dtoJson, postDataJson);
+
+		if (payload != null) {
+			try {
+				return objectMapper.readValue(payload, CommunityPostDTO.class);
+			} catch (Exception e) {
+				throw new RuntimeException("Invalid post payload", e);
+			}
+		}
+
+		if (formFields == null || formFields.isEmpty()) {
+			throw new RuntimeException("Missing post payload");
+		}
+
+		CommunityPostDTO dto = new CommunityPostDTO();
+		dto.setCategory(formFields.get("category"));
+		dto.setTitle(formFields.get("title"));
+		dto.setContent(formFields.get("content"));
+
+		String deleteFileIdsJson = firstNonBlank(
+				formFields.get("deleteFileIds"),
+				formFields.get("delete_file_ids")
+		);
+
+		if (deleteFileIdsJson != null) {
+			try {
+				dto.setDeleteFileIds(objectMapper.readValue(
+						deleteFileIdsJson,
+						objectMapper.getTypeFactory().constructCollectionType(List.class, Long.class)
+				));
+			} catch (Exception e) {
+				throw new RuntimeException("Invalid deleteFileIds payload", e);
+			}
+		}
+
+		return dto;
+	}
+
+	private String firstNonBlank(String... values) {
+		if (values == null) {
+			return null;
+		}
+
+		for (String value : values) {
+			if (value != null && !value.trim().isEmpty()) {
+				return value;
+			}
+		}
+
+		return null;
 	}
 
 	@DeleteMapping("/post/{id}")
@@ -153,11 +223,7 @@ public class BoardController {
 		result.put("achievements", achievements);
 
 		return ResponseEntity.ok(result);
-		//        if (result > 0) {
-		//            return ResponseEntity.ok().build();
-		//        }
-		//
-		//        return ResponseEntity.badRequest().build();
+
 	}
 
 	// 댓글 목록 조회

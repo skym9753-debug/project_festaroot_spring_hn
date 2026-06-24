@@ -22,6 +22,7 @@ public class CommunityPostDTO {
     
     // 삭제할 파일 ID 목록
     private List<Long> deleteFileIds;
+    private List<PostAttachmentDTO> attachments;
 
     public CommunityPostDTO() {}
 
@@ -147,6 +148,14 @@ public class CommunityPostDTO {
 
 	public void setDeleteFileIds(List<Long> deleteFileIds) {
 		this.deleteFileIds = deleteFileIds;
+	}
+
+	public List<PostAttachmentDTO> getAttachments() {
+		return attachments;
+	}
+
+	public void setAttachments(List<PostAttachmentDTO> attachments) {
+		this.attachments = attachments;
 	}
     
     
