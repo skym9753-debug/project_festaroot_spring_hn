@@ -63,13 +63,29 @@ public class RecommendationService {
             String userContext = buildUserContext(member, interestRegions, interestThemes, recentLogs, likedFestivals, userInput);
             log.info("User Context: {}", userContext);
 
-            // 3. 후보군 수집 (유저 입력 기반 Qdrant 검색 우선 + 관심사 기반)
-            List<Map<String, Object>> candidates = collectCandidates(interestRegions, interestThemes, recentLogs, userInput);
+            // 3. 후보군 수집 (유저 입력 기반 Qdrant 검색 우선 + 관심사 및 거주지 기반)
+            List<Map<String, Object>> candidates = collectCandidates(member, interestRegions, interestThemes, recentLogs, userInput);
             
             // 후보군이 너무 적으면 인기 축제로 보충
             if (candidates.size() < 5) {
                 candidates.addAll(festivalDAO.getPopularFestivals());
             }
+
+            // 3.5. 최종 후보군에서 종료된 축제 완전 배제 (오늘 날짜 이전 축제 필터링)
+            String todayStr = java.time.LocalDate.now().toString().replace("-", "");
+            candidates = candidates.stream()
+                .filter(f -> {
+                    Object endDateObj = f.get("EVENT_END_DATE");
+                    if (endDateObj == null) {
+                        endDateObj = f.get("event_end_date");
+                    }
+                    if (endDateObj == null) return false;
+                    
+                    String endDate = String.valueOf(endDateObj).replace("-", "").trim();
+                    if (endDate.isEmpty() || endDate.length() < 8) return false;
+                    return endDate.compareTo(todayStr) >= 0;
+                })
+                .collect(Collectors.toList());
 
             // 4. Gemini에게 최종 추천 3~5개와 이유 요청
             String prompt = buildRecommendationPrompt(userContext, candidates, userInput);
@@ -92,6 +108,10 @@ public class RecommendationService {
                                    List<UserActivityLogDTO> logs, List<Map<String, Object>> likedFestivals, String userInput) {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("유저 정보: %s, %s. ", member.getGender(), member.getBirthdate()));
+        if (member.getAddr_sido() != null && !member.getAddr_sido().trim().isEmpty()) {
+            sb.append(String.format("거주 지역: %s %s. ", member.getAddr_sido(), 
+                (member.getAddr_sigungu() != null ? member.getAddr_sigungu() : "")));
+        }
         
         if (userInput != null && !userInput.trim().isEmpty()) {
             sb.append("현재 유저의 요청(한마디): \"").append(userInput).append("\". ");
@@ -136,7 +156,7 @@ public class RecommendationService {
         return sb.toString();
     }
 
-    private List<Map<String, Object>> collectCandidates(List<InterestRegionDTO> regions, List<InterestThemeDTO> themes, 
+    private List<Map<String, Object>> collectCandidates(MemberDTO member, List<InterestRegionDTO> regions, List<InterestThemeDTO> themes, 
                                                        List<UserActivityLogDTO> logs, String userInput) {
         Set<Long> uniqueIds = new HashSet<>();
         Set<Long> forbiddenIds = new HashSet<>();
@@ -198,6 +218,19 @@ public class RecommendationService {
             }
         }
 
+        // 2.5. 거주 지역 기반 후보 (로그인 유저 거주지 매핑)
+        if (candidates.size() < 30 && member != null && member.getReside_area_code() != null && !member.getReside_area_code().trim().isEmpty()) {
+            try {
+                List<Map<String, Object>> resideFests = festivalDAO.getFestivalsByRegion(member.getReside_area_code());
+                for (Map<String, Object> f : resideFests) {
+                    Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
+                    if (!forbiddenIds.contains(id) && uniqueIds.add(id)) candidates.add(f);
+                }
+            } catch (Exception e) {
+                log.error("거주 지역 기반 후보 수집 중 오류: {}", e.getMessage());
+            }
+        }
+
         // 3. 관심 지역 기반 후보
         if (candidates.size() < 30) {
             for (InterestRegionDTO region : regions) {
@@ -217,6 +250,26 @@ public class RecommendationService {
             for (Map<String, Object> f : themeFests) {
                 Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
                 if (!forbiddenIds.contains(id) && uniqueIds.add(id)) candidates.add(f);
+            }
+        }
+
+        // 4.5. 유저 입력(userInput)에 특정 지역 정보가 포함된 경우 해당 지역 축제로만 하드 필터링
+        String targetRegionCode = extractRegionCodeFromInput(userInput);
+        if (targetRegionCode != null) {
+            log.info("유저 입력에서 지역명 감지. 대상 지역코드: {}", targetRegionCode);
+            candidates = candidates.stream()
+                .filter(f -> targetRegionCode.equals(String.valueOf(f.get("REGION_CODE"))))
+                .collect(Collectors.toList());
+            
+            // 필터링 결과 후보가 부족한 경우 해당 지역의 축제를 DB에서 가져와 보충
+            if (candidates.size() < 10) {
+                List<Map<String, Object>> regionFests = festivalDAO.getFestivalsByRegion(targetRegionCode);
+                for (Map<String, Object> f : regionFests) {
+                    Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
+                    if (!forbiddenIds.contains(id) && uniqueIds.add(id)) {
+                        candidates.add(f);
+                    }
+                }
             }
         }
         
@@ -242,11 +295,12 @@ public class RecommendationService {
             "[후보 리스트]: %s\n\n" +
             "[지침]:\n" +
             "1. %s\n" +
-            "2. 이미 종료된 축제(end 날짜가 오늘보다 이전)는 추천에서 가급적 제외해줘.\n" +
-            "3. 유저가 '싫어요'라고 피드백한 축제나 사유가 있다면 해당 스타일은 반드시 제외해줘.\n" +
-            "4. 유저가 '좋아요'한 축제가 있다면 그와 유사한 테마나 분위기를 적극 반영해줘.\n" +
-            "5. 반드시 JSON 배열 형식으로만 응답해줘.\n" +
-            "6. recommendation_reason은 유저의 요청사항, 과거 피드백(좋아요/싫어요), 시기적 적절성을 연계하여 '해요'체로 친절하게 작성해줘.\n" +
+            "2. 유저의 거주 지역 정보가 있다면, 가급적 거주지 인근 또는 이동하기 편리한 지역의 축제를 우선적으로 추천하고, 추천 이유(recommendation_reason)에도 유저 거주지를 고려했음을 자연스럽게 설명해줘.\n" +
+            "3. 이미 종료된 축제(end 날짜가 오늘보다 이전)는 추천에서 가급적 제외해줘.\n" +
+            "4. 유저가 '싫어요'라고 피드백한 축제나 사유가 있다면 해당 스타일은 반드시 제외해줘.\n" +
+            "5. 유저가 '좋아요'한 축제가 있다면 그와 유사한 테마나 분위기를 적극 반영해줘.\n" +
+            "6. 반드시 JSON 배열 형식으로만 응답해줘.\n" +
+            "7. recommendation_reason은 유저의 요청사항, 과거 피드백(좋아요/싫어요), 거주지 정보, 시기적 적절성을 연계하여 '해요'체로 친절하게 작성해줘.\n" +
             "형식: [{\"content_id\": 123, \"recommendation_reason\": \"...\"}]",
             today, userContext, candidatesJson, userInstruction
         );
@@ -291,5 +345,33 @@ public class RecommendationService {
             }
         }
         return String.valueOf(obj);
+    }
+
+    private String extractRegionCodeFromInput(String userInput) {
+        if (userInput == null || userInput.trim().isEmpty()) {
+            return null;
+        }
+        
+        String cleanInput = userInput.replaceAll("\\s+", "");
+        
+        if (cleanInput.contains("서울")) return "11";
+        if (cleanInput.contains("부산")) return "26";
+        if (cleanInput.contains("대구")) return "27";
+        if (cleanInput.contains("인천")) return "28";
+        if (cleanInput.contains("광주")) return "29";
+        if (cleanInput.contains("대전")) return "30";
+        if (cleanInput.contains("울산")) return "31";
+        if (cleanInput.contains("세종")) return "36";
+        if (cleanInput.contains("경기")) return "41";
+        if (cleanInput.contains("강원")) return "42";
+        if (cleanInput.contains("충북") || cleanInput.contains("충청북도")) return "43";
+        if (cleanInput.contains("충남") || cleanInput.contains("충청남도")) return "44";
+        if (cleanInput.contains("전북") || cleanInput.contains("전라북도") || cleanInput.contains("전북특별자치도")) return "45";
+        if (cleanInput.contains("전남") || cleanInput.contains("전라남도")) return "46";
+        if (cleanInput.contains("경북") || cleanInput.contains("경상북도")) return "47";
+        if (cleanInput.contains("경남") || cleanInput.contains("경상남도")) return "48";
+        if (cleanInput.contains("제주")) return "50";
+        
+        return null;
     }
 }
