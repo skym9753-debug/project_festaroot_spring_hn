@@ -26,7 +26,7 @@ public class ChatService {
 	private ChatMessageRepository chatMessageRepository; // MongoDB Repository
 
 	public List<ChatMessageDocument> getChatHistory(Long roomId, String memberId) {
-		// 1. Oracle DB에서 해당 유저의 채팅방 입장 시간을 가져옵니다.
+		// 1. Oracle DB에서 해당 유저의 채팅방 입장 시간을 가져옴
 		LocalDateTime joinedAt = gatheringMapper.selectUserJoinedAt(roomId, memberId);
 
 		// 방어 코드: 만약 입장 기록이 없다면 빈 리스트 반환
@@ -34,13 +34,15 @@ public class ChatService {
 			return Collections.emptyList();
 		}
 
-		// 2. 그 시간 이후의 MongoDB 메시지만 필터링하여 가져옵니다.
-		return chatMessageRepository.findByRoomIdAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(roomId, joinedAt);
+		// 2. 그 시간 이후의 MongoDB 메시지만 필터링하여 가져옴
+		// 가입 시간(joinedAt)에서 5초의 여유 버퍼를 차감한 뒤 MongoDB 메시지를 필터링
+		return chatMessageRepository.findByRoomIdAndCreatedAtGreaterThanEqualOrderByCreatedAtAsc(roomId,
+				joinedAt.minusSeconds(5));
 	}
 
 	// 읽은 메세지
 	public void updateLastReadAt(Long roomId, String memberId) {
-	    gatheringMapper.updateLastReadAt(roomId, memberId, java.time.LocalDateTime.now());
+		gatheringMapper.updateLastReadAt(roomId, memberId, java.time.LocalDateTime.now());
 	}
 
 	// 1:1 채팅방 존재 확인 및 생성

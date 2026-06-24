@@ -89,5 +89,7 @@ public interface GatheringMapper {
 	
 	// 인기 모임 목록
 	List<PopularGatheringDTO> getPopularGatherings();
+	
+	int deleteParticipantFromAllRooms(@Param("member_id") String memberId);
 
 }
