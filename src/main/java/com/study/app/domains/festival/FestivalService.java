@@ -598,7 +598,7 @@ public class FestivalService {
 					.queryParam("contentId", contentId)
 
 					// 15 = 축제
-					// .queryParam("contentTypeId", "15")
+					 .queryParam("contentTypeId", "15")
 
 					.build(true).toUri();
 
