@@ -100,7 +100,7 @@ public class FileDAO {
 	}
 
 	public void deletePostAttachById(Long id) {
-		mybatis.delete("PostAttachment.dedeletePostAttachById", id);
+		mybatis.delete("PostAttachment.deletePostAttachById", id);
 	}
 
 	public PostAttachmentDTO selectPostAttachById(Long id) {
