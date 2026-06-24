@@ -1,6 +1,5 @@
 package com.study.app.domains.board.service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +43,7 @@ public class BoardService {
 			fileDAO.insertPostAttachments(dto.getPost_id(), files);	
 		}
 		
-		// 활동 로그 기록
+		// Activity log hook
 //		com.study.app.domains.activity.dto.UserActivityLogDTO log = new com.study.app.domains.activity.dto.UserActivityLogDTO();
 //		log.setMember_id(dto.getMember_id());
 //		log.setAction_type("POST_WRITE");
@@ -64,7 +63,13 @@ public class BoardService {
 
 	public CommunityPostDTO getPostDetail(Long id) {
 		postDAO.increaseViewCount(id);
-		return postDAO.selectById(id);
+		CommunityPostDTO post = postDAO.selectById(id);
+		
+		if (post != null) {
+			post.setAttachments(fileDAO.selectPostAttachByPostId(id));
+		}
+		
+		return post;
 	}
 	
 	public List<PostAttachmentDTO> getPostAttachList(Long id) {
@@ -74,43 +79,43 @@ public class BoardService {
 	public void updatePost(CommunityPostDTO dto, List<MultipartFile> files) {
 		postDAO.updatePostById(dto);
 		
-	    if (dto.getDeleteFileIds() != null) {
-	        for (Long attach_id : dto.getDeleteFileIds()) {
-	        	
-	        	// 1. DB 삭제
-	            fileDAO.deletePostAttachById(attach_id);
-	            
-	            // 2. GCP 삭제
-	            PostAttachmentDTO attachment = fileDAO.selectPostAttachById(attach_id);
-	        }
-	    }
+		if (dto.getDeleteFileIds() != null) {
+			for (Long attach_id : dto.getDeleteFileIds()) {
+				PostAttachmentDTO attachment = fileDAO.selectPostAttachById(attach_id);
+				
+				if (attachment != null) {
+					fileDAO.deletePostAttachById(attach_id);
+				}
+			}
+		}
+		
+		System.out.println("Post DTO ID = " + dto.getPost_id());
 
-	    if (files != null && !files.isEmpty()) {
-	    	fileDAO.insertPostAttachments(dto.getPost_id(), files);	
-
-	    }
+		if (files != null && !files.isEmpty()) {
+			fileDAO.insertPostAttachments(dto.getPost_id(), files);	
+		}
 	}
 
 	public void deletePost(Long id) {
 		
-//	    // 0. 게시글 조회 (본문 이미지 삭제를 위해)
+//	    // 0. Load post first if content image cleanup is needed
 //	    CommunityPostDTO post = postDAO.selectById(id);
 //	    if (post != null) {
-//	        // 본문 내 이미지 삭제
+//	        // Delete inline images from the content body
 //	        uploadService.deleteImagesFromContent(post.getContent());
 //	    }
 //		
-//	    // 1. 게시글 첨부파일 조회
+//	    // 1. Load post attachments
 //	    List<PostAttachmentDTO> attachments = fileDAO.selectPostAttachByPostId(id);
 //
-//	    // 2. GCP Storage 실제 파일 삭제
+//	    // 2. Delete physical files from GCP Storage
 //	    for (PostAttachmentDTO file : attachments) {
 //	        if (file.getFile_path() != null) {
 //	            uploadService.deleteFile(file.getFile_path());
 //	        }
 //	    }
 //
-//	    // 3. 첨부파일 DB 삭제
+//	    // 3. Delete attachment rows from DB
 		
 
 	    

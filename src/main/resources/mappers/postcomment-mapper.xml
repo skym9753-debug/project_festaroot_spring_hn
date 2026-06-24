@@ -27,8 +27,8 @@
     </insert>
 
     <!-- 특정 게시글 댓글 전체 조회 -->
-    <select id="selectCommentsByPostId"
-            resultType="com.study.app.domains.board.dto.PostCommentDTO">
+	<select id="selectCommentsByPostId"
+        resultType="com.study.app.domains.board.dto.PostCommentDTO">
 	    SELECT
 	        pc.comment_id,
 	        pc.post_id,
@@ -37,18 +37,20 @@
 	        pc.parent_comment_id,
 	        pc.created_at,
 	        pc.updated_at,
-	        pc.like_count,
-	        pc.report_count,
+	        NVL(pc.like_count, 0) AS like_count,
+	        NVL(pc.report_count, 0) AS report_count,
 	        m.nickname,
 	        m.profile_image_url
-	    FROM POST_COMMENT pc
-	    LEFT JOIN MEMBER m
+	    FROM post_comment pc
+	    LEFT JOIN member m
 	        ON pc.member_id = m.member_id
-	    WHERE pc.post_id = #{post_id} and pc.is_visible = 'Y'
+	    WHERE pc.post_id = #{post_id}
+	      AND pc.is_visible = 'Y'
+	      AND NVL(m.status, 'ACTIVE') != 'DELETED'
 	    ORDER BY
 	        NVL(pc.parent_comment_id, pc.comment_id),
 	        pc.created_at
-    </select>
+	</select>
 
     <!-- 댓글 수정 -->
     <update id="updateComment">
