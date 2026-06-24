@@ -27,6 +27,7 @@ import com.study.app.domains.auth.EmailService;
 import com.study.app.domains.board.service.BoardService;
 import com.study.app.domains.board.service.PostCommentService;
 import com.study.app.domains.festival.FestivalDAO;
+import com.study.app.domains.gathering.GatheringMapper;
 import com.study.app.domains.member.dto.FindIdRequestDTO;
 import com.study.app.domains.member.dto.InterestRegionDTO;
 import com.study.app.domains.member.dto.InterestThemeDTO;
@@ -76,6 +77,9 @@ public class MemberService {
 	
 	@Autowired
 	private PostCommentService postCommentService;
+	
+	@Autowired
+	private GatheringMapper gatheringMapper;
 
 	public MemberProfileDTO getProfile(String member_id) {
 		MemberDTO member = memberDAO.selectMemberById(member_id);
@@ -447,6 +451,9 @@ public class MemberService {
 
 	@Transactional
 	public void withdrawMember(String member_id) {
+		// 탈퇴하는 회원이 참여 중인 모든 모임방/채팅방 관계 데이터 제거
+		gatheringMapper.deleteParticipantFromAllRooms(member_id);
+		
 		// 1. 관심 지역 및 테마 삭제 (선택 사항이나 개인정보 보호를 위해 권장)
 		memberDAO.deleteInterestRegions(member_id);
 		memberDAO.deleteInterestThemes(member_id);

@@ -71,6 +71,22 @@ public class RecommendationService {
                 candidates.addAll(festivalDAO.getPopularFestivals());
             }
 
+            // 3.5. 최종 후보군에서 종료된 축제 완전 배제 (오늘 날짜 이전 축제 필터링)
+            String todayStr = java.time.LocalDate.now().toString().replace("-", "");
+            candidates = candidates.stream()
+                .filter(f -> {
+                    Object endDateObj = f.get("EVENT_END_DATE");
+                    if (endDateObj == null) {
+                        endDateObj = f.get("event_end_date");
+                    }
+                    if (endDateObj == null) return false;
+                    
+                    String endDate = String.valueOf(endDateObj).replace("-", "").trim();
+                    if (endDate.isEmpty() || endDate.length() < 8) return false;
+                    return endDate.compareTo(todayStr) >= 0;
+                })
+                .collect(Collectors.toList());
+
             // 4. Gemini에게 최종 추천 3~5개와 이유 요청
             String prompt = buildRecommendationPrompt(userContext, candidates, userInput);
             String aiResponse = geminiService.getCompletion(prompt);

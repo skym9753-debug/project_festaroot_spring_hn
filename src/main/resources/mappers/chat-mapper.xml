@@ -16,19 +16,23 @@
 	</select>
 
 	<insert id="insertChatRoom">
-		INSERT INTO CHAT_ROOM (
-			room_id, room_type, room_title, created_at, max_capacity
-		) VALUES (
-			#{roomId}, #{roomType}, #{roomTitle}, SYSDATE, 2
-		)
+	    INSERT INTO CHAT_ROOM (
+	        room_id, room_type, room_title, created_at, max_capacity
+	    ) VALUES (
+	        #{roomId}, #{roomType}, #{roomTitle}, CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE), 2
+	    )
 	</insert>
 
 	<insert id="insertChatRoomMember">
-		INSERT INTO CHAT_ROOM_USER (
-			seq, room_id, member_id, joined_at, last_read_at
-		) VALUES (
-			SEQ_CHAT_ROOM_USER.NEXTVAL, #{roomId}, #{memberId}, SYSDATE, SYSTIMESTAMP
-		)
+	    INSERT INTO CHAT_ROOM_USER (
+	        seq, room_id, member_id, joined_at, last_read_at
+	    ) VALUES (
+	        SEQ_CHAT_ROOM_USER.NEXTVAL, 
+	        #{roomId}, 
+	        #{memberId}, 
+	        CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE), 
+	        SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul'
+	    )
 	</insert>
 
 	<select id="checkBlockStatus" resultType="int">
