@@ -39,11 +39,15 @@
 	</update>
 
 	<insert id="insertRoomUser">
-		INSERT INTO CHAT_ROOM_USER (
-		seq, room_id, member_id, joined_at, last_read_at
-		) VALUES (
-		SEQ_CHAT_ROOM_USER.NEXTVAL, #{room_id}, #{member_id}, SYSDATE, SYSTIMESTAMP
-		)
+	    INSERT INTO CHAT_ROOM_USER (
+	        seq, room_id, member_id, joined_at, last_read_at
+	    ) VALUES (
+	        SEQ_CHAT_ROOM_USER.NEXTVAL, 
+	        #{room_id}, 
+	        #{member_id}, 
+	        CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE), 
+	        SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul'
+	    )
 	</insert>
 
 	<select id="selectGatheringList" resultType="map">
@@ -201,11 +205,15 @@
 	</select>
 
 	<insert id="insertParticipant">
-		INSERT INTO CHAT_ROOM_USER (
-		seq, room_id, member_id, joined_at, last_read_at
-		) VALUES (
-		SEQ_CHAT_ROOM_USER.NEXTVAL, #{room_id}, #{member_id}, SYSDATE, SYSTIMESTAMP
-		)
+	    INSERT INTO CHAT_ROOM_USER (
+	        seq, room_id, member_id, joined_at, last_read_at
+	    ) VALUES (
+	        SEQ_CHAT_ROOM_USER.NEXTVAL, 
+	        #{room_id}, 
+	        #{member_id}, 
+	        CAST(SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul' AS DATE), 
+	        SYSTIMESTAMP AT TIME ZONE 'Asia/Seoul'
+	    )
 	</insert>
 
 	<delete id="deleteParticipant">
