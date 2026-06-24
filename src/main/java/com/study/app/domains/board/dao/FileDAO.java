@@ -29,25 +29,45 @@ public class FileDAO {
 
 	public void insertPostAttachments(Long post_id, List<MultipartFile> files) {
 
+		if (post_id == null) {
+			throw new IllegalArgumentException("첨부파일 저장 실패: post_id가 null입니다.");
+		}
+
 		for (MultipartFile file : files) {
 			if (!file.isEmpty()) {
 				try {
 					String originalName = file.getOriginalFilename();
 
-					String sysName = "board/file/" + UUID.randomUUID().toString() + "_" + originalName;
+					String sysName = "board/file/"
+							+ UUID.randomUUID().toString()
+							+ "_"
+							+ originalName;
 
 					BlobId blobId = BlobId.of(bucketName, sysName);
 
-					BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
+					BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+							.setContentType(file.getContentType())
+							.build();
 
 					storage.create(blobInfo, file.getBytes());
 
 					PostAttachmentDTO attachmentDTO = new PostAttachmentDTO();
 
+					attachmentDTO.setPost_id(post_id);
+					attachmentDTO.setFile_name(originalName);
+					attachmentDTO.setFile_path(sysName);
+					attachmentDTO.setFile_size(file.getSize());
+					attachmentDTO.setFile_type(file.getContentType());
+
+					System.out.println("첨부파일 저장 post_id = " + attachmentDTO.getPost_id());
+					System.out.println("첨부파일 저장 file_name = " + attachmentDTO.getFile_name());
+					System.out.println("첨부파일 저장 file_path = " + attachmentDTO.getFile_path());
+
 					mybatis.insert("PostAttachment.insertFiles", attachmentDTO);
 
 				} catch (Exception e) {
 					e.printStackTrace();
+					throw new RuntimeException("첨부파일 저장 중 오류 발생", e);
 				}
 			}
 		}

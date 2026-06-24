@@ -84,6 +84,8 @@ public class BoardService {
 	            PostAttachmentDTO attachment = fileDAO.selectPostAttachById(attach_id);
 	        }
 	    }
+	    
+	    System.out.println("게시글 DTO ID = " + dto.getPost_id());
 
 	    if (files != null && !files.isEmpty()) {
 	    	fileDAO.insertPostAttachments(dto.getPost_id(), files);	
