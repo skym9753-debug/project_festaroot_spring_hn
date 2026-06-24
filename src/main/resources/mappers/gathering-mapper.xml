@@ -288,6 +288,7 @@
 				LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
 				LEFT JOIN member m ON cr.owner_id = m.member_id
 				WHERE cru.member_id = #{member_id}
+				  AND cr.room_type IN ('FESTIVAL', 'GROUP')
 				  AND (cr.festival_id IS NULL OR fi.is_visible = 'Y') <if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
 				<if test="filter == '자유 모임'">AND cr.room_type = 'GROUP'</if>
 				<if test="filter == '개설한 모임'">AND cr.owner_id = #{member_id}</if>
@@ -306,6 +307,7 @@
 		JOIN chat_room_user cru ON cr.room_id = cru.room_id
 		LEFT JOIN festival_info fi ON cr.festival_id = fi.content_id
 		WHERE cru.member_id = #{member_id}
+		  AND cr.room_type IN ('FESTIVAL', 'GROUP')
 		  AND (cr.festival_id IS NULL OR fi.is_visible = 'Y') <if test="filter == '축제별 모임'">AND cr.room_type = 'FESTIVAL'</if>
 		<if test="filter == '자유 모임'">AND cr.room_type = 'GROUP'</if>
 		<if test="filter == '개설한 모임'">AND cr.owner_id = #{member_id}</if>
