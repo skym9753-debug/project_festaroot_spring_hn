@@ -265,6 +265,19 @@ public class GatheringService {
 		int deletedRows = gatheringMapper.deleteParticipant(roomId, member_id);
 
 		if (deletedRows != 0) {
+
+			// 해당 방의 현재 남아있는 인원 수 체크
+			Map<String, Object> roomInfo = gatheringMapper.getRoomCapacityInfo(roomId);
+			if (roomInfo != null) {
+				int currentCount = Integer.parseInt(roomInfo.get("CURRENT_COUNT").toString());
+
+				// 참여자 카운트가 0명이면 CHAT_ROOM 테이블에서 해당 방 완전 자동 삭제
+				if (currentCount == 0) {
+					gatheringMapper.deleteGathering(roomId);
+					return true; // 인원이 없어 방이 정리되었으므로 종료
+				}
+			}
+
 			ChatMessageDocument leaveMsg = new ChatMessageDocument();
 			leaveMsg.setRoomId(roomId);
 			leaveMsg.setSenderId(member_id);
@@ -280,9 +293,9 @@ public class GatheringService {
 
 		return deletedRows != 0;
 	}
-	
+
 	// 인기 모임 목록
-	public List<PopularGatheringDTO> getPopularGatherings(){
+	public List<PopularGatheringDTO> getPopularGatherings() {
 		return gatheringMapper.getPopularGatherings();
 	}
 
