@@ -236,6 +236,26 @@ public class RecommendationService {
                 if (!forbiddenIds.contains(id) && uniqueIds.add(id)) candidates.add(f);
             }
         }
+
+        // 4.5. 유저 입력(userInput)에 특정 지역 정보가 포함된 경우 해당 지역 축제로만 하드 필터링
+        String targetRegionCode = extractRegionCodeFromInput(userInput);
+        if (targetRegionCode != null) {
+            log.info("유저 입력에서 지역명 감지. 대상 지역코드: {}", targetRegionCode);
+            candidates = candidates.stream()
+                .filter(f -> targetRegionCode.equals(String.valueOf(f.get("REGION_CODE"))))
+                .collect(Collectors.toList());
+            
+            // 필터링 결과 후보가 부족한 경우 해당 지역의 축제를 DB에서 가져와 보충
+            if (candidates.size() < 10) {
+                List<Map<String, Object>> regionFests = festivalDAO.getFestivalsByRegion(targetRegionCode);
+                for (Map<String, Object> f : regionFests) {
+                    Long id = Long.parseLong(String.valueOf(f.get("CONTENT_ID")));
+                    if (!forbiddenIds.contains(id) && uniqueIds.add(id)) {
+                        candidates.add(f);
+                    }
+                }
+            }
+        }
         
         return candidates.stream().limit(40).collect(Collectors.toList());
     }
@@ -309,5 +329,33 @@ public class RecommendationService {
             }
         }
         return String.valueOf(obj);
+    }
+
+    private String extractRegionCodeFromInput(String userInput) {
+        if (userInput == null || userInput.trim().isEmpty()) {
+            return null;
+        }
+        
+        String cleanInput = userInput.replaceAll("\\s+", "");
+        
+        if (cleanInput.contains("서울")) return "11";
+        if (cleanInput.contains("부산")) return "26";
+        if (cleanInput.contains("대구")) return "27";
+        if (cleanInput.contains("인천")) return "28";
+        if (cleanInput.contains("광주")) return "29";
+        if (cleanInput.contains("대전")) return "30";
+        if (cleanInput.contains("울산")) return "31";
+        if (cleanInput.contains("세종")) return "36";
+        if (cleanInput.contains("경기")) return "41";
+        if (cleanInput.contains("강원")) return "42";
+        if (cleanInput.contains("충북") || cleanInput.contains("충청북도")) return "43";
+        if (cleanInput.contains("충남") || cleanInput.contains("충청남도")) return "44";
+        if (cleanInput.contains("전북") || cleanInput.contains("전라북도") || cleanInput.contains("전북특별자치도")) return "45";
+        if (cleanInput.contains("전남") || cleanInput.contains("전라남도")) return "46";
+        if (cleanInput.contains("경북") || cleanInput.contains("경상북도")) return "47";
+        if (cleanInput.contains("경남") || cleanInput.contains("경상남도")) return "48";
+        if (cleanInput.contains("제주")) return "50";
+        
+        return null;
     }
 }
