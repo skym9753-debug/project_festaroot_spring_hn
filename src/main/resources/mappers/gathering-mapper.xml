@@ -179,6 +179,7 @@
 	    JOIN member m ON cru.member_id = m.member_id
 	    LEFT JOIN chat_room cr ON cru.room_id = cr.room_id
 	    WHERE cru.room_id = #{room_id}
+	    	AND m.status != 'DELETED'
 	    ORDER BY "is_owner" DESC, m.nickname ASC
 	</select>
 	
@@ -192,9 +193,15 @@
 	    JOIN member m ON cru.member_id = m.member_id
 	    LEFT JOIN chat_room cr ON cru.room_id = cr.room_id
 	    WHERE cru.room_id = #{room_id}
+	    	AND m.status != 'DELETED'
 	      AND (cr.owner_id IS NULL OR cru.member_id != cr.owner_id)  
 	    ORDER BY m.nickname ASC
 	</select>
+	
+	<delete id="deleteParticipantFromAllRooms">
+	    DELETE FROM CHAT_ROOM_USER
+	    WHERE member_id = #{member_id}
+	</delete>
 
 	<select id="getRoomCapacityInfo" resultType="map">
 		SELECT
