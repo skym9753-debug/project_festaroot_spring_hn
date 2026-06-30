@@ -20,6 +20,7 @@ public class GatheringCreateDTO {
 	private String profile_image_url; // 프로필 이미지
 	private String nickname; // 닉네임
 	private Integer current_count; // 참여 인원 수
+	private String status; // 모임 노출 및 블라인드 상태 (ACTIVE, HIDDEN, BLIND)
 
 	@Override
 	public String toString() {
@@ -163,6 +164,14 @@ public class GatheringCreateDTO {
 
 	public void setCurrent_count(Integer current_count) {
 		this.current_count = current_count;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }

@@ -254,4 +254,28 @@ public class GatheringController {
         List<PopularGatheringDTO> list = gatheringService.getPopularGatherings();
         return ResponseEntity.ok(list);
     }
+
+	// 모임 신고하기
+	@PostMapping("/{room_id}/report")
+	public ResponseEntity<?> reportGathering(@PathVariable("room_id") Long roomId,
+			@RequestBody Map<String, Object> payload) {
+		try {
+			String reporterId = payload.get("reporter_id").toString();
+			String reportReason = payload.get("report_reason").toString();
+			boolean success = gatheringService.reportGathering(roomId, reporterId, reportReason);
+			if (success) {
+				return ResponseEntity.ok(Map.of("success", true, "message", "신고가 정상 접수되었습니다."));
+			} else {
+				return ResponseEntity.badRequest().body(Map.of("success", false, "message", "신고 접수에 실패했습니다."));
+			}
+		} catch (IllegalStateException e) {
+			if ("ALREADY_REPORTED".equals(e.getMessage())) {
+				return ResponseEntity.badRequest().body(Map.of("success", false, "message", "이미 신고를 완료한 모임입니다."));
+			}
+			return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "서버 처리 중 오류가 발생했습니다."));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "서버 처리 중 오류가 발생했습니다."));
+		}
+	}
 }
