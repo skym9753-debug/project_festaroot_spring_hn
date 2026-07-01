@@ -233,6 +233,11 @@ public class GatheringService {
 
 		gatheringMapper.insertParticipant(roomId, member_id);
 
+		if (currentCount + 1 >= maxCapacity) {
+			gatheringMapper.updateGatheringStatus(roomId, "HIDDEN");
+			System.out.println("====== AUTO-HIDE: Room " + roomId + " is now FULL (" + (currentCount + 1) + "/" + maxCapacity + "). Status updated to HIDDEN. ======");
+		}
+
 		String nickname = memberDao.selectUserNickname(member_id);
 		if (nickname == null)
 			nickname = member_id;
@@ -297,6 +302,140 @@ public class GatheringService {
 	// 인기 모임 목록
 	public List<PopularGatheringDTO> getPopularGatherings() {
 		return gatheringMapper.getPopularGatherings();
+	}
+
+	// 모임 신고하기
+	@Transactional(rollbackFor = Exception.class)
+	public boolean reportGathering(Long roomId, String reporterId, String reportReason) {
+		int duplicateCount = gatheringMapper.selectReportCountByReporter(roomId, reporterId);
+		if (duplicateCount > 0) {
+			throw new IllegalStateException("ALREADY_REPORTED");
+		}
+		return gatheringMapper.insertReport(roomId, reporterId, reportReason) > 0;
+	}
+
+	// 관리자용 모임 목록 조회 (페이징 및 필터 지원)
+	public Map<String, Object> getAdminGatherings(String status, String keyword, String sortBy, boolean reportedOnly, int page, int size) {
+		int startRow = (page - 1) * size + 1;
+		int endRow = page * size;
+
+		Map<String, Object> params = new HashMap<>();
+		params.put("status", status);
+		params.put("keyword", keyword == null ? "" : keyword.trim());
+		params.put("sortBy", sortBy);
+		params.put("reportedOnly", reportedOnly);
+		params.put("startRow", startRow);
+		params.put("endRow", endRow);
+
+		List<Map<String, Object>> list = gatheringMapper.selectAdminGatherings(params);
+		int totalElements = gatheringMapper.countAdminGatherings(params);
+		int totalPages = (int) Math.ceil((double) totalElements / size);
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("list", list);
+		result.put("totalPages", totalPages);
+		result.put("totalElements", totalElements);
+		return result;
+	}
+
+	// 특정 모임의 신고 목록 조회
+	public List<Map<String, Object>> getReportsByRoomId(Long roomId) {
+		return gatheringMapper.selectReportsByRoomId(roomId);
+	}
+
+	// 특정 모임의 선택된 신고 내역 삭제 (신고 반려)
+	@Transactional(rollbackFor = Exception.class)
+	public boolean rejectGatheringReports(List<Long> reportIds) {
+		if (reportIds != null && !reportIds.isEmpty()) {
+			for (Long reportId : reportIds) {
+				gatheringMapper.deleteReportById(reportId);
+			}
+		}
+		return true;
+	}
+
+	// 관리자용 모임 노출 상태 변경 (ACTIVE, HIDDEN)
+	@Transactional(rollbackFor = Exception.class)
+	public boolean updateGatheringStatus(Long roomId, String status) {
+		return gatheringMapper.updateGatheringStatus(roomId, status) > 0;
+	}
+
+	// 관리자 모임 영구 삭제
+	@Transactional(rollbackFor = Exception.class)
+	public boolean deleteGatheringByAdmin(Long roomId) {
+		gatheringMapper.deleteAllParticipants(roomId);
+		return gatheringMapper.deleteGathering(roomId) > 0;
+	}
+
+	// 관리자용 모임 신고 승인 (BLIND 상태로 전환 및 선택된 회원 신고 이력 적재)
+	@Transactional(rollbackFor = Exception.class)
+	public boolean acceptGatheringReports(Long roomId, List<Long> reportIds, String adminMemo) {
+		// 1. 방 상태를 BLIND로 전환
+		gatheringMapper.updateGatheringStatus(roomId, "BLIND");
+
+		// 2. 해당 방의 상세 정보를 가져와 방장 ID 확인
+		GatheringCreateDTO detail = gatheringMapper.selectGatheringDetail(roomId);
+		String targetMemberId = detail != null ? detail.getOwner_id() : null;
+
+		// 3. 선택된 신고 상세 내역 루프 돌며 MEMBER_REPORT_HISTORY에 이력 적재 및 신고 개별 삭제
+		if (reportIds != null && !reportIds.isEmpty()) {
+			long currentMaxId = gatheringMapper.selectMaxHistoryId();
+			for (Long reportId : reportIds) {
+				Map<String, Object> report = gatheringMapper.selectReportById(reportId);
+				if (report != null) {
+					currentMaxId++;
+					String reporterId = report.get("reporter_id").toString();
+					String reason = report.get("report_reason").toString();
+
+					// targetMemberId가 존재할 때만 이력 등록 (축제 모임 등 owner_id가 null인 경우 방어)
+					if (targetMemberId != null) {
+						gatheringMapper.insertReportHistory(
+								currentMaxId,
+								targetMemberId,
+								reporterId,
+								roomId,
+								reportId,
+								reason,
+								"ACCEPTED",
+								adminMemo
+						);
+					}
+				}
+				// 처리 완료된 신고 내역 삭제
+				gatheringMapper.deleteReportById(reportId);
+			}
+		}
+
+		return true;
+	}
+
+	// 관리자용 임시 메모 저장 (신고 승인 이전 대기 메모 처리 등)
+	@Transactional(rollbackFor = Exception.class)
+	public boolean saveGatheringAdminMemo(Long roomId, String adminMemo) {
+		int historyCount = gatheringMapper.checkHistoryExists(roomId);
+		if (historyCount > 0) {
+			// 이미 이력이 있으면 메모를 업데이트
+			return gatheringMapper.updateReportHistoryMemo(roomId, adminMemo) > 0;
+		} else {
+			// 이력이 없으면 임시 WAITING 상태의 이력을 최초 1개 생성하여 메모 저장
+			GatheringCreateDTO detail = gatheringMapper.selectGatheringDetail(roomId);
+			String targetMemberId = detail != null ? detail.getOwner_id() : null;
+			if (targetMemberId == null) {
+				return false;
+			}
+			long nextId = gatheringMapper.selectMaxHistoryId() + 1;
+			// 임시 등록이므로 reporterId는 NULL, reportId도 NULL
+			return gatheringMapper.insertReportHistory(
+					nextId,
+					targetMemberId,
+					null, // 임시
+					roomId,
+					null, // 임시
+					"관리자 임시 메모 등록",
+					"WAITING",
+					adminMemo
+			) > 0;
+		}
 	}
 
 }

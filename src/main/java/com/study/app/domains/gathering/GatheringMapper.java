@@ -91,5 +91,45 @@ public interface GatheringMapper {
 	List<PopularGatheringDTO> getPopularGatherings();
 	
 	int deleteParticipantFromAllRooms(@Param("member_id") String memberId);
+	
+	// 모임 신고 등록
+	int insertReport(@Param("room_id") Long roomId, @Param("reporter_id") String reporterId, @Param("report_reason") String reportReason);
+
+	// 관리자 모임 목록 조회
+	List<Map<String, Object>> selectAdminGatherings(Map<String, Object> params);
+
+	// 관리자 모임 개수 조회
+	int countAdminGatherings(Map<String, Object> params);
+
+	// 모임 상태 변경
+	int updateGatheringStatus(@Param("roomId") Long roomId, @Param("status") String status);
+
+	// 특정 모임의 신고 내역 조회
+	List<Map<String, Object>> selectReportsByRoomId(@Param("roomId") Long roomId);
+
+	// 신고 이력의 최대 ID 조회
+	long selectMaxHistoryId();
+
+	// 신고 이력 등록
+	int insertReportHistory(@Param("historyId") Long historyId, @Param("targetMemberId") String targetMemberId,
+			@Param("reporterId") String reporterId, @Param("roomId") Long roomId, @Param("reportId") Long reportId,
+			@Param("reason") String reason, @Param("resultStatus") String resultStatus, @Param("adminMemo") String adminMemo);
+
+	// 모임에 대한 이력 존재 여부 확인
+	int checkHistoryExists(@Param("roomId") Long roomId);
+
+	int updateReportHistoryMemo(@Param("roomId") Long roomId, @Param("adminMemo") String adminMemo);
+
+	// 동일 모임 중복 신고 개수 조회
+	int selectReportCountByReporter(@Param("roomId") Long roomId, @Param("reporterId") String reporterId);
+
+	// 특정 모임의 모든 신고 내역 삭제
+	int deleteReportsByRoomId(@Param("roomId") Long roomId);
+
+	// 개별 신고 상세 조회
+	Map<String, Object> selectReportById(@Param("reportId") Long reportId);
+
+	// 개별 신고 삭제
+	int deleteReportById(@Param("reportId") Long reportId);
 
 }
