@@ -77,46 +77,41 @@ public class FestivalDTO {
     
     public FestivalDTO() {}
 
-	public FestivalDTO(Long content_id, String title, String addr1, String addr2, String region_code,
-			String sigungu_code, String first_image, String first_image2, Double map_x, Double map_y, Integer map_level,
-			String event_start_date, String event_end_date, String overview, String spon_place,
-			String use_time_festival, String sponsor1_tel, String homepage, String created_time, String modified_time,
-			String indexed_modified_time, Long view_count, Long like_count, Long review_count, Double rating_avg,
-			Long save_count, Double avg_rating, String is_visible, List<ThemeMasterDTO> themes,
-			String is_population_decline_yn, String tourism_portal_url) {
-		super();
-		this.content_id = content_id;
-		this.title = title;
-		this.addr1 = addr1;
-		this.addr2 = addr2;
-		this.region_code = region_code;
-		this.sigungu_code = sigungu_code;
-		this.first_image = first_image;
-		this.first_image2 = first_image2;
-		this.map_x = map_x;
-		this.map_y = map_y;
-		this.map_level = map_level;
-		this.event_start_date = event_start_date;
-		this.event_end_date = event_end_date;
-		this.overview = overview;
-		this.spon_place = spon_place;
-		this.use_time_festival = use_time_festival;
-		this.sponsor1_tel = sponsor1_tel;
-		this.homepage = homepage;
-		this.created_time = created_time;
-		this.modified_time = modified_time;
-		this.indexed_modified_time = indexed_modified_time;
-		this.view_count = view_count;
-		this.like_count = like_count;
-		this.review_count = review_count;
-		this.rating_avg = rating_avg;
-		this.save_count = save_count;
-		this.avg_rating = avg_rating;
-		this.is_visible = is_visible;
-		this.themes = themes;
-		this.is_population_decline_yn = is_population_decline_yn;
-		this.tourism_portal_url = tourism_portal_url;
-	}
+    public FestivalDTO(Long content_id, String title, String addr1, String addr2, String region_code,
+            String sigungu_code, String first_image, String first_image2, Double map_x, Double map_y, Integer map_level,
+            String event_start_date, String event_end_date, String overview, String spon_place,
+            String use_time_festival, String sponsor1_tel, String homepage, String created_time, String modified_time,
+            String indexed_modified_time, Long view_count, Long like_count, Long review_count, Double rating_avg,
+            String is_visible) {
+         super();
+         this.content_id = content_id;
+         this.title = title;
+         this.addr1 = addr1;
+         this.addr2 = addr2;
+         this.region_code = region_code;
+         this.sigungu_code = sigungu_code;
+         this.first_image = first_image;
+         this.first_image2 = first_image2;
+         this.map_x = map_x;
+         this.map_y = map_y;
+         this.map_level = map_level;
+         this.event_start_date = event_start_date;
+         this.event_end_date = event_end_date;
+         this.overview = overview;
+         this.spon_place = spon_place;
+         this.use_time_festival = use_time_festival;
+         this.sponsor1_tel = sponsor1_tel;
+         this.homepage = homepage;
+         this.created_time = created_time;
+         this.modified_time = modified_time;
+         this.indexed_modified_time = indexed_modified_time;
+         this.view_count = view_count;
+         this.like_count = like_count;
+         this.review_count = review_count;
+         this.rating_avg = rating_avg;
+         this.is_visible = is_visible;
+      }
+
 
 	public Long getContent_id() {
 		return content_id;
