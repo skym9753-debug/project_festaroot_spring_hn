@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="tourPortal">
+
+    <delete id="deleteStaging">
+        DELETE FROM STG_REGION_TOUR_PORTAL
+    </delete>
+
+    <insert id="insertStaging" parameterType="map">
+        INSERT INTO STG_REGION_TOUR_PORTAL (
+            SOURCE_ID,
+            REGION_CODE,
+            SIGUNGU_CODE,
+            TOURISM_PORTAL_URL,
+            RAW_CREATED_AT
+        ) VALUES (
+            #{sourceId},
+            #{regionCode},
+            #{sigunguCode},
+            #{tourismPortalUrl},
+            SYSTIMESTAMP
+        )
+    </insert>
+
+    <update id="updateRegionMaster">
+        MERGE INTO REGION_MASTER R
+        USING (
+            SELECT
+                TRIM(REGION_CODE) AS REGION_CODE,
+                TRIM(SIGUNGU_CODE) AS SIGUNGU_CODE,
+                MAX(TOURISM_PORTAL_URL) AS TOURISM_PORTAL_URL
+            FROM STG_REGION_TOUR_PORTAL
+            WHERE TOURISM_PORTAL_URL IS NOT NULL
+            GROUP BY
+                TRIM(REGION_CODE),
+                TRIM(SIGUNGU_CODE)
+        ) S
+        ON (
+            TRIM(CAST(R.REGION_CODE AS VARCHAR2(20))) = S.REGION_CODE
+            AND TRIM(CAST(R.SIGUNGU_CODE AS VARCHAR2(20))) = S.SIGUNGU_CODE
+        )
+        WHEN MATCHED THEN UPDATE SET
+            R.TOURISM_PORTAL_URL = S.TOURISM_PORTAL_URL,
+            R.TOURISM_PORTAL_SYNCED_AT = SYSTIMESTAMP
+    </update>
+
+</mapper>
