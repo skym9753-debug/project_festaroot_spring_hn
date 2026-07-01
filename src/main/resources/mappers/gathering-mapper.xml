@@ -76,7 +76,7 @@
 						<otherwise>0</otherwise>
 					</choose> AS "is_joined"
 				FROM chat_room cr
-				LEFT JOIN member m ON cr.owner_id = m.member_id 
+				LEFT JOIN member m ON cr.owner_id = m.member_id
 				WHERE cr.room_type = 'GROUP'
 				  AND NVL(cr.status, 'ACTIVE') = 'ACTIVE'
 				<if test="keyword != null and keyword != ''">
@@ -116,7 +116,11 @@
 				NVL(cr.max_capacity, 500) AS max_capacity,
 				cr.created_at,
 				m.nickname,
-				m.profile_image_url, NVL(cr.room_image, fi.first_image) AS room_image,
+				m.profile_image_url, 
+				CASE 
+				    WHEN cr.room_type = 'FESTIVAL' THEN NVL(cr.room_image, fi.first_image)
+				    ELSE cr.room_image 
+				END AS room_image,
 				(SELECT COUNT(*) FROM chat_room_user cru WHERE cru.room_id = cr.room_id) AS current_count
 				FROM chat_room cr
 				LEFT JOIN member m ON cr.owner_id = m.member_id
@@ -329,7 +333,10 @@
 					    SUBSTR(fi.event_start_date, 1, 4) || '.' || SUBSTR(fi.event_start_date, 5, 2) || '.' || SUBSTR(fi.event_start_date, 7, 2) || ' ~ ' || 
 					    SUBSTR(fi.event_end_date, 1, 4) || '.' || SUBSTR(fi.event_end_date, 5, 2) || '.' || SUBSTR(fi.event_end_date, 7, 2)) AS "free_date",
 					cr.max_capacity AS "max_capacity",
-					NVL(cr.room_image, fi.first_image) AS "room_image", 
+					CASE 
+					    WHEN cr.room_type = 'FESTIVAL' THEN NVL(cr.room_image, fi.first_image)
+					    ELSE cr.room_image 
+					END AS "room_image", 
 					TO_CHAR(cru.joined_at, 'YYYY-MM-DD HH24:MI:SS') AS "joined_at",
 					(SELECT COUNT(*) FROM chat_room_user sub_cru WHERE sub_cru.room_id = cr.room_id) AS "current_count"
 				FROM chat_room cr
@@ -392,7 +399,10 @@
 	            NVL(cr.FREE_DATE, TO_DATE(fi.EVENT_START_DATE, 'YYYYMMDD')) as "freeDate",
 	            TO_DATE(fi.EVENT_END_DATE, 'YYYYMMDD') as "endDate",
 	            cr.MAX_CAPACITY as "maxCapacity",
-	            NVL(cr.ROOM_IMAGE, fi.FIRST_IMAGE) as "roomImage",
+	            CASE 
+	                WHEN cr.ROOM_TYPE = 'FESTIVAL' THEN NVL(cr.ROOM_IMAGE, fi.FIRST_IMAGE)
+	                ELSE cr.ROOM_IMAGE 
+	            END as "roomImage",
 	            (SELECT COUNT(*) FROM CHAT_ROOM_USER cru WHERE cru.ROOM_ID = cr.ROOM_ID) AS "participants"
 	        FROM CHAT_ROOM cr
 	        LEFT JOIN FESTIVAL_INFO fi ON cr.FESTIVAL_ID = fi.CONTENT_ID
