@@ -139,4 +139,11 @@ public class AdminGatheringController {
 		}
 	}
 
+	// 8. 신고 누적 집중 모니터링 모임 조회 (3회 이상)
+	@GetMapping("/caution")
+	public ResponseEntity<List<Map<String, Object>>> getCautionGatherings() {
+		List<Map<String, Object>> list = gatheringService.getCautionGatherings();
+		return ResponseEntity.ok(list);
+	}
+
 }

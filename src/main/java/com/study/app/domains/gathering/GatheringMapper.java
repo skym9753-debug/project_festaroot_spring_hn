@@ -92,6 +92,12 @@ public interface GatheringMapper {
 	
 	int deleteParticipantFromAllRooms(@Param("member_id") String memberId);
 	
+	int deleteBansByOwner(@Param("owner_id") String ownerId);
+	int deleteReportsByOwner(@Param("owner_id") String ownerId);
+	int deleteParticipantsByOwner(@Param("owner_id") String ownerId);
+	int deleteGatheringsByOwner(@Param("owner_id") String ownerId);
+	int deleteBansByMember(@Param("member_id") String memberId);
+	
 	// 모임 신고 등록
 	int insertReport(@Param("room_id") Long roomId, @Param("reporter_id") String reporterId, @Param("report_reason") String reportReason);
 
@@ -131,5 +137,8 @@ public interface GatheringMapper {
 
 	// 개별 신고 삭제
 	int deleteReportById(@Param("reportId") Long reportId);
+
+	// 신고 누적 집중 모니터링 모임 조회 (3회 이상)
+	List<Map<String, Object>> selectCautionGatherings();
 
 }

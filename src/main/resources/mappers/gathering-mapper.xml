@@ -207,6 +207,31 @@
 	    WHERE member_id = #{member_id}
 	</delete>
 
+	<delete id="deleteBansByOwner">
+	    DELETE FROM CHAT_ROOM_BAN 
+	    WHERE room_id IN (SELECT room_id FROM CHAT_ROOM WHERE owner_id = #{owner_id})
+	</delete>
+
+	<delete id="deleteReportsByOwner">
+	    DELETE FROM CHAT_REPORT 
+	    WHERE room_id IN (SELECT room_id FROM CHAT_ROOM WHERE owner_id = #{owner_id})
+	</delete>
+
+	<delete id="deleteParticipantsByOwner">
+	    DELETE FROM CHAT_ROOM_USER 
+	    WHERE room_id IN (SELECT room_id FROM CHAT_ROOM WHERE owner_id = #{owner_id})
+	</delete>
+
+	<delete id="deleteGatheringsByOwner">
+	    DELETE FROM CHAT_ROOM 
+	    WHERE owner_id = #{owner_id}
+	</delete>
+
+	<delete id="deleteBansByMember">
+	    DELETE FROM CHAT_ROOM_BAN
+	    WHERE member_id = #{member_id}
+	</delete>
+
 	<select id="getRoomCapacityInfo" resultType="map">
 		SELECT
 		max_capacity AS "MAX_CAPACITY",
@@ -571,5 +596,34 @@
 		DELETE FROM CHAT_REPORT
 		WHERE REPORT_ID = #{reportId}
 	</delete>
+
+	<!-- 신고 누적 집중 모니터링 모임 조회 (3회 이상) -->
+	<select id="selectCautionGatherings" resultType="map">
+		SELECT 
+			cr.ROOM_ID AS "id",
+			NVL(cr.ROOM_TITLE, fi.TITLE || ' 공식 모임') AS "title",
+			NVL(m.NICKNAME, '공식') AS "hostNickname",
+			cr.ROOM_TYPE AS "roomType",
+			CASE WHEN cr.ROOM_TYPE = 'GROUP' THEN '자유모임' ELSE '축제모임' END AS "category",
+			(SELECT COUNT(*) FROM CHAT_REPORT WHERE ROOM_ID = cr.ROOM_ID) AS "reports",
+			cr.STATUS AS "status",
+			TO_CHAR(cr.CREATED_AT, 'YYYY.MM.DD') AS "createdAt",
+			(
+				SELECT LISTAGG(REPORT_REASON, ', ') WITHIN GROUP (ORDER BY CREATED_AT DESC)
+				FROM CHAT_REPORT
+				WHERE ROOM_ID = cr.ROOM_ID
+			) AS "reportReason",
+			(
+				SELECT MAX(ADMIN_MEMO)
+				FROM MEMBER_REPORT_HISTORY
+				WHERE TARGET_ID = cr.ROOM_ID
+				  AND REPORT_TYPE = 'CHAT'
+			) AS "adminMemo"
+		FROM CHAT_ROOM cr
+		LEFT JOIN MEMBER m ON cr.OWNER_ID = m.MEMBER_ID
+		LEFT JOIN FESTIVAL_INFO fi ON cr.FESTIVAL_ID = fi.CONTENT_ID
+		WHERE (SELECT COUNT(*) FROM CHAT_REPORT WHERE ROOM_ID = cr.ROOM_ID) &gt;= 3
+		ORDER BY "reports" DESC, cr.CREATED_AT DESC
+	</select>
 
 </mapper>
