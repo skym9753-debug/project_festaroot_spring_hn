@@ -67,6 +67,7 @@
 	    SELECT
 	        cr.room_id AS "room_id",
 	        cr.room_type AS "room_type",
+	        cr.status AS "status",
 	
 	        CASE
 	            WHEN cr.room_type = 'DIRECT' THEN (
