@@ -69,14 +69,21 @@ public class FestivalDTO {
     // 테마 정보
     private List<ThemeMasterDTO> themes;
     
-    public FestivalDTO() {}
+    // 인구감소지역
+    private String is_population_decline_yn;
     
+    // 지역 관광 포탈
+    private String tourism_portal_url;
+    
+    public FestivalDTO() {}
+
 	public FestivalDTO(Long content_id, String title, String addr1, String addr2, String region_code,
 			String sigungu_code, String first_image, String first_image2, Double map_x, Double map_y, Integer map_level,
 			String event_start_date, String event_end_date, String overview, String spon_place,
 			String use_time_festival, String sponsor1_tel, String homepage, String created_time, String modified_time,
 			String indexed_modified_time, Long view_count, Long like_count, Long review_count, Double rating_avg,
-			String is_visible) {
+			Long save_count, Double avg_rating, String is_visible, List<ThemeMasterDTO> themes,
+			String is_population_decline_yn, String tourism_portal_url) {
 		super();
 		this.content_id = content_id;
 		this.title = title;
@@ -103,15 +110,12 @@ public class FestivalDTO {
 		this.like_count = like_count;
 		this.review_count = review_count;
 		this.rating_avg = rating_avg;
+		this.save_count = save_count;
+		this.avg_rating = avg_rating;
 		this.is_visible = is_visible;
-	}
-
-	public String getIs_visible() {
-		return is_visible;
-	}
-
-	public void setIs_visible(String is_visible) {
-		this.is_visible = is_visible;
+		this.themes = themes;
+		this.is_population_decline_yn = is_population_decline_yn;
+		this.tourism_portal_url = tourism_portal_url;
 	}
 
 	public Long getContent_id() {
@@ -314,14 +318,6 @@ public class FestivalDTO {
 		this.rating_avg = rating_avg;
 	}
 
-	public List<ThemeMasterDTO> getThemes() {
-		return themes;
-	}
-
-	public void setThemes(List<ThemeMasterDTO> themes) {
-		this.themes = themes;
-	}
-
 	public Long getSave_count() {
 		return save_count;
 	}
@@ -338,6 +334,38 @@ public class FestivalDTO {
 		this.avg_rating = avg_rating;
 	}
 
+	public String getIs_visible() {
+		return is_visible;
+	}
+
+	public void setIs_visible(String is_visible) {
+		this.is_visible = is_visible;
+	}
+
+	public List<ThemeMasterDTO> getThemes() {
+		return themes;
+	}
+
+	public void setThemes(List<ThemeMasterDTO> themes) {
+		this.themes = themes;
+	}
+
+	public String getIs_population_decline_yn() {
+		return is_population_decline_yn;
+	}
+
+	public void setIs_population_decline_yn(String is_population_decline_yn) {
+		this.is_population_decline_yn = is_population_decline_yn;
+	}
+
+	public String getTourism_portal_url() {
+		return tourism_portal_url;
+	}
+
+	public void setTourism_portal_url(String tourism_portal_url) {
+		this.tourism_portal_url = tourism_portal_url;
+	}
+    
 
     
     

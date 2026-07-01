@@ -218,6 +218,7 @@ public class FestivalController {
 			dto.setHomepage(extractHomepageUrl(dto.getHomepage()));
 		}
 		
+		System.out.println("포털" + dto.getTourism_portal_url());
 		return ResponseEntity.ok(dto);
 	}
 

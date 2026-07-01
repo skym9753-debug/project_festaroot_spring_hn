@@ -25,26 +25,76 @@
         )
     </insert>
 
-    <update id="updateRegionMaster">
-        MERGE INTO REGION_MASTER R
-        USING (
+<update id="updateRegionMaster">
+    MERGE INTO REGION_MASTER R
+    USING (
+        SELECT
+            REGION_NAME,
+            SIGUNGU_NAME,
+            MAX(TOURISM_PORTAL_URL) AS TOURISM_PORTAL_URL
+        FROM (
             SELECT
-                TRIM(REGION_CODE) AS REGION_CODE,
-                TRIM(SIGUNGU_CODE) AS SIGUNGU_CODE,
-                MAX(TOURISM_PORTAL_URL) AS TOURISM_PORTAL_URL
+                CASE TRIM(REGION_CODE)
+                    WHEN '서울' THEN '서울특별시'
+                    WHEN '부산' THEN '부산광역시'
+                    WHEN '대구' THEN '대구광역시'
+                    WHEN '인천' THEN '인천광역시'
+                    WHEN '광주' THEN '광주광역시'
+                    WHEN '대전' THEN '대전광역시'
+                    WHEN '울산' THEN '울산광역시'
+                    WHEN '세종시' THEN '세종특별자치시'
+                    WHEN '강원도' THEN '강원특별자치도'
+                    WHEN '전라북도' THEN '전북특별자치도'
+                    WHEN '제주도' THEN '제주특별자치도'
+                    ELSE TRIM(REGION_CODE)
+                END AS REGION_NAME,
+
+                CASE
+                    WHEN TRIM(REGION_CODE) = '세종시'
+                     AND TRIM(SIGUNGU_CODE) = '세종시'
+                        THEN '세종특별자치시'
+
+                    WHEN TRIM(REGION_CODE) = '인천'
+                     AND TRIM(SIGUNGU_CODE) = '옹진구'
+                        THEN '옹진군'
+
+                    WHEN TRIM(REGION_CODE) = '광주'
+                     AND TRIM(SIGUNGU_CODE) = '잠구'
+                        THEN '남구'
+
+                    WHEN TRIM(REGION_CODE) = '충청북도'
+                     AND TRIM(SIGUNGU_CODE) = '진천시'
+                        THEN '진천군'
+
+                    WHEN TRIM(REGION_CODE) = '경상북도'
+                     AND TRIM(SIGUNGU_CODE) = '포하이'
+                        THEN '포항시'
+
+                    WHEN TRIM(REGION_CODE) = '전라북도'
+                     AND TRIM(SIGUNGU_CODE) = '전줏'
+                        THEN '전주시'
+
+                    ELSE TRIM(SIGUNGU_CODE)
+                END AS SIGUNGU_NAME,
+
+                TOURISM_PORTAL_URL
             FROM STG_REGION_TOUR_PORTAL
             WHERE TOURISM_PORTAL_URL IS NOT NULL
-            GROUP BY
-                TRIM(REGION_CODE),
-                TRIM(SIGUNGU_CODE)
-        ) S
-        ON (
-            TRIM(CAST(R.REGION_CODE AS VARCHAR2(20))) = S.REGION_CODE
-            AND TRIM(CAST(R.SIGUNGU_CODE AS VARCHAR2(20))) = S.SIGUNGU_CODE
+              AND NOT (
+                  TRIM(REGION_CODE) = TRIM(SIGUNGU_CODE)
+                  AND TRIM(REGION_CODE) != '세종시'
+              )
         )
-        WHEN MATCHED THEN UPDATE SET
-            R.TOURISM_PORTAL_URL = S.TOURISM_PORTAL_URL,
-            R.TOURISM_PORTAL_SYNCED_AT = SYSTIMESTAMP
-    </update>
-
+        GROUP BY
+            REGION_NAME,
+            SIGUNGU_NAME
+    ) S
+    ON (
+        TRIM(R.REGION_NAME) = S.REGION_NAME
+        AND TRIM(R.SIGUNGU_NAME) = S.SIGUNGU_NAME
+    )
+    WHEN MATCHED THEN UPDATE SET
+        R.TOURISM_PORTAL_URL = S.TOURISM_PORTAL_URL,
+        R.TOURISM_PORTAL_SYNCED_AT = SYSTIMESTAMP
+</update>
 </mapper>
