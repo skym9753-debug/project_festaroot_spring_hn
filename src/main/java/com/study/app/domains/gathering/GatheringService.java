@@ -438,4 +438,9 @@ public class GatheringService {
 		}
 	}
 
+	// 신고 누적 집중 모니터링 모임 조회 (3회 이상)
+	public List<Map<String, Object>> getCautionGatherings() {
+		return gatheringMapper.selectCautionGatherings();
+	}
+
 }

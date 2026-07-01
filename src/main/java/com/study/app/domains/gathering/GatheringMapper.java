@@ -132,4 +132,7 @@ public interface GatheringMapper {
 	// 개별 신고 삭제
 	int deleteReportById(@Param("reportId") Long reportId);
 
+	// 신고 누적 집중 모니터링 모임 조회 (3회 이상)
+	List<Map<String, Object>> selectCautionGatherings();
+
 }
