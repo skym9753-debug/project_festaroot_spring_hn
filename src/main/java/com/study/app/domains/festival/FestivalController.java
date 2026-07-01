@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.study.app.domains.festival.dto.EventPlaceDTO;
-import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
@@ -40,6 +38,9 @@ public class FestivalController {
 
 	@Autowired
 	private RegionMasterService regionMasterService;
+	
+    @Autowired
+    private TourPortalService tourPortalService;
 	
 	@GetMapping("/map")
 	public ResponseEntity<List<FestivalDTO>> getAllFestival() {
@@ -217,6 +218,7 @@ public class FestivalController {
 			dto.setHomepage(extractHomepageUrl(dto.getHomepage()));
 		}
 		
+		System.out.println("포털" + dto.getTourism_portal_url());
 		return ResponseEntity.ok(dto);
 	}
 
@@ -298,6 +300,19 @@ public class FestivalController {
 			}
 			return ResponseEntity.ok(result);
 		}
+		
+		@PostMapping("/tour-portal/sync")
+		public ResponseEntity<String> syncTourPortal() {
+		    try {
+		        String result = tourPortalService.syncTourPortal();
+		        return ResponseEntity.ok(result);
+		    } catch (Exception e) {
+		        System.err.println("[컨트롤러 에러] 관광포털 동기화 중 예외 발생 : " + e.getMessage());
 
+		        return ResponseEntity
+		                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+		                .body("관광포털 동기화 실패 : " + e.getMessage());
+		    }
+		}
 }
 
