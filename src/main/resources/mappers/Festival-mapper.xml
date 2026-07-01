@@ -205,91 +205,106 @@
     </select>
 
 	<!--축제 찾기 검색 조건-->
-	<select id="selectByOptions"
-            parameterType="com.study.app.domains.festival.dto.FestivalSearchDTO"
-            resultMap="festivalWithThemesMap">
+<select id="selectByOptions"
+        parameterType="com.study.app.domains.festival.dto.FestivalSearchDTO"
+        resultMap="festivalWithThemesMap">
 
-        <bind name="startRow" value="(page - 1) * size + 1" />
-        <bind name="endRow" value="page * size" />
+    <bind name="startRow" value="(page - 1) * size + 1" />
+    <bind name="endRow" value="page * size" />
 
-        SELECT 
-            final_res.*,
-            (SELECT NVL(ROUND(AVG(rating), 1), 0) 
-             FROM festival_review 
-             WHERE content_id = final_res.content_id AND NVL(is_deleted, 'N') = 'N') AS avg_rating,
-            tm.theme_code,
-            tm.theme_name
-        FROM (
-            SELECT * FROM (
-                SELECT ROWNUM AS rnum, res.* FROM (
-                    
-                    SELECT f.*
-                    FROM festival_info f
-                    <where>
-                        AND NVL(is_visible, 'Y') = 'Y'
-                        <if test="keyword != null and keyword != ''">
-                            <choose>
-                                <when test="searchScope == 'all'">
-                                    AND (
-                                        f.title LIKE '%' || #{keyword} || '%' 
-                                        OR 
-                                        (f.overview IS NOT NULL AND f.overview LIKE '%' || #{keyword} || '%')
-                                    )
-                                </when>
-                                <otherwise>
-                                    AND f.title LIKE '%' || #{keyword} || '%'
-                                </otherwise>
-                            </choose>
-                        </if>
-                        <if test="region_code != null and region_code != ''">
-                            AND f.region_code = #{region_code}
-                        </if>
-                        <if test="sigungu_code != null and sigungu_code != ''">
-                            AND f.sigungu_code = #{sigungu_code}
-                        </if>
-                        <if test="event_start_date != null and event_start_date != ''">
-                            AND f.event_start_date &gt;= #{event_start_date}
-                        </if>
-                        <if test="event_end_date != null and event_end_date != ''">
-                            AND f.event_end_date &lt;= #{event_end_date}
-                        </if>
-                        <if test="ongoingOnly != null and ongoingOnly == true">
-                            AND REPLACE(f.event_end_date, '-', '') &gt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
-                        </if>
-                    </where>
-                    
-                    <choose>
-                        <when test="sort == 'views'">
-                            ORDER BY f.view_count DESC
-                        </when>
-                        <when test="sort == 'popular'">
-                            ORDER BY (NVL(f.like_count, 0) + (NVL(f.rating_avg, 0) * 10)) DESC, 
-                                     NVL(f.like_count, 0) DESC, 
-                                     f.created_time DESC
-                        </when>
-                        <when test="sort == 'date'">
-                            ORDER BY f.event_start_date ASC
-                        </when>
-                        <when test="sort == 'recentStart'">
-                            ORDER BY f.event_start_date ASC, f.created_time DESC
-                        </when>
-                        <when test="sort == 'title'">
-                            ORDER BY f.title ASC
-                        </when>
-                        <otherwise>
-                            ORDER BY f.created_time DESC
-                        </otherwise>
-                    </choose>
-                    
-                ) res
-                WHERE ROWNUM &lt;= #{endRow}
-            )
-            WHERE rnum &gt;= #{startRow}
-        ) final_res
-        LEFT JOIN festival_themes ft ON final_res.content_id = ft.content_id
-        LEFT JOIN theme_master tm ON ft.theme_code = tm.theme_code
-        ORDER BY final_res.rnum ASC
-    </select>
+    SELECT 
+        final_res.*,
+        (SELECT NVL(ROUND(AVG(rating), 1), 0) 
+         FROM festival_review 
+         WHERE content_id = final_res.content_id 
+           AND NVL(is_deleted, 'N') = 'N') AS avg_rating,
+        tm.theme_code,
+        tm.theme_name
+    FROM (
+        SELECT * FROM (
+            SELECT ROWNUM AS rnum, res.* 
+            FROM (
+                SELECT 
+                    f.*,
+                    r.is_population_decline_yn AS is_population_decline_yn,
+                    r.tourism_portal_url AS tourism_portal_url
+                FROM festival_info f
+                LEFT JOIN region_master r
+                    ON TRIM(TO_CHAR(f.region_code)) = TRIM(TO_CHAR(r.region_code))
+                   AND TRIM(TO_CHAR(f.sigungu_code)) = TRIM(TO_CHAR(r.sigungu_code))
+                <where>
+                    AND NVL(f.is_visible, 'Y') = 'Y'
+
+                    <if test="keyword != null and keyword != ''">
+                        <choose>
+                            <when test="searchScope == 'all'">
+                                AND (
+                                    f.title LIKE '%' || #{keyword} || '%' 
+                                    OR 
+                                    (f.overview IS NOT NULL AND f.overview LIKE '%' || #{keyword} || '%')
+                                )
+                            </when>
+                            <otherwise>
+                                AND f.title LIKE '%' || #{keyword} || '%'
+                            </otherwise>
+                        </choose>
+                    </if>
+
+                    <if test="region_code != null and region_code != ''">
+                        AND f.region_code = #{region_code}
+                    </if>
+
+                    <if test="sigungu_code != null and sigungu_code != ''">
+                        AND f.sigungu_code = #{sigungu_code}
+                    </if>
+
+                    <if test="event_start_date != null and event_start_date != ''">
+                        AND f.event_start_date &gt;= #{event_start_date}
+                    </if>
+
+                    <if test="event_end_date != null and event_end_date != ''">
+                        AND f.event_end_date &lt;= #{event_end_date}
+                    </if>
+
+                    <if test="ongoingOnly != null and ongoingOnly == true">
+                        AND REPLACE(f.event_end_date, '-', '') &gt;= TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    </if>
+                </where>
+
+                <choose>
+                    <when test="sort == 'views'">
+                        ORDER BY f.view_count DESC
+                    </when>
+                    <when test="sort == 'popular'">
+                        ORDER BY (NVL(f.like_count, 0) + (NVL(f.rating_avg, 0) * 10)) DESC, 
+                                 NVL(f.like_count, 0) DESC, 
+                                 f.created_time DESC
+                    </when>
+                    <when test="sort == 'date'">
+                        ORDER BY f.event_start_date ASC
+                    </when>
+                    <when test="sort == 'recentStart'">
+                        ORDER BY f.event_start_date ASC, f.created_time DESC
+                    </when>
+                    <when test="sort == 'title'">
+                        ORDER BY f.title ASC
+                    </when>
+                    <otherwise>
+                        ORDER BY f.created_time DESC
+                    </otherwise>
+                </choose>
+            ) res
+            WHERE ROWNUM &lt;= #{endRow}
+        )
+        WHERE rnum &gt;= #{startRow}
+    ) final_res
+    LEFT JOIN festival_themes ft 
+        ON final_res.content_id = ft.content_id
+    LEFT JOIN theme_master tm 
+        ON ft.theme_code = tm.theme_code
+    ORDER BY final_res.rnum ASC
+</select>
+
 
 	<!--축제 찾기 네비게이터 카운트-->
     <select id="getSearchFestivalCount"
