@@ -9,19 +9,21 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TourPortalDAO {
 	
+    private static final String NAMESPACE = "tourPortal.";
+
     @Autowired
     private SqlSessionTemplate mybatis;
 
     public void deleteStaging() {
-        mybatis.delete("tourPortal.deleteStaging");
+        mybatis.delete(NAMESPACE + "deleteStaging");
     }
 
     public int insertStaging(Map<String, Object> param) {
-        return mybatis.insert("tourPortal.insertStaging", param);
+        return mybatis.insert(NAMESPACE + "insertStaging", param);
     }
 
     public int updateRegionMaster() {
-        return mybatis.update("tourPortal.updateRegionMaster");
+        return mybatis.update(NAMESPACE + "updateRegionMaster");
     }
 
 }

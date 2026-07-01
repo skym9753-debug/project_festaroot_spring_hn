@@ -47,24 +47,7 @@ public class TourPortalService {
         int savedCount = 0;
 
         while (true) {
-        	String url = apiUrl
-        	        + "?page=" + page
-        	        + "&perPage=" + perPage;
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("accept", "application/json");
-            headers.set("Authorization", "Infuser " + apiKey);
-
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    String.class
-            );
-
-            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode root = fetchPage(page);
             JsonNode data = root.path("data");
 
             if (!data.isArray() || data.size() == 0) {
@@ -75,7 +58,9 @@ public class TourPortalService {
                 String sourceId = text(item, "고유 아이디");
                 String regionCode = text(item, "지역코드");
                 String sigunguCode = text(item, "시구군코드");
-                String tourismPortalUrl = normalizeUrl(text(item, "지역별 문화관광 홈페이지 주소"));
+                String tourismPortalUrl = normalizeUrl(
+                        text(item, "지역별 문화관광 홈페이지 주소")
+                );
 
                 if (isBlank(sourceId) || isBlank(regionCode) || isBlank(sigunguCode)) {
                     continue;
@@ -104,13 +89,62 @@ public class TourPortalService {
         int updatedCount = tourPortalDAO.updateRegionMaster();
 
         return "API 조회 " + fetchedCount
-                + "건, STG 저장 " + savedCount
-                + "건, REGION_MASTER 반영 " + updatedCount + "건";
+                + "건 / STG 저장 " + savedCount
+                + "건 / REGION_MASTER 반영 " + updatedCount + "건";
+    }
+
+    private JsonNode fetchPage(int page) throws Exception {
+        String url = UriComponentsBuilder
+                .fromUriString(apiUrl)
+                .queryParam("page", page)
+                .queryParam("perPage", perPage)
+                .build(false)
+                .toUriString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("accept", "application/json");
+        headers.set("Authorization", buildAuthorizationHeader());
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("관광포털 API 호출 실패: " + response.getStatusCode());
+        }
+
+        String body = response.getBody();
+
+        if (body == null || body.isBlank()) {
+            throw new IllegalStateException("관광포털 API 응답이 비어 있습니다.");
+        }
+
+        return objectMapper.readTree(body);
+    }
+
+    private String buildAuthorizationHeader() {
+        String key = apiKey == null ? "" : apiKey.trim();
+
+        if (key.startsWith("Infuser ")) {
+            return key;
+        }
+
+        return "Infuser " + key;
     }
 
     private String text(JsonNode node, String fieldName) {
         JsonNode value = node.get(fieldName);
-        return value == null || value.isNull() ? null : value.asText().trim();
+
+        if (value == null || value.isNull()) {
+            return null;
+        }
+
+        return value.asText().trim();
     }
 
     private String normalizeUrl(String url) {
@@ -130,5 +164,4 @@ public class TourPortalService {
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
     }
-
 }
