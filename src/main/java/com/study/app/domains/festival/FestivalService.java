@@ -11,6 +11,10 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -22,7 +26,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.app.domains.festival.dto.CommonDetailDTO;
 import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
-import com.study.app.domains.festival.dto.FestivalLikeDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
 import com.study.app.domains.festival.dto.FoodPlaceDTO;
 import com.study.app.domains.festival.dto.NearbyPlaceDTO;
@@ -43,6 +46,13 @@ public class FestivalService {
 
 	@Value("${kto.service.key}")
 	private String serviceKey;
+	
+	// 지역별문화관광포털목록
+    @Value("${tour.portal.api.url}")
+    private String apiUrl;
+    
+    @Value("${tour.portal.api.per-page:100}")
+    private int perPage;
 	
 	public List<FestivalDTO> getAllFestival() {
 		return fdao.getAllFestival();
@@ -782,7 +792,7 @@ public class FestivalService {
 		return fdao.getFestivalLikeCount(contentId);
 	}
 	
-
+	
 
 
 }

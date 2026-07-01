@@ -36,6 +36,13 @@ public class FestDetailDTO {
     private Long review_count;
     private Double rating_avg;
     
+    // 인구감소지역
+    private String is_population_decline_yn;
+    
+    // 지역 관광 포탈
+    private String tourism_portal_url;
+    
+    
     private List<ThemeMasterDTO> themes;
 
     public FestDetailDTO() {}
@@ -44,7 +51,8 @@ public class FestDetailDTO {
 			String sigungu_code, String first_image, String first_image2, Double map_x, Double map_y, Integer map_level,
 			String event_start_date, String event_end_date, String overview, String spon_place,
 			String use_time_festival, String sponsor1_tel, String homepage, String created_time, String modified_time,
-			Long view_count, Long like_count, Long review_count, Double rating_avg) {
+			Long view_count, Long like_count, Long review_count, Double rating_avg, String is_population_decline_yn,
+			String tourism_portal_url, List<ThemeMasterDTO> themes) {
 		super();
 		this.content_id = content_id;
 		this.title = title;
@@ -70,6 +78,9 @@ public class FestDetailDTO {
 		this.like_count = like_count;
 		this.review_count = review_count;
 		this.rating_avg = rating_avg;
+		this.is_population_decline_yn = is_population_decline_yn;
+		this.tourism_portal_url = tourism_portal_url;
+		this.themes = themes;
 	}
 
 	public Long getContent_id() {
@@ -264,15 +275,33 @@ public class FestDetailDTO {
 		this.rating_avg = rating_avg;
 	}
 
-	public java.util.List<com.study.app.domains.theme.ThemeMasterDTO> getThemes() {
+	public String getIs_population_decline_yn() {
+		return is_population_decline_yn;
+	}
+
+	public void setIs_population_decline_yn(String is_population_decline_yn) {
+		this.is_population_decline_yn = is_population_decline_yn;
+	}
+
+	public String getTourism_portal_url() {
+		return tourism_portal_url;
+	}
+
+	public void setTourism_portal_url(String tourism_portal_url) {
+		this.tourism_portal_url = tourism_portal_url;
+	}
+
+	public List<ThemeMasterDTO> getThemes() {
 		return themes;
 	}
 
-	public void setThemes(java.util.List<com.study.app.domains.theme.ThemeMasterDTO> themes) {
+	public void setThemes(List<ThemeMasterDTO> themes) {
 		this.themes = themes;
 	}
     
     
+
+
 	
 
 }
