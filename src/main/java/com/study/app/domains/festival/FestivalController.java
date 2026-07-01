@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.study.app.domains.festival.dto.EventPlaceDTO;
-import com.study.app.domains.festival.dto.FestDetailDTO;
 import com.study.app.domains.festival.dto.FestImageDTO;
 import com.study.app.domains.festival.dto.FestivalDTO;
 import com.study.app.domains.festival.dto.FestivalSearchDTO;
@@ -298,6 +298,15 @@ public class FestivalController {
 			}
 			return ResponseEntity.ok(result);
 		}
+		
+	    @Autowired
+	    private TourPortalService tourPortalService;
+
+	    @RequestMapping(value = "/sync", method = RequestMethod.POST)
+	    @ResponseBody
+	    public String syncTourPortal() throws Exception {
+	        return tourPortalService.syncTourPortal();
+	    }
 
 }
 
