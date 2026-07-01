@@ -92,6 +92,12 @@ public interface GatheringMapper {
 	
 	int deleteParticipantFromAllRooms(@Param("member_id") String memberId);
 	
+	int deleteBansByOwner(@Param("owner_id") String ownerId);
+	int deleteReportsByOwner(@Param("owner_id") String ownerId);
+	int deleteParticipantsByOwner(@Param("owner_id") String ownerId);
+	int deleteGatheringsByOwner(@Param("owner_id") String ownerId);
+	int deleteBansByMember(@Param("member_id") String memberId);
+	
 	// 모임 신고 등록
 	int insertReport(@Param("room_id") Long roomId, @Param("reporter_id") String reporterId, @Param("report_reason") String reportReason);
 

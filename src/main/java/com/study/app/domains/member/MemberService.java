@@ -451,14 +451,21 @@ public class MemberService {
 
 	@Transactional
 	public void withdrawMember(String member_id) {
-		// 탈퇴하는 회원이 참여 중인 모든 모임방/채팅방 관계 데이터 제거
+		// 1. 탈퇴하는 회원이 방장(owner)으로 개설한 모든 모임방 및 관련 데이터(밴, 신고, 참여유저) 영구 삭제
+		gatheringMapper.deleteBansByOwner(member_id);
+		gatheringMapper.deleteReportsByOwner(member_id);
+		gatheringMapper.deleteParticipantsByOwner(member_id);
+		gatheringMapper.deleteGatheringsByOwner(member_id);
+
+		// 2. 탈퇴하는 회원의 개별 밴 이력 및 참여 중인 모든 모임방/채팅방 관계 데이터 제거
+		gatheringMapper.deleteBansByMember(member_id);
 		gatheringMapper.deleteParticipantFromAllRooms(member_id);
 		
-		// 1. 관심 지역 및 테마 삭제 (선택 사항이나 개인정보 보호를 위해 권장)
+		// 3. 관심 지역 및 테마 삭제 (선택 사항이나 개인정보 보호를 위해 권장)
 		memberDAO.deleteInterestRegions(member_id);
 		memberDAO.deleteInterestThemes(member_id);
 
-		// 2. 회원 상태 변경 및 개인정보 마스킹 (Mapper에서 처리)
+		// 4. 회원 상태 변경 및 개인정보 마스킹 (Mapper에서 처리)
 		memberDAO.withdrawMember(member_id);
 	}
 

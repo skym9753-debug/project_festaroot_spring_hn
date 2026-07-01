@@ -207,6 +207,31 @@
 	    WHERE member_id = #{member_id}
 	</delete>
 
+	<delete id="deleteBansByOwner">
+	    DELETE FROM CHAT_ROOM_BAN 
+	    WHERE room_id IN (SELECT room_id FROM CHAT_ROOM WHERE owner_id = #{owner_id})
+	</delete>
+
+	<delete id="deleteReportsByOwner">
+	    DELETE FROM CHAT_REPORT 
+	    WHERE room_id IN (SELECT room_id FROM CHAT_ROOM WHERE owner_id = #{owner_id})
+	</delete>
+
+	<delete id="deleteParticipantsByOwner">
+	    DELETE FROM CHAT_ROOM_USER 
+	    WHERE room_id IN (SELECT room_id FROM CHAT_ROOM WHERE owner_id = #{owner_id})
+	</delete>
+
+	<delete id="deleteGatheringsByOwner">
+	    DELETE FROM CHAT_ROOM 
+	    WHERE owner_id = #{owner_id}
+	</delete>
+
+	<delete id="deleteBansByMember">
+	    DELETE FROM CHAT_ROOM_BAN
+	    WHERE member_id = #{member_id}
+	</delete>
+
 	<select id="getRoomCapacityInfo" resultType="map">
 		SELECT
 		max_capacity AS "MAX_CAPACITY",
